@@ -1,6 +1,6 @@
 {
   "name": "rainbowbot-core",
-  "version": "3.4.2",
+  "version": "3.4.3",
   "description": "RainbowBOT Core",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
