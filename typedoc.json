@@ -1,0 +1,8 @@
+{
+    "entryPointStrategy": "expand",
+    "entryPoints": [ "./src" ],
+    "out": "docs",
+    "name": "RainbowBOT Core",
+    "githubPages": false,
+    "theme": "default"
+}

@@ -17,9 +17,22 @@ import { initsequelize } from "./Database";
 const logger = GlobalLogger.root;
 
 export interface RainbowBOTOptions{
+    /**
+     * Discord.js ClientOptions (https://discord.js.org/#/docs/discord.js/stable/typedef/ClientOptions)
+     */
     clientOptions: Discord.ClientOptions;
+    /**
+     * Sequelize URI (https://sequelize.org/master/manual/getting-started.html#connecting-to-a-database)
+     * Supported sqlite or postgresql dialect
+     */
     sequelizeURI: string;
+    /**
+     * Discord Guild ID where slash commands appear in development mode
+     */
     masterGuildId: string;
+    /**
+     * Load modules' slash commands globally or only on Master Guild
+     */
     moduleGlobalLoading: boolean;
 }
 
