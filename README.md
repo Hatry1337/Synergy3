@@ -15,8 +15,7 @@ npm install rainbowbot-core
 This is the minimal Discord BOT built with RainbowBOT Core:
 ```ts
 import Discord from "discord.js";
-import { Module, RainbowBOT } from "rainbowbot-core";
-import { CoreModules } from "rainbowbot-core";
+import { Module, RainbowBOT, CoreModules, ModuleUUIDPair } from "rainbowbot-core";
 import MyModule from "./Modules/MyModule.ts"
 
 const modules: ModuleUUIDPair[] = [
