@@ -11,10 +11,11 @@ jobs:
   install-deps:
     runs-on: ubuntu-latest
     steps:
-      - run: if [ -e package-lock.json ]; then
-          npm ci
+      - run: |
+          if [ -e package-lock.json ]; then
+            npm ci
           else
-          npm i
+            npm i
           fi
 
   build:
