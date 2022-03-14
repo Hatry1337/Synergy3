@@ -1,6 +1,6 @@
 {
   "name": "rainbowbot-core",
-  "version": "3.4.4",
+  "version": "3.4.5",
   "description": "RainbowBOT Core",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -8,7 +8,8 @@
   "scripts": {
     "build": "tsc",
     "docs": "npx typedoc",
-    "prepublish": "npm run build"
+    "prepublish": "npm run build",
+    "test": "echo No tests specified."
   },
   "author": {
     "name": "Hatry1337"

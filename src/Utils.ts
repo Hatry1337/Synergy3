@@ -82,20 +82,20 @@ export class Utils{
         if (raw_data?.startsWith("<<@")) {
             return raw_data?.split(">")[1];
         } else if (raw_data?.startsWith("<@!")) {
-            raw_data = raw_data?.replace("<@!", "");
-            raw_data = raw_data?.replace(">", "");
+            raw_data = raw_data?.replace(/\<\@\!/g, "");
+            raw_data = raw_data?.replace(/\>/g, "");
             return raw_data;
         } else if (raw_data?.startsWith("<@&")) {
-            raw_data = raw_data?.replace("<@&", "");
-            raw_data = raw_data?.replace(">", "");
+            raw_data = raw_data?.replace(/\<\@\&/g, "");
+            raw_data = raw_data?.replace(/\>/g, "");
             return raw_data;
         }else if (raw_data?.startsWith("<@")) {
-            raw_data = raw_data?.replace("<@", "");
-            raw_data = raw_data?.replace(">", "");
+            raw_data = raw_data?.replace(/\<\@/g, "");
+            raw_data = raw_data?.replace(/\>/g, "");
             return raw_data;
         }else if (raw_data?.startsWith("<#")) {
-            raw_data = raw_data?.replace("<#", "");
-            raw_data = raw_data?.replace(">", "");
+            raw_data = raw_data?.replace(/\<\#/g, "");
+            raw_data = raw_data?.replace(/\>/g, "");
             return raw_data;
         } else {
             return raw_data;
