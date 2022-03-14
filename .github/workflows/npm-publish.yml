@@ -13,8 +13,6 @@ jobs:
     steps:
       - run: |
           ls
-          cd ..
-          ls
           if [ -e package-lock.json ]; then
             npm ci
           else
