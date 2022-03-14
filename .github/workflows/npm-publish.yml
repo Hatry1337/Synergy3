@@ -8,26 +8,19 @@ on:
     types: [created]
 
 jobs:
-  install-deps:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-      - run: |
-          if [ -e package-lock.json ]; then
-            npm ci
-          else
-            npm i
-          fi
-
   build:
-    needs: install-deps
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
           node-version: 16
+      - run: |
+          if [ -e package-lock.json ]; then
+            npm ci
+          else
+            npm i
+          fi
       - run: npm run build
       - run: npm run test
 
@@ -40,6 +33,13 @@ jobs:
         with:
           node-version: 16
           registry-url: https://registry.npmjs.org/
+      - run: |
+          if [ -e package-lock.json ]; then
+            npm ci
+          else
+            npm i
+          fi
+      - run: npm run build
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
