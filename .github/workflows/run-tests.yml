@@ -1,0 +1,30 @@
+# This workflow will run tests using node
+
+name: Run Tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 16
+      - run: |
+          if [ -e package-lock.json ]; then
+            npm ci
+          else
+            npm i
+          fi
+      - run: npm run build
+      - run: npm run test
+        env:
+          DISCORD_TOKEN: ${{secrets.discord_token}}
+          DATABASE_URI: ${{secrets.db_uri}}
+          MASTER_GUILD_ID: ${{secrets.master_guild}}
