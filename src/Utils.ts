@@ -1,51 +1,6 @@
 import Discord from "discord.js";
-import { SequelizeOptions } from "sequelize-typescript";
-import { Dialect } from "sequelize/types";
-import url from "url";
-import path from "path";
 
 export class Utils{
-    static parseSequelizeURI(uri: string){
-        let options: SequelizeOptions = {};
-        const urlParts = url.parse(arguments[0], true);
-        options.dialect = urlParts.protocol?.replace(/:$/, "") as Dialect;
-        options.host = urlParts.hostname as string;
-        if (options.dialect === "sqlite" && urlParts.pathname && !urlParts.pathname.startsWith("/:memory")) {
-            const storagePath = path.join(options.host, urlParts.pathname);
-            options.storage = path.resolve(options.storage || storagePath);
-        }
-        if (urlParts.pathname) {
-            options.database = urlParts.pathname.replace(/^\//, "");
-        }
-        if (urlParts.port) {
-            options.port = parseInt(urlParts.port);
-        }
-        if (urlParts.auth) {
-            const authParts = urlParts.auth.split(":");
-            options.username = authParts[0];
-            if (authParts.length > 1)
-            options.password = authParts.slice(1).join(":");
-        }
-        if (urlParts.query) {
-            if (urlParts.query.host) {
-                options.host = urlParts.query.host as string;
-            }
-            if (options.dialectOptions) {
-                Object.assign(options.dialectOptions, urlParts.query);
-            } else {
-                options.dialectOptions = urlParts.query;
-                if (urlParts.query.options) {
-                    try {
-                        const o = JSON.parse(urlParts.query?.options as string);
-                        options.dialectOptions = Object.assign({ options: o }, options.dialectOptions);
-                    } catch (e) {
-                    }
-                }
-            }
-        }
-        return options;
-    }
-
     static ErrMsg(message: string){
         var embd = new Discord.MessageEmbed({
             title: `${Emojis.RedErrorCross} ${message}`,
@@ -67,7 +22,9 @@ export class Utils{
      * Pads specified `number` to `count` zeros
      */
     static padz(count: number, number: number){
-        return String(number).padStart(count, '0');
+        let neg = number < 0;
+        if(neg) number = Math.abs(number);
+        return (neg ? "-" : "") + String(number).padStart(count, '0');
     }
 
     /**
@@ -79,7 +36,7 @@ export class Utils{
 
     static parseID(raw_data: string) {
         raw_data = raw_data?.toString();
-        if (raw_data?.startsWith("<<@")) {
+        if (raw_data?.startsWith("<<@")) {   //idk where to search for this tag, if you have one, please leave issue.
             return raw_data?.split(">")[1];
         } else if (raw_data?.startsWith("<@!")) {
             raw_data = raw_data?.replace(/\<\@\!/g, "");
@@ -107,22 +64,22 @@ export class Utils{
     }
 
     static valNum(num: number, from?: number, to?: number){
-        let flag = !num || isNaN(num) || !isFinite(num);
-        if(from){
-            flag = flag || num <= from;
+        if((!num && num !== 0) || isNaN(num) || !isFinite(num)) return false;
+        if(from || from === 0){
+            if(num < from) return false;
         }
-        if(to){
-            flag = flag || num >= to;
+        if(to || to === 0){
+            if(num > to) return false;
         }
-        return !flag || num === 0;
+        return true;
     }
 
     static extractDashParam(text: string, param: string){
-        var data;
-        var p_pos = text.indexOf(`--${param} `);
+        let data: string | undefined;
+        let p_pos = text.indexOf(`--${param}`);
         
         if(p_pos !== -1){
-            var dhpos = text.indexOf(" --", p_pos + param.length + 3);
+            let dhpos = text.indexOf(" --", p_pos + param.length + 3);
             if(dhpos !== -1){
                 data = text.slice(p_pos + param.length + 3, dhpos);
             }else{
