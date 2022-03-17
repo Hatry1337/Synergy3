@@ -1,16 +1,23 @@
 {
   "name": "rainbowbot-core",
-  "version": "3.5.1",
+  "version": "3.5.2",
   "description": "RainbowBOT Core",
   "license": "MIT",
   "author": {
     "name": "Hatry1337 (Thomas Sidereal)"
   },
   "repository": "https://github.com/Hatry1337/RainbowBOT-Core",
-  "bugs": { 
+  "bugs": {
     "url": "https://github.com/Hatry1337/RainbowBOT-Core/issues",
-    "email": "thomas@rainbowbot.xyz"  
+    "email": "thomas@rainbowbot.xyz"
   },
+  "keywords": [
+    "discord",
+    "discordjs",
+    "bot",
+    "core",
+    "rainbowbot"
+  ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
@@ -39,6 +46,7 @@
     "@types/node": "^15.14.9",
     "@types/sequelize": "^4.28.11",
     "@types/validator": "^13.7.1",
+    "dotenv": "^16.0.0",
     "jest": "^27.5.1",
     "ts-jest": "^27.1.3",
     "typedoc": "^0.22.13",

@@ -16,6 +16,8 @@ declare interface EventManager {
     on(event: 'VoiceChannelChange', listener: (channel_old: Discord.VoiceBasedChannel, channel_new: Discord.VoiceBasedChannel, member: Discord.GuildMember) => void): this;
     on(event: 'GuildMemberAdd',     listener: (guild: Guild, user: User, member: Discord.GuildMember) => void): this;
     on(event: 'GuildMemberAdd',     listener: (guild: Guild, user: User, member: Discord.GuildMember | Discord.PartialGuildMember) => void): this;
+    once(event: 'Initialized',      listener: () => void): this;
+    once(event: 'Exit',             listener: () => void): this;
 }
 
 class EventManager extends EventEmitter{
@@ -82,15 +84,18 @@ class EventManager extends EventEmitter{
         await this.bot.config.get("amogus", "sus"); // This is for underlying data container fetching (container is sus lmfao)
 
         let inic = await this.bot.modules.Init().catch(err => GlobalLogger.root.error("[Ready Event] Error intializing modules:", err));
-        if(!inic){
+        if(!inic && inic !== 0){
             logger.fatal("Fatal error occured. Can't load modules.");
         }else{
             logger.info(`Initialized ${inic} Module Initializers.`);
-            logger.info(`BOT Fully ready! Enjoy =)`);    
+            logger.info(`BOT Fully ready! Enjoy =)`);
+            this.bot.isReady = true;
+            this.emit("Initialized");
         }
     }
 
     private async onExit(){
+        this.emit("Exit");
         logger.info(`Accepted exit signal. Running graceful exit task.`);
         await this.bot.modules.UnloadAllModules();
         logger.info(`Commands unloaded. Stopping Database Updates.`);

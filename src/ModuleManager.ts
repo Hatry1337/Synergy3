@@ -44,7 +44,7 @@ export default class ModuleManager{
                     count++;
                 }
             }
-            await this.bot.UpdateSlashCommands(process.env.MASTER_GUILD).catch(reject);
+            await this.bot.UpdateSlashCommands(this.bot.masterGuildId).catch(reject);
             await this.bot.UpdateSlashCommands("global").catch(reject);
             return resolve(count);
         });

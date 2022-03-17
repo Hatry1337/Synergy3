@@ -48,6 +48,7 @@ export default class RainbowBOT{
     public client: Discord.Client;
     public rest: REST;
     public SlashCommands: Map<string, SlashCommandBuilder[]> = new Map();
+    public isReady: boolean = false;
 
     public masterGuildId: string;
     public moduleGlobalLoading: boolean;
@@ -87,20 +88,20 @@ export default class RainbowBOT{
                 data.push(c.toJSON());
             }
             if(guildId === "global"){
-                if(data.length === 0) return;
+                if(data.length === 0) return resolve();
                 await this.rest.put(
                     Routes.applicationCommands(this.client.application!.id),
                     { body: data },
                 ).catch(reject);
                 return resolve();
-            }else{
-                if(data.length === 0) return;
-                await this.rest.put(
-                    Routes.applicationGuildCommands(this.client.application!.id, guildId),
-                    { body: data },
-                ).catch(reject);
-                return resolve();
             }
+
+            if(data.length === 0) return resolve();;
+            await this.rest.put(
+                Routes.applicationGuildCommands(this.client.application!.id, guildId),
+                { body: data },
+            ).catch(reject);
+            return resolve();
         });
     }
 
