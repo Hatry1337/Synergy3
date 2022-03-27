@@ -1,9 +1,6 @@
-import Discord from "discord.js";
-import { SlashCommandBuilder } from "@discordjs/builders";
-
 import { ModuleLogger } from "../GlobalLogger";
-import ModuleManager from "../ModuleManager";
-import User from "../Structures/User";
+import { RainbowBOT } from "..";
+import { InteractiveCommand } from "../InteractionsManager";
 
 export default interface IModule{
     Name: string;
@@ -12,15 +9,12 @@ export default interface IModule{
     Category: string;
     Author: string;
     
-    SlashCommands: SlashCommandBuilder[];
     Logger: ModuleLogger;
+    SlashCommands:  InteractiveCommand[];
 
     InitPriority: number;
     Init?(): Promise<void>;
     UnLoad?(): Promise<void>;
 
-    Test(interaction: Discord.CommandInteraction, user: User): boolean;
-    Run(interaction: Discord.CommandInteraction, user: User): Promise<Discord.Message | void>;
-
-    Controller: ModuleManager;
+    bot: RainbowBOT;
 }

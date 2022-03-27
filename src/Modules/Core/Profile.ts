@@ -1,10 +1,9 @@
 import Discord from "discord.js";
-import { SlashCommandBuilder } from "@discordjs/builders";
 
 import { Colors, Utils } from "../../Utils";
-import ModuleManager from "../../ModuleManager";
 import Module from "../Module";
 import User from "../../Structures/User";
+import { RainbowBOT } from "../..";
 
 export default class Profile extends Module{
     public Name:        string = "Profile";
@@ -17,26 +16,19 @@ export default class Profile extends Module{
     public Category:    string = "Info";
     public Author:      string = "Thomasss#9258";
 
-    constructor(Controller: ModuleManager, UUID: string) {
-        super(Controller, UUID);
+    constructor(bot: RainbowBOT, UUID: string) {
+        super(bot, UUID);
         this.SlashCommands.push(
-            new SlashCommandBuilder()
-                .setName(this.Name.toLowerCase())
+            this.bot.interactions.createCommand(this.Name.toLowerCase(), this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
                 .setDescription(this.Description)
                 .addUserOption(opt => opt
                     .setName("target_user")
                     .setDescription("User who's profile you want to view.")
                     .setRequired(false)
-                ) as SlashCommandBuilder
+                )
+                .onExecute(this.Run.bind(this))
+                .commit()
         );
-    }
-    
-    public async Init(){
-        this.Controller.bot.PushSlashCommands(this.SlashCommands, this.Controller.bot.moduleGlobalLoading ? "global" : this.Controller.bot.masterGuildId);
-    }
-    
-    public Test(interaction: Discord.CommandInteraction){
-        return interaction.commandName.toLowerCase() === this.Name.toLowerCase();
     }
     
     private createMessageTemplate(user: User){
@@ -62,7 +54,7 @@ export default class Profile extends Module{
     }
 
     public Run(interaction: Discord.CommandInteraction, user: User){
-        return new Promise<Discord.Message | void>(async (resolve, reject) => {
+        return new Promise<void>(async (resolve, reject) => {
             let target_user = interaction.options.getUser("target_user");
             if(!target_user){
                 return resolve(await interaction.reply({ embeds: [this.createMessageTemplate(user)] }).catch(reject));
@@ -71,13 +63,13 @@ export default class Profile extends Module{
                     return resolve(await interaction.reply({ embeds: [ Utils.ErrMsg("You can't view BOT's profile.") ] }).catch(reject));
                 }
 
-                let target_id = this.Controller.bot.users.idFromDiscordId(target_user.id);
+                let target_id = this.bot.users.idFromDiscordId(target_user.id);
                 let target: User | null = null;
                 if(target_id){
-                    target = await this.Controller.bot.users.fetchOne(target_id);
+                    target = await this.bot.users.fetchOne(target_id);
                 }
                 if(!target){
-                    target = await this.Controller.bot.users.createFromDiscord(target_user);
+                    target = await this.bot.users.createFromDiscord(target_user);
                 }
                 return resolve(await interaction.reply({ embeds: [this.createMessageTemplate(target)] }).catch(reject));
             }

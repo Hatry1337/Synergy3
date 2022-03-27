@@ -12,7 +12,8 @@ import UserManager from "./UserManager";
 import ConfigManager from "./ConfigManager";
 import GuildManager from "./GuildManager";
 
-import { initsequelize } from "./Database";
+import { initsequelize, sequelize } from "./Database";
+import InteractionsManager from "./InteractionsManager";
 
 const logger = GlobalLogger.root;
 
@@ -44,10 +45,10 @@ export default class RainbowBOT{
     public guilds: GuildManager;
     public config: ConfigManager;
     public modules: ModuleManager;
+    public interactions: InteractionsManager;
 
     public client: Discord.Client;
     public rest: REST;
-    public SlashCommands: Map<string, SlashCommandBuilder[]> = new Map();
     public isReady: boolean = false;
 
     public masterGuildId: string;
@@ -61,6 +62,7 @@ export default class RainbowBOT{
         this.guilds = new GuildManager(this);
         this.config = new ConfigManager(this);
         this.modules = new ModuleManager(this);
+        this.interactions = new InteractionsManager(this);
         
         this.masterGuildId = options.masterGuildId;
         this.moduleGlobalLoading = options.moduleGlobalLoading;
@@ -77,32 +79,21 @@ export default class RainbowBOT{
         return this.client.login(token);
     }
 
-    public PushSlashCommands(commands: SlashCommandBuilder[], guildId: string | "global"){
-        this.SlashCommands.set(guildId, this.SlashCommands.has(guildId) ? this.SlashCommands.get(guildId)!.concat(commands) : commands);
-    }
-
-    public UpdateSlashCommands(guildId: string = "global"){
-        return new Promise<void>(async (resolve, reject) => {
-            let data: RESTPostAPIApplicationCommandsJSONBody[] = [];
-            for(let c of this.SlashCommands.get(guildId) || []){
-                data.push(c.toJSON());
-            }
-            if(guildId === "global"){
-                if(data.length === 0) return resolve();
-                await this.rest.put(
-                    Routes.applicationCommands(this.client.application!.id),
-                    { body: data },
-                ).catch(reject);
-                return resolve();
-            }
-
-            if(data.length === 0) return resolve();;
-            await this.rest.put(
-                Routes.applicationGuildCommands(this.client.application!.id, guildId),
-                { body: data },
-            ).catch(reject);
-            return resolve();
-        });
+    public async stop(){
+        this.isReady = false;
+        this.events.emit("Stop");
+        logger.info(`Stopping the BOT...`);
+        await this.modules.UnloadAllModules().catch(logger.error);
+        logger.info(`# Modules unloaded.`);
+        await this.users.syncStorage().catch(logger.error);
+        await this.modules.data.syncStorage().catch(logger.error);
+        await this.guilds.syncStorage().catch(logger.error);
+        logger.info(`# Data locked and saved.`);
+        this.client.destroy();
+        logger.info(`# Client destroyed.`);
+        await sequelize().close().catch(logger.error);
+        logger.info(`# Database disconnected.`);
+        logger.info(`BOT Stopped.`);
     }
 
     public CacheGuilds(log: boolean = false){

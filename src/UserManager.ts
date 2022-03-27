@@ -18,14 +18,11 @@ export default class UserManager{
         this.timer = setInterval(async () => {
             await this.syncStorage();
         }, 5 * 60 * 1000);
+        this.bot.events.once("Stop", () => { clearInterval(this.timer); });
     }
 
     public idFromDiscordId(id: string){
         return this.discordIdsAssociations.get(id);
-    }
-
-    public stopUpdating(){
-        clearInterval(this.timer);
     }
 
     public createFromDiscord(dUser: Discord.User, group: string = "Player"){
@@ -194,6 +191,7 @@ export default class UserManager{
                 }
                 */
                 await t.commit();
+                return resolve();
             }).catch(reject);
         });
     }

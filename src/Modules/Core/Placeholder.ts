@@ -1,6 +1,5 @@
-import Discord from "discord.js";
+import { RainbowBOT } from "../..";
 
-import ModuleManager from "../../ModuleManager";
 import Module from "../Module";
 
 export default class Placeholder extends Module{
@@ -10,20 +9,10 @@ export default class Placeholder extends Module{
     public Category:    string = "Dev";
     public Author:      string = "Thomasss#9258";
 
-    constructor(controller: ModuleManager, uuid: string) {
-        super(controller, uuid);
-        var index = this.Controller.CountLoadedModules();
+    constructor(bot: RainbowBOT, UUID: string) {
+        super(bot, UUID);
+        var index = this.bot.modules.CountLoadedModules();
         this.Name += index.toString();
         this.Description += index.toString();
-    }
-    
-    public Test(interaction: Discord.CommandInteraction){
-        return false;
-    }
-    
-    public Run(interaction: Discord.CommandInteraction){
-        return new Promise<Discord.Message | void>(async (resolve, reject) => {
-            resolve(await interaction.reply("Wait, what.. How do you run this command?!!"));
-        });
     }
 }

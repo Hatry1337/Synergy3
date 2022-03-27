@@ -1,17 +1,16 @@
 import Discord from "discord.js";
-import { SlashCommandBuilder } from "@discordjs/builders";
 
 import Module from "../Module";
-import ModuleManager from "../../ModuleManager";
 import User from "../../Structures/User";
 import { Colors, Utils } from "../../Utils";
 import { ConfigDataType } from "../../ConfigManager";
+import { RainbowBOT } from "../..";
+import { InteractiveCommand } from "../../InteractionsManager";
 
 export interface IGlobalConfiguration{
     [key: string]: any;
     guild_specific: {[key: string]: any}
     user_specific: {[key: string]: any}
-
 }
 
 export default class Config extends Module{
@@ -22,13 +21,13 @@ export default class Config extends Module{
     public Category:    string = "BOT";
     public Author:      string = "Thomasss#9258";
 
-    constructor(Controller: ModuleManager, UUID: string) {
-        super(Controller, UUID);
+    constructor(bot: RainbowBOT, UUID: string) {
+        super(bot, UUID);
     }
     
     public async Init(){
-        let user_keys = await this.Controller.bot.config.getFields("user");
-        let guild_keys = await this.Controller.bot.config.getFields("guild");
+        let user_keys = await this.bot.config.getFields("user");
+        let guild_keys = await this.bot.config.getFields("guild");
 
         let guild_conf_fields: [name: string, value: string][] = [];
         for(let f of guild_keys){
@@ -41,8 +40,7 @@ export default class Config extends Module{
         }
 
         this.SlashCommands.push(
-            new SlashCommandBuilder()
-                .setName(this.Name.toLowerCase())
+            (this.bot.interactions.createCommand(this.Name.toLowerCase(), this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
                 .setDescription(this.Description)
                 .addSubcommandGroup(opt => opt
                     .setName("guild")
@@ -148,13 +146,10 @@ export default class Config extends Module{
                         )
                     )
                     */
-                ) as SlashCommandBuilder
+                ) as InteractiveCommand)
+                .onExecute(this.Run.bind(this))
+                .commit()
         );
-        this.Controller.bot.PushSlashCommands(this.SlashCommands, this.Controller.bot.moduleGlobalLoading ? "global" : this.Controller.bot.masterGuildId);
-    }
-    
-    public Test(interaction: Discord.CommandInteraction){
-        return interaction.commandName.toLowerCase() === this.Name.toLowerCase();
     }
 
     private makeList(fields: { name: string, value: any, type: ConfigDataType }[]){
@@ -166,7 +161,7 @@ export default class Config extends Module{
     }
 
     public Run(interaction: Discord.CommandInteraction, user: User){
-        return new Promise<Discord.Message | void>(async (resolve, reject) => {
+        return new Promise<void>(async (resolve, reject) => {
             let values = {
                 bool:    interaction.options.getBoolean("value_bool"),
                 int:     interaction.options.getInteger("value_int"),
@@ -191,13 +186,13 @@ export default class Config extends Module{
 
             if(action === "list"){
                 if(target === "user" || target === "guild"){
-                    let keys = await this.Controller.bot.config.getFields(target);
+                    let keys = await this.bot.config.getFields(target);
                     let fields: { name: string, value: any, type: ConfigDataType }[] = [];
                     for(let k of keys){
                         fields.push({
                             name: k,
-                            value: (await this.Controller.bot.config.get(target, k) || {})[target === "user" ? interaction.user.id : interaction.guild?.id!],
-                            type:  (await this.Controller.bot.config.getType(target, k))!
+                            value: (await this.bot.config.get(target, k) || {})[target === "user" ? interaction.user.id : interaction.guild?.id!],
+                            type:  (await this.bot.config.getType(target, k))!
                         });
                     }
                     let text = this.makeList(fields);
@@ -214,12 +209,12 @@ export default class Config extends Module{
 
             if(action === "set"){
                 if(target === "user" || target === "guild"){
-                    let keys = await this.Controller.bot.config.getFields(target);
+                    let keys = await this.bot.config.getFields(target);
                     if(!field || !keys.includes(field)){
                         return resolve(await interaction.reply({ embeds: [ await Utils.ErrMsg("This field doesen't exist.") ] }).catch(reject));
                     }
 
-                    let value = values[(await this.Controller.bot.config.getType(target, field))!];
+                    let value = values[(await this.bot.config.getType(target, field))!];
                     
                     if(!value){
                         return resolve(await interaction.reply({ embeds: [ await Utils.ErrMsg("Incorrect data type selected.") ] }).catch(reject));
@@ -229,9 +224,9 @@ export default class Config extends Module{
                         value = value.id;
                     }
 
-                    let old_value = (await this.Controller.bot.config.get(target, field) || {})[target === "user" ? interaction.user.id : interaction.guild?.id!];
+                    let old_value = (await this.bot.config.get(target, field) || {})[target === "user" ? interaction.user.id : interaction.guild?.id!];
                     
-                    (await this.Controller.bot.config.get(target, field) || {})[target === "user" ? interaction.user.id : interaction.guild?.id!] = value;
+                    (await this.bot.config.get(target, field) || {})[target === "user" ? interaction.user.id : interaction.guild?.id!] = value;
 
                     var embd = new Discord.MessageEmbed({
                         title: `${target} config`,

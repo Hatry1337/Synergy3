@@ -6,7 +6,7 @@ You can find documentation here: https://rainbowbot.xyz/docs and more practical 
 
 ## Installation
 
-```console
+```zsh
 npm install rainbowbot-core
 ```
 
@@ -58,7 +58,7 @@ This is the example of RainbowBOT Core Module:
 ```ts
 import Discord from "discord.js";
 import { SlashCommandBuilder } from "@discordjs/builders";
-import { Colors, Module, ModuleManager, Utils }  from "rainbowbot-core";
+import { Colors, Module, RainbowBOT, Utils }  from "rainbowbot-core";
 
 export default class MyModule extends Module{
     public Name:        string = "MyModule";
@@ -67,22 +67,18 @@ export default class MyModule extends Module{
     public Category:    string = "Info";
     public Author:      string = "Thomasss#9258";
 
-    constructor(Controller: ModuleManager, UUID: string) {
-        super(Controller, UUID);
+    constructor(bot: RainbowBOT, UUID: string) {
+        super(bot, UUID);
         this.SlashCommands.push(
-            new SlashCommandBuilder()
-                .setName("helloworld")
+            this.bot.interactions.createCommand("helloworld", this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
                 .setDescription(this.Description)
-                ) as SlashCommandBuilder
+                .onExecute(this.Run.bind(this))
+                .commit()
         );
     }
     
-    public Test(interaction: Discord.CommandInteraction){
-        return interaction.commandName.toLowerCase() === "helloworld";
-    }
-
     public Run(interaction: Discord.CommandInteraction){
-        return new Promise<Discord.Message | void>(async (resolve, reject) => {
+        return new Promise<void>(async (resolve, reject) => {
             return resolve(await interaction.reply("Hello and Welcome to RainbowBOT Core!").catch(reject));
         });
     }

@@ -31,8 +31,9 @@ export default class ModuleDataManager{
     private timer: NodeJS.Timeout;
     constructor(public bot: RainbowBOT){
         this.timer = setInterval(async () => {
-            await this.syncStorage().catch(err => GlobalLogger.root.error("PrivateDataContainerManager AutoSync Error:", err));
+            await this.syncStorage().catch(err => GlobalLogger.root.error("ModuleDataManager AutoSync Error:", err));
         }, 5 * 60 * 1000);
+        this.bot.events.once("Stop", () => { clearInterval(this.timer); });
     }
 
     public getContainer(uuid: string) {

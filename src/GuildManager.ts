@@ -15,10 +15,7 @@ export default class GuildManager{
         this.timer = setInterval(async () => {
             await this.syncStorage();
         }, 5 * 60 * 1000);
-    }
-
-    public stopUpdating(){
-        clearInterval(this.timer);
+        this.bot.events.once("Stop", () => { clearInterval(this.timer); });
     }
 
     public createFromDiscord(dGuild: Discord.Guild, group: string = "default"){
@@ -152,6 +149,7 @@ export default class GuildManager{
                     await this.syncCacheEntry(user, g, t);
                 }
                 await t.commit();
+                return resolve();
             }).catch(reject);
         });
     }

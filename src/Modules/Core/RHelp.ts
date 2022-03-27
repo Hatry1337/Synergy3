@@ -1,9 +1,9 @@
 import Discord from "discord.js";
-import { SlashCommandBuilder } from "@discordjs/builders";
 
-import ModuleManager from "../../ModuleManager";
 import { Emojis, Colors } from "../../Utils";
 import Module from "../Module";
+import { RainbowBOT } from "../..";
+import { InteractiveCommand } from "../../InteractionsManager";
 
 export default class RHelp extends Module{
     public Name:        string = "RHelp";
@@ -17,11 +17,10 @@ export default class RHelp extends Module{
     public Category:    string = "Info";
     public Author:      string = "Thomasss#9258";
     
-    constructor(Controller: ModuleManager, UUID: string) {
-        super(Controller, UUID);
+    constructor(bot: RainbowBOT, UUID: string) {
+        super(bot, UUID);
         this.SlashCommands.push(
-            new SlashCommandBuilder()
-                .setName(this.Name.toLowerCase())
+            (this.bot.interactions.createCommand(this.Name.toLowerCase(), this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
                 .setDescription(this.Description)
                 .addIntegerOption(opt => opt
                     .setName("page")
@@ -32,25 +31,18 @@ export default class RHelp extends Module{
                     .setName("category")
                     .setDescription("RHelp commands category.")
                     .setRequired(false)
-                ) as SlashCommandBuilder
+                ) as InteractiveCommand)
+                .onExecute(this.Run.bind(this))
+                .commit()
         );
     }
 
-    public async Init(){
-        this.Controller.bot.PushSlashCommands(this.SlashCommands, this.Controller.bot.moduleGlobalLoading ? "global" : this.Controller.bot.masterGuildId);
-    }
-
-    public Test(interaction: Discord.CommandInteraction){
-        return interaction.commandName.toLowerCase() === this.Name.toLowerCase();
-    }
-    
     public Run(interaction: Discord.CommandInteraction){
-        return new Promise<Discord.Message | void>(async (resolve, reject) => {
+        return new Promise<void>(async (resolve, reject) => {
             let page = interaction.options.getInteger("page") || 1;
             let cat = interaction.options.getString("category");
 
-
-            let modulesInfo = this.Controller.GetModuleCommonInfo();
+            let modulesInfo = this.bot.modules.GetModuleCommonInfo();
 
             if(cat){
                 modulesInfo = modulesInfo.filter(md => md.category === cat);

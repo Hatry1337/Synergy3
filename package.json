@@ -1,6 +1,6 @@
 {
   "name": "rainbowbot-core",
-  "version": "3.5.2",
+  "version": "3.6.0",
   "description": "RainbowBOT Core",
   "license": "MIT",
   "author": {
@@ -24,7 +24,7 @@
     "build": "tsc",
     "docs": "npx typedoc",
     "prepublish": "npm run build",
-    "test": "npx jest"
+    "test": "npx jest --setupFiles dotenv/config"
   },
   "dependencies": {
     "@discordjs/builders": "^0.11.0",

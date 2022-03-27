@@ -1,9 +1,7 @@
 import Discord from "discord.js";
-import { SlashCommandBuilder } from "@discordjs/builders";
-
 import { Emojis, Colors } from "../../Utils";
-import ModuleManager from "../../ModuleManager";
 import Module from "../Module";
+import { RainbowBOT } from "../..";
 
 export default class Avatar extends Module{
     public Name:        string = "Avatar";
@@ -16,30 +14,23 @@ export default class Avatar extends Module{
     public Category:    string = "Utility";
     public Author:      string = "Thomasss#9258";
 
-    constructor(Controller: ModuleManager, UUID: string) {
-        super(Controller, UUID);
+    constructor(bot: RainbowBOT, UUID: string) {
+        super(bot, UUID);
         this.SlashCommands.push(
-            new SlashCommandBuilder()
-                .setName(this.Name.toLowerCase())
+            this.bot.interactions.createCommand(this.Name.toLowerCase(), this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
                 .setDescription(this.Description)
                 .addUserOption(opt => opt
                     .setName("target_user")
                     .setDescription("User who's avatar you want to view.")
                     .setRequired(false)
-                ) as SlashCommandBuilder
+                )
+                .onExecute(this.Run.bind(this))
+                .commit()
         );
     }
-    
-    public async Init(){
-        this.Controller.bot.PushSlashCommands(this.SlashCommands, this.Controller.bot.moduleGlobalLoading ? "global" : this.Controller.bot.masterGuildId);
-    }
-    
-    public Test(interaction: Discord.CommandInteraction){
-        return interaction.commandName.toLowerCase() === this.Name.toLowerCase();
-    }
-    
+
     public Run(interaction: Discord.CommandInteraction){
-        return new Promise<Discord.Message | void>(async (resolve, reject) => {
+        return new Promise<void>(async (resolve, reject) => {
             let user = interaction.options.getUser("target_user");
             if(!user){
                 let avatar = interaction.user.avatarURL({ size: 2048 });

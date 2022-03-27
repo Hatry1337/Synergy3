@@ -17,7 +17,8 @@ declare interface EventManager {
     on(event: 'GuildMemberAdd',     listener: (guild: Guild, user: User, member: Discord.GuildMember) => void): this;
     on(event: 'GuildMemberAdd',     listener: (guild: Guild, user: User, member: Discord.GuildMember | Discord.PartialGuildMember) => void): this;
     once(event: 'Initialized',      listener: () => void): this;
-    once(event: 'Exit',             listener: () => void): this;
+    once(event: 'Stop',             listener: () => void): this;
+    on(event: 'Error',              listener: (error: any, fatal: boolean) => void): this;
 }
 
 class EventManager extends EventEmitter{
@@ -31,8 +32,8 @@ class EventManager extends EventEmitter{
         this.bot.client.on(     "voiceStateUpdate",     this.onVoiceStateUpdate.bind(this));
         this.bot.client.on(     "guildMemberAdd",       this.onGuildMemberAdd.bind(this));
         this.bot.client.on(     "guildMemberRemove",    this.onGuildMemberRemove.bind(this));
-        this.bot.client.on(     "interactionCreate",    this.onInteractionCreate.bind(this));
         
+        this.on(                "Error",                this.onError.bind(this));
         process.on(             "SIGINT",               this.onExit.bind(this));
         process.on(             "SIGTERM",              this.onExit.bind(this));
     }
@@ -45,67 +46,60 @@ class EventManager extends EventEmitter{
         this.buttonSubscriptions.delete(cus_id);
     }
 
-    private async onInteractionCreate(interaction: Discord.Interaction){
-        if(interaction.isCommand()){
-            await this.bot.modules.FindAndRun(interaction).catch(err => GlobalLogger.root.error("Error Running Module:", err));
-            return;
-        }
-        if(interaction.isButton()){
-            for(let e of this.buttonSubscriptions.entries()){
-                if(interaction.customId === e[0]){
-                    await e[1](interaction).catch(err => GlobalLogger.root.error("Error Executing Button Callback:", err));
-                }
-            }
-            return;
+    private async onError(err: any, fatal: boolean){
+        if(fatal){
+            logger.fatal("Fatal Error Occured:", err);
+            await this.bot.stop();
+            process.exit(-1);
+        }else{
+            logger.info("Error Occured:", err);
         }
     }
 
     private async onceReady(){
-        logger.info(`Loggined In! (${this.bot.client.user?.tag})`);
+        try {
+            logger.info(`Loggined In! (${this.bot.client.user?.tag})`);
 
-        await sequelize().sync({force: false});
-        logger.info(`Fetching system user..`);
-        await this.bot.users.updateAssociations();
+            await sequelize().sync({force: false});
+            logger.info(`Fetching system user..`);
+            await this.bot.users.updateAssociations();
 
-        let sys = await this.bot.users.fetchOne(this.bot.users.idFromDiscordId(this.bot.client.user!.id) || -1, true);
-        if(!sys){
-            logger.info(`No system user. Creating new one..`);
-            sys = await this.bot.users.createFromDiscord(this.bot.client.user!, "Admin");
-            logger.info(`Created system user. ID: ${sys.id}`);
-        }
-        logger.info(`Database Synchronized.`);
-        
-        logger.info("Running guilds caching...");
-        let cachec = await this.bot.CacheGuilds(true);
-        logger.info(`Cached ${cachec} guilds.`);
+            let sys = await this.bot.users.fetchOne(this.bot.users.idFromDiscordId(this.bot.client.user!.id) || -1, true);
+            if(!sys){
+                logger.info(`No system user. Creating new one..`);
+                sys = await this.bot.users.createFromDiscord(this.bot.client.user!, "Admin");
+                logger.info(`Created system user. ID: ${sys.id}`);
+            }
+            logger.info(`Database Synchronized.`);
+            
+            logger.info("Running guilds caching...");
+            let cachec = await this.bot.CacheGuilds(true);
+            logger.info(`Cached ${cachec} guilds.`);
 
-        logger.info(`Running Modules Initialization...`);
-        await this.bot.modules.data.loadFromStorage();
-        await this.bot.config.get("amogus", "sus"); // This is for underlying data container fetching (container is sus lmfao)
+            logger.info(`Running Modules Initialization...`);
+            await this.bot.modules.data.loadFromStorage();
+            await this.bot.config.get("amogus", "sus"); // This is for underlying data container fetching (container is sus lmfao)
 
-        let inic = await this.bot.modules.Init().catch(err => GlobalLogger.root.error("[Ready Event] Error intializing modules:", err));
-        if(!inic && inic !== 0){
-            logger.fatal("Fatal error occured. Can't load modules.");
-        }else{
-            logger.info(`Initialized ${inic} Module Initializers.`);
-            logger.info(`BOT Fully ready! Enjoy =)`);
-            this.bot.isReady = true;
-            this.emit("Initialized");
+            let inic = await this.bot.modules.Init().catch(err => GlobalLogger.root.error("[Ready Event] Error intializing modules:", err));
+            if(!inic && inic !== 0){
+                logger.fatal("Fatal error occured. Can't load modules.");
+            }else{
+                logger.info(`Initialized ${inic} Module Initializers.`);
+                
+                logger.info(`Uploading slash commands...`);
+                await this.bot.interactions.updateSlashCommands();
+
+                logger.info(`BOT Fully ready! Enjoy =)`);
+                this.bot.isReady = true;
+                this.emit("Initialized");
+            }
+        } catch (error) {
+            this.emit("Error", error, true);
         }
     }
 
     private async onExit(){
-        this.emit("Exit");
-        logger.info(`Accepted exit signal. Running graceful exit task.`);
-        await this.bot.modules.UnloadAllModules();
-        logger.info(`Commands unloaded. Stopping Database Updates.`);
-        this.bot.users.stopUpdating();
-        await this.bot.users.syncStorage();
-        logger.info(`Database Updates stopped. Destroying client.`);
-        this.bot.client.destroy();
-        logger.info(`Clinet destroyed. Disconnecting Database.`);
-        await sequelize().close();
-        logger.info(`Graceful exit task successfully finished.`);
+        await this.bot.stop();
         process.exit(0);
     }
 

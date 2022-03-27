@@ -34,6 +34,7 @@ test("RainbowBOT - login", async () => {
         }
     }, modules);
     bot.login(process.env.DISCORD_TOKEN as string);
-    await new Promise<void>(resolve => bot.events.once("Initialized", resolve));
-    expect(bot.isReady).toBeTruthy();
+    let isready = await new Promise<boolean>(resolve => bot.events.once("Initialized", () => resolve(bot.isReady)));
+    await bot.stop();
+    expect(isready).toBeTruthy();
 }, 60000);
