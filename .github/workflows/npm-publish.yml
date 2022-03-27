@@ -23,6 +23,10 @@ jobs:
           fi
       - run: npm run build
       - run: npm test
+        env:
+          DISCORD_TOKEN: ${{secrets.discord_token}}
+          DATABASE_URI: ${{secrets.db_uri}}
+          MASTER_GUILD_ID: ${{secrets.master_guild}}
 
   publish-npm:
     needs: build
