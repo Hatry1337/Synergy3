@@ -21,7 +21,7 @@ import MyModule from "./Modules/MyModule.ts"
 const modules: ModuleUUIDPair[] = [
     { Module: CoreModules.Avatar,      UUID: "390cec87-b1db-52d9-8e55-de82530e380d"}, // All modules requires unique ids, 
     { Module: CoreModules.Config,      UUID: "ee285ab6-018a-5df2-8060-2504e14112b2"}, // so you can generate and read them
-    { Module: CoreModules.Profile,     UUID: "37e0a335-4c46-541b-9afc-e6dd6dde1c95"}, // from external file, or just hardcore.
+    { Module: CoreModules.Profile,     UUID: "37e0a335-4c46-541b-9afc-e6dd6dde1c95"}, // from external file, or just hardcode.
     { Module: CoreModules.RHelp,       UUID: "8209817a-753c-54e9-833b-bdff74fd9fa3"},
     { Module: MyModule,                UUID: "78dc809e-532c-58fa-aa8b-c14f7029f23a"}
 ]

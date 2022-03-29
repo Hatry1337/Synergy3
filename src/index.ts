@@ -7,10 +7,11 @@ import User, { UserDiscordOptions, UserEconomyOptions, UserOptions } from "./Str
 import { Colors, Emojis, Utils } from "./Utils"
 import CoreModules from "./Modules/Core";
 import ConfigManager, { ConfigDataType } from "./ConfigManager"
-import EventManager, { ButtonInteractionCallback } from "./EventManager"
+import EventManager from "./EventManager"
 import { GuildManager, UserManager } from "discord.js"
 import ModuleDataManager from "./ModuleDataManager"
 import ModuleManager, { ModuleCommonInfo } from "./ModuleManager"
+import InteractionsManager, { ButtonInteractionCallback, CommandInteractionCallback, InteractiveButton, InteractiveCommand  } from "./InteractionsManager";
 
 export {
     Guild,
@@ -39,7 +40,12 @@ export {
     ConfigDataType,
 
     EventManager,
+
+    InteractionsManager,
     ButtonInteractionCallback,
+    CommandInteractionCallback,
+    InteractiveButton,
+    InteractiveCommand,
     
     GuildManager,
 

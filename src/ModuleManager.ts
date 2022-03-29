@@ -1,8 +1,6 @@
-import Discord from 'discord.js';
 import RainbowBOT from './RainbowBOT';
 import ModuleDataManager from './ModuleDataManager';
 import Module from './Modules/Module';
-import User from './Structures/User';
 import { GlobalLogger } from './GlobalLogger';
 
 export interface ModuleCommonInfo{

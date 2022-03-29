@@ -65,7 +65,7 @@ export default class RHelp extends Module{
                 for(var i = page_start; i < page_end; i++){
                     let md = modulesInfo[i];
                     embd.addField(  `${md.name}`, md.description + `\n\n` + 
-                                    `Commands: \`/${md.commands.join("`, /")}\`\n` + 
+                                    `Commands: \`/${md.commands.join("`, `/")}\`\n` + 
                                     `Category: \`${md.category}\`\n` +
                                     `Author: \`${md.author}\``, true);
                 }

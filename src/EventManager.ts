@@ -8,8 +8,6 @@ import Guild from "./Structures/Guild";
 
 const logger = GlobalLogger.root;
 
-export type ButtonInteractionCallback = (interaction: Discord.ButtonInteraction) => Promise<void>;
-
 declare interface EventManager {
     on(event: 'VoiceChannelJoin',   listener: (channel: Discord.VoiceBasedChannel, member: Discord.GuildMember) => void): this;
     on(event: 'VoiceChannelQuit',   listener: (channel: Discord.VoiceBasedChannel, member: Discord.GuildMember) => void): this;
@@ -22,8 +20,6 @@ declare interface EventManager {
 }
 
 class EventManager extends EventEmitter{
-    private buttonSubscriptions: Map<string, ButtonInteractionCallback> = new Map;
-
     constructor(public bot: RainbowBOT) {
         super();
         this.bot.client.once(   "ready",                this.onceReady.bind(this));
@@ -36,14 +32,6 @@ class EventManager extends EventEmitter{
         this.on(                "Error",                this.onError.bind(this));
         process.on(             "SIGINT",               this.onExit.bind(this));
         process.on(             "SIGTERM",              this.onExit.bind(this));
-    }
-    
-    public ButtonEventSubscribe(cus_id: string, callback: ButtonInteractionCallback){
-        this.buttonSubscriptions.set(cus_id, callback);
-    }
-
-    public ButtonEventUnSubscribe(cus_id: string){
-        this.buttonSubscriptions.delete(cus_id);
     }
 
     private async onError(err: any, fatal: boolean){

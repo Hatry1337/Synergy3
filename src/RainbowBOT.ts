@@ -1,8 +1,5 @@
 import Discord from "discord.js";
 import { REST } from "@discordjs/rest";
-import { RESTPostAPIApplicationCommandsJSONBody, Routes } from "discord-api-types/v9";
-import { SlashCommandBuilder } from "@discordjs/builders";
-
 import { GlobalLogger } from "./GlobalLogger";
 import Module from "./Modules/Module";
 
