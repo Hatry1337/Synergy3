@@ -49,7 +49,7 @@ export default class GuildManager{
                 systemChannelId: dGuild.systemChannelId ? dGuild.systemChannelId : undefined,
                 botJoinedAt: dGuild.joinedAt,
                 guild: dGuild
-            }
+            };
             let guild = new Guild(this.bot, gopts);
             let t = await sequelize().transaction();
             await this.syncCacheEntry(guild, sg!, t);

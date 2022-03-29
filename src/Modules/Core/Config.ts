@@ -170,7 +170,7 @@ export default class Config extends Module{
                 channel: interaction.options.getChannel("value_channel"),
                 role:    interaction.options.getRole("value_role"),
                 user:    interaction.options.getUser("value_user")
-            }
+            };
             let field = interaction.options.getString("field");
             let target = interaction.options.getSubcommandGroup(true);
             let action = interaction.options.getSubcommand(true);

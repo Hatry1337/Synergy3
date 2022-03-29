@@ -1,4 +1,11 @@
 # RainbowBOT Core
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/Hatry1337/RainbowBOT-Core/Run%20Tests)
+![NPM](https://img.shields.io/npm/l/rainbowbot-core?color=blue)
+![npm](https://img.shields.io/npm/dw/rainbowbot-core?label=npm%20downloads)
+
+![npms.io (final)](https://img.shields.io/npms-io/quality-score/rainbowbot-core)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/Hatry1337/RainbowBOT-Core.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Hatry1337/RainbowBOT-Core/alerts/)
+[![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/Hatry1337/RainbowBOT-Core.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Hatry1337/RainbowBOT-Core/context:javascript)
 
 RainbowBOT Core - is a Discord BOT core with rich functionality. This core takes over many routine things like data storing, interactions and commands management, modularity and so on. When you use RainbowBOT Core all you need to do is writing `Modules` and define them in RainbowBOT constructor.
 RainbowBOT Core uses Sequelize under the hood to store their and Modules' data. Tested on PostgreSQL and SQLite dialects, but must work on most supported dialects.
