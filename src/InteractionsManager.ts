@@ -1,4 +1,4 @@
-import Discord, { BitField } from "discord.js";
+import Discord from "discord.js";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { GlobalLogger } from "./GlobalLogger";
 import RainbowBOT from "./RainbowBOT";
