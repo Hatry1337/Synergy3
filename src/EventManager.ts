@@ -14,9 +14,9 @@ declare interface EventManager {
     on(event: 'VoiceChannelChange', listener: (channel_old: Discord.VoiceBasedChannel, channel_new: Discord.VoiceBasedChannel, member: Discord.GuildMember) => void): this;
     on(event: 'GuildMemberAdd',     listener: (guild: Guild, user: User, member: Discord.GuildMember) => void): this;
     on(event: 'GuildMemberAdd',     listener: (guild: Guild, user: User, member: Discord.GuildMember | Discord.PartialGuildMember) => void): this;
+    on(event: 'Error',              listener: (error: any, fatal: boolean) => void): this;
     once(event: 'Initialized',      listener: () => void): this;
     once(event: 'Stop',             listener: () => void): this;
-    on(event: 'Error',              listener: (error: any, fatal: boolean) => void): this;
 }
 
 class EventManager extends EventEmitter{
@@ -129,14 +129,14 @@ class EventManager extends EventEmitter{
 
             GlobalLogger.userlog.info(`${vs1.member} (${vs1.member?.user.tag}) joined ${vs2.channel} (${vs2.channel.name}) voice channel.`);
         }else if(vs1.channel && !vs2.channel && vs2.member){
-            this.bot.client.emit("VoiceChannelQuit", vs1.channel, vs2.member);
+            this.emit("VoiceChannelQuit", vs1.channel, vs2.member);
     
             GlobalLogger.userlog.info(`${vs1.member} (${vs1.member?.user.tag}) leaved from ${vs1.channel} (${vs1.channel.name}) voice channel.`);
         }else if(vs1.channel && vs2.channel && vs2.member){
-            this.bot.client.emit("VoiceChannelChange", vs1.channel, vs2.channel, vs2.member);
+            this.emit("VoiceChannelChange", vs1.channel, vs2.channel, vs2.member);
             if(vs1.channel.id !== vs2.channel.id){
-                this.bot.client.emit("VoiceChannelQuit", vs1.channel, vs2.member);
-                this.bot.client.emit("VoiceChannelJoin", vs2.channel, vs2.member);
+                this.emit("VoiceChannelQuit", vs1.channel, vs2.member);
+                this.emit("VoiceChannelJoin", vs2.channel, vs2.member);
             }
             GlobalLogger.userlog.info(`${vs1.member} (${vs1.member?.user.tag}) changed voice channel from ${vs1.channel} (${vs1.channel.name}) to ${vs2.channel} (${vs2.channel.name}).`);
         }
