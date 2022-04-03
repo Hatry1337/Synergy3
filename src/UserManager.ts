@@ -25,11 +25,11 @@ export default class UserManager{
         return this.discordIdsAssociations.get(id);
     }
 
-    public createFromDiscord(dUser: Discord.User, group: string = "Player"){
+    public createFromDiscord(dUser: Discord.User, groups: string[] = [ "Player" ]){
         return new Promise<User>(async (resolve, reject) => {
             let su = await StorageUser.create({
                 nickname: dUser.tag,
-                group,
+                groups,
                 lang: "en",
             }).catch(reject);
             if(!su) return;
@@ -45,7 +45,7 @@ export default class UserManager{
             let user = new User(this.bot, {
                 id: su.id,
                 nickname: su.nickname,
-                group: su.group,
+                groups: su.groups,
                 lang: su.lang,
                 discord,
                 economy: {
@@ -135,7 +135,7 @@ export default class UserManager{
         let user = new User(this.bot, {
             id: storage_user.id,
             nickname: storage_user.nickname,
-            group: storage_user.group,
+            groups: storage_user.groups,
             lang: storage_user.lang,
             discord,
             economy: {
@@ -222,7 +222,7 @@ export default class UserManager{
 
         await StorageUser.update({
             nickname: user.nickname,
-            group: user.group,
+            groups: user.groups,
             lang: user.lang,
         }, {
             where: {

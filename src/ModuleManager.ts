@@ -2,13 +2,14 @@ import RainbowBOT from './RainbowBOT';
 import ModuleDataManager from './ModuleDataManager';
 import Module from './Modules/Module';
 import { GlobalLogger } from './GlobalLogger';
+import { AccessTarget } from './Structures/Access';
 
 export interface ModuleCommonInfo{
     name: string;
-    usage: string;
     description: string;
     category: string;
     author: string;
+    access: AccessTarget[];
     commands: string[];
     initPriority: number;
 }
@@ -70,9 +71,9 @@ export default class ModuleManager{
             }
             info.push({
                 name: m.Name,
-                usage: m.Usage,
                 description: m.Description,
                 author: m.Author,
+                access: m.Access,
                 category: m.Category,
                 initPriority: m.InitPriority,
                 commands

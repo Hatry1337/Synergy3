@@ -6,6 +6,7 @@ import { Colors, Utils } from "../../Utils";
 import { ConfigDataType } from "../../ConfigManager";
 import { RainbowBOT } from "../..";
 import { InteractiveCommand } from "../../InteractionsManager";
+import Access from "../../Structures/Access";
 
 export interface IGlobalConfiguration{
     [key: string]: any;
@@ -15,11 +16,11 @@ export interface IGlobalConfiguration{
 
 export default class Config extends Module{
     public Name:        string = "Config";
-    public Usage:       string = "`/config`\n\n";
-
     public Description: string = "Using this command Users can change User-Specific options or Admins can change Guild-Specific.";
     public Category:    string = "BOT";
     public Author:      string = "Thomasss#9258";
+
+    public Access: string[] = [ Access.PLAYER(), Access.BANNED() ]
 
     constructor(bot: RainbowBOT, UUID: string) {
         super(bot, UUID);
@@ -40,7 +41,7 @@ export default class Config extends Module{
         }
 
         this.SlashCommands.push(
-            (this.bot.interactions.createCommand(this.Name.toLowerCase(), this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
+            (this.bot.interactions.createCommand(this.Name.toLowerCase(), this.Access,this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
                 .setDescription(this.Description)
                 .addSubcommandGroup(opt => opt
                     .setName("guild")
@@ -179,7 +180,7 @@ export default class Config extends Module{
                 if(!interaction.member  || !(interaction.member instanceof Discord.GuildMember)){
                     return resolve(interaction.reply({ embeds: [ Utils.ErrMsg("This command is guild-only.") ] }));
                 }
-                if(user.group !== "Admin" && !interaction.member.permissions.has("ADMINISTRATOR")){
+                if(!user.groups.includes("admin") && !interaction.member.permissions.has("ADMINISTRATOR")){
                     return resolve(interaction.reply({ embeds: [ Utils.ErrMsg("You don't have access to this command.") ] }));
                 }
             }

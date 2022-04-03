@@ -4,15 +4,15 @@ const { Module, RainbowBOT, CoreModules } = require("..");
 
 class TestMod extends Module{
     Name         = "TestMod";
-    Usage        = "test";
     Description  = "test";
     Category     = "BOT";
     Author       = "Thomasss#9258";
+    Access       = [ "admin" ];
 
     constructor(bot, UUID) {
         super(bot, UUID);
         this.SlashCommands.push(
-            this.bot.interactions.createCommand("testbtn", this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
+            this.bot.interactions.createCommand("testbtn", this.Access, this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
                 .setDescription(this.Description)
                 .onExecute(this.Run.bind(this))
                 .commit()

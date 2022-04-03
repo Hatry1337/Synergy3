@@ -19,7 +19,7 @@ export interface UserDiscordOptions {
 export interface UserOptions{
     id: number;
     nickname: string;
-    group: string;
+    groups: string[];
     lang: string;
     discord: UserDiscordOptions;
     economy: UserEconomyOptions;
@@ -28,7 +28,7 @@ export interface UserOptions{
 export default class User implements UserOptions{
     public id: number;
     public nickname: string;
-    public group: string;
+    public groups: string[];
     public lang: string;
     public economy: UserEconomyOptions;
     public discord: UserDiscordOptions;
@@ -36,7 +36,7 @@ export default class User implements UserOptions{
     constructor(public bot: RainbowBOT, opts: UserOptions){
         this.id = opts.id;
         this.nickname = opts.nickname;
-        this.group = opts.group;
+        this.groups = opts.groups;
         this.lang = opts.lang;
         this.economy = opts.economy;
         this.discord = opts.discord;

@@ -2,22 +2,20 @@ import Discord from "discord.js";
 import { Emojis, Colors } from "../../Utils";
 import Module from "../Module";
 import { RainbowBOT } from "../..";
+import Access from "../../Structures/Access";
 
 export default class Avatar extends Module{
     public Name:        string = "Avatar";
-    public Usage:       string = "`!avatar [user]`\n\n" +
-                          "**Example:**\n" +
-                          "`!avatar` - show your avatar\n\n" +
-                          "`!avatar @User` - show User's avatar\n\n";
-
     public Description: string = "Using this command you can view your, or someone's avatar as full size image.";
     public Category:    string = "Utility";
     public Author:      string = "Thomasss#9258";
 
+    public Access: string[] = [ Access.PLAYER(), Access.BANNED() ]
+
     constructor(bot: RainbowBOT, UUID: string) {
         super(bot, UUID);
         this.SlashCommands.push(
-            this.bot.interactions.createCommand(this.Name.toLowerCase(), this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
+            this.bot.interactions.createCommand(this.Name.toLowerCase(), this.Access, this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
                 .setDescription(this.Description)
                 .addUserOption(opt => opt
                     .setName("target_user")

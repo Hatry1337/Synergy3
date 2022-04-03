@@ -25,11 +25,11 @@ export class StorageUser extends Model {
     nickname!: string;
 
     @Column({
-        type: DataType.STRING,
+        type: DataType.JSONB,
         allowNull: false,
-        defaultValue: "Player"
+        defaultValue: [ "player" ]
     })
-    group!: string;
+    groups!: string[];
 
     @Column({
         type: DataType.STRING,

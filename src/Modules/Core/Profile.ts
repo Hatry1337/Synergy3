@@ -4,22 +4,21 @@ import { Colors, Utils } from "../../Utils";
 import Module from "../Module";
 import User from "../../Structures/User";
 import { RainbowBOT } from "../..";
+import Access from "../../Structures/Access";
 
 export default class Profile extends Module{
     public Name:        string = "Profile";
-    public Usage:       string = "`!profile [user]`\n\n" +
-                          "**Example:**\n" +
-                          "`/profile` - show your profile\n\n" +
-                          "`/profile @User` - show User's profile\n\n";
-
     public Description: string = "Using this command you can view your, or someone's profile.";
     public Category:    string = "Info";
     public Author:      string = "Thomasss#9258";
 
+    public Access: string[] = [ Access.PLAYER(), Access.BANNED() ]
+
+
     constructor(bot: RainbowBOT, UUID: string) {
         super(bot, UUID);
         this.SlashCommands.push(
-            this.bot.interactions.createCommand(this.Name.toLowerCase(), this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
+            this.bot.interactions.createCommand(this.Name.toLowerCase(), this.Access, this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
                 .setDescription(this.Description)
                 .addUserOption(opt => opt
                     .setName("target_user")
@@ -37,7 +36,7 @@ export default class Profile extends Module{
             thumbnail: user.discord?.avatar ? { url: `https://cdn.discordapp.com/avatars/${user.discord.id}/${user.discord.avatar}.png` } : undefined,
             fields: [
                 { name: "Info", value:  `ID: ${user.id}\n` +
-                                        `Group: ${user.group}\n` +
+                                        `Groups: ${user.groups.join(", ")}\n` +
                                         `Language: ${user.lang}` },
 
                 user.discord ? { name: "Discord", value:`DiscordID: ${user.discord.id}\n` +

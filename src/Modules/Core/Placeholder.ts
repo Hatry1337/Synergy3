@@ -4,7 +4,6 @@ import Module from "../Module";
 
 export default class Placeholder extends Module{
     public Name:        string = "Placeholder";
-    public Usage:       string = "U can't use this command, lol";
     public Description: string = "This is test command for debugging. #";
     public Category:    string = "Dev";
     public Author:      string = "Thomasss#9258";

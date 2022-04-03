@@ -4,7 +4,8 @@ import { GlobalLogger } from "./GlobalLogger";
 import RainbowBOT from "./RainbowBOT";
 import crypto from "crypto";
 import { Routes } from "discord-api-types/rest/v9";
-import { User, Utils } from ".";
+import { Colors, User, Utils } from ".";
+import { AccessTarget } from "./Structures/Access";
 
 export type ButtonInteractionCallback = (interaction: Discord.ButtonInteraction) => Promise<void>;
 export type CommandInteractionCallback = (interaction: Discord.CommandInteraction, user: User) => Promise<void>;
@@ -44,7 +45,7 @@ export class InteractiveCommand extends SlashCommandBuilder{
     private execCallback?: CommandInteractionCallback;
     public lastInteraction?: Discord.CommandInteraction;
 
-    constructor(name: string, readonly forGuildId?: string){
+    constructor(name: string, public access: AccessTarget[], readonly forGuildId?: string){
         super();
         this.setName(name);
     }
@@ -76,11 +77,11 @@ export default class InteractionsManager{
         this.bot.events.once("Stop", () => { clearInterval(this.updateTimer); });
     }
 
-    public createCommand(name: string, forGuildId?: string){
+    public createCommand(name: string, access: AccessTarget[], forGuildId?: string){
         if(interactiveCommandsRegistry.has(name)){
             throw new Error("This command already exists.");
         }
-        let cmd = new InteractiveCommand(name, forGuildId);
+        let cmd = new InteractiveCommand(name, access, forGuildId);
         interactiveCommandsRegistry.set(name, cmd);
         return cmd;
     }
@@ -149,6 +150,12 @@ export default class InteractionsManager{
 
     private async onInteractionCreate(interaction: Discord.Interaction){
         if(interaction.isCommand()){
+            let cmd = Array.from(interactiveCommandsRegistry.values()).find(c => c.name === interaction.commandName);
+            if(!cmd){
+                GlobalLogger.root.warn(`Fired "${interaction.commandName}" command but InteractiveCommand not found.`);
+                return;
+            }
+
             let user_id = this.bot.users.idFromDiscordId(interaction.user.id);
             let user: User | null = null;
             if(user_id){
@@ -157,14 +164,97 @@ export default class InteractionsManager{
             if(!user){
                 user = await this.bot.users.createFromDiscord(interaction.user);
             }
-            let cmd = Array.from(interactiveCommandsRegistry.values()).find(c => c.name === interaction.commandName);
 
-            if(!cmd){
-                GlobalLogger.root.warn(`Fired "${interaction.commandName}" command but InteractiveCommand not found.`);
-                return;
+            let access_flag = false;
+
+            for(let a of cmd.access){
+                if(user.groups.includes("banned")){
+                    if(a.startsWith("banned")){
+                        access_flag = true;
+                    }else{
+                        access_flag = false;
+                    }
+                    break;
+                }
+                if(a.startsWith("player")){
+                    access_flag = true;
+                    break;
+                }
+                if(a.startsWith("group")){
+                    let res = /group<(.*)>/.exec(a);
+                    if(!res || !res[1]){
+                        GlobalLogger.root.warn("InteractionsManager.CommandInteractionProcessing: Passed invalid group access target \"", a + "\"");
+                        continue;
+                    }
+                    if(user.groups.includes(res[1])){
+                        access_flag = true;
+                        break;
+                    }
+                }
+                if(a.startsWith("user")){
+                    let res = /user<(.*)>/.exec(a);
+                    if(!res || !res[1]){
+                        GlobalLogger.root.warn("InteractionsManager.CommandInteractionProcessing: Passed invalid user access target \"", a + "\"");
+                        continue;
+                    }
+                    if(user.id.toString() === res[1] || user.discord.id === res[1]){
+                        access_flag = true;
+                        break;
+                    }
+                }
+                if(a.startsWith("perm")){
+                    let res = /perm<(.*)>/.exec(a);
+                    if(!res || !res[1]){
+                        GlobalLogger.root.warn("InteractionsManager.CommandInteractionProcessing: Passed invalid perm access target \"", a + "\"");
+                        continue;
+                    }
+                    if(interaction.member && interaction.member.permissions instanceof Discord.Permissions){
+                        if(interaction.member.permissions.has(res[1] as Discord.PermissionResolvable)){
+                            access_flag = true;
+                            break;
+                        }
+                    }
+                }
+                if(a.startsWith("server_mod")){
+                    if(interaction.guild && interaction.member instanceof Discord.GuildMember){
+                        let mod_role_id = (await this.bot.config.get("guild", "moderator_role"))[interaction.guild.id] as string | undefined;
+                        if(!mod_role_id){
+                            return await interaction.reply({ embeds: [ Utils.ErrMsg("This command requires Moderator Role. Configure them with command `/config guild set field:moderator_role value_role:@Role`") ] });
+                        }
+                        if(interaction.member.roles.cache.has(mod_role_id)){
+                            access_flag = true;
+                            break;
+                        }
+                    }
+                }
+                if(a.startsWith("server_admin")){
+                    if(interaction.member && interaction.member.permissions instanceof Discord.Permissions){
+                        if(interaction.member.permissions.has("ADMINISTRATOR")){
+                            access_flag = true;
+                            break;
+                        }
+                    }
+                }
+                if(a.startsWith("admin")){
+                    if(user.groups.includes("admin")){
+                        access_flag = true;
+                        break;
+                    }
+                }
             }
-            return await cmd._exec(interaction, user!).catch(err => GlobalLogger.root.error("Command Callback Error:", err));;
+            
+            if(!access_flag){
+                return await interaction.reply({ embeds: [ 
+                    new Discord.MessageEmbed()
+                    .setTitle("You don't have access to this command!")
+                    .setDescription("This command requires following access targets:\n`" + cmd.access.join("`\n`") + "`")
+                    .setColor(Colors.Error)
+                ] });
+            }else{
+                return await cmd._exec(interaction, user!).catch(err => GlobalLogger.root.error("Command Callback Error:", err));;
+            }
         }
+
         if(interaction.isButton()){
             for(let btn of interactiveButtonsRegistry.entries()){
                 if(interaction.customId === btn[0]){

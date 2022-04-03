@@ -4,23 +4,20 @@ import { Emojis, Colors } from "../../Utils";
 import Module from "../Module";
 import { RainbowBOT } from "../..";
 import { InteractiveCommand } from "../../InteractionsManager";
+import Access from "../../Structures/Access";
 
 export default class RHelp extends Module{
     public Name:        string = "RHelp";
-    public Usage:       string = "`!rhelp [<page> <category>] `\n\n" +
-                          "**Examples:**\n" +
-                          "`!rhelp` - Shows first page of help menu.\n\n" +
-                          "`!rhelp 2` - Shows second page of help menu.\n\n" +
-                          "`!rhelp 1 Info` - Shows first page of \`Info\` category commands.\n\n";
-
     public Description: string = "Using this command users can explore bot's commands, and find out how to use them.";
     public Category:    string = "Info";
     public Author:      string = "Thomasss#9258";
-    
+
+    public Access: string[] = [ Access.PLAYER(), Access.BANNED() ]
+
     constructor(bot: RainbowBOT, UUID: string) {
         super(bot, UUID);
         this.SlashCommands.push(
-            (this.bot.interactions.createCommand(this.Name.toLowerCase(), this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
+            (this.bot.interactions.createCommand(this.Name.toLowerCase(), this.Access, this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
                 .setDescription(this.Description)
                 .addIntegerOption(opt => opt
                     .setName("page")
@@ -67,6 +64,7 @@ export default class RHelp extends Module{
                     embd.addField(  `${md.name}`, md.description + `\n\n` + 
                                     `Commands: \`/${md.commands.join("`, `/")}\`\n` + 
                                     `Category: \`${md.category}\`\n` +
+                                    `Access: \`${md.access.join("`, `")}\`\n` +
                                     `Author: \`${md.author}\``, true);
                 }
     
