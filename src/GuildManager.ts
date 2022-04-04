@@ -14,7 +14,7 @@ export default class GuildManager{
     constructor(public bot: RainbowBOT){
         this.timer = setInterval(async () => {
             await this.syncStorage();
-        }, 5 * 60 * 1000);
+        }, (this.bot.options.dataSyncDelay || 60) * 1000);
         this.bot.events.once("Stop", () => { clearInterval(this.timer); });
     }
 
@@ -136,6 +136,7 @@ export default class GuildManager{
 
     public syncStorage(){
         return new Promise<void>(async (resolve, reject) => {
+            GlobalLogger.root.info("[GuildManager] Saving data to storage...");
             StorageGuild.findAll({
                 where: {
                     id: {

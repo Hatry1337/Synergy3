@@ -36,6 +36,10 @@ export interface RainbowBOTOptions{
      * Specify true if you need to force sync your database (Drop all tables and recreate structure)
      */
     sequelizeForceSync?: boolean;
+    /**
+     *  Delay between data savings to storage in managers like GuildManager, ModuleDataManager, UserManager, etc. (60 sec default.)
+     */
+    dataSyncDelay?: number;
 }
 
 export type ModuleUUIDPair = { UUID: string, Module: typeof Module };
@@ -67,6 +71,8 @@ export default class RainbowBOT{
         
         this.masterGuildId = options.masterGuildId;
         this.moduleGlobalLoading = options.moduleGlobalLoading;
+
+        if(!this.options.dataSyncDelay) this.options.dataSyncDelay = 60;
 
         initsequelize(options.sequelizeURI);
         for(let m of modules){

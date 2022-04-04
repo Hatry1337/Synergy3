@@ -32,7 +32,7 @@ export default class ModuleDataManager{
     constructor(public bot: RainbowBOT){
         this.timer = setInterval(async () => {
             await this.syncStorage().catch(err => GlobalLogger.root.error("ModuleDataManager AutoSync Error:", err));
-        }, 5 * 60 * 1000);
+        }, (this.bot.options.dataSyncDelay || 60) * 1000);
         this.bot.events.once("Stop", () => { clearInterval(this.timer); });
     }
 
@@ -72,6 +72,7 @@ export default class ModuleDataManager{
 
     public syncStorage(){
         return new Promise<void>(async (resolve, reject) => {
+            GlobalLogger.root.info("[ModuleDataManager] Saving data to storage...");
             let t = await sequelize().transaction();
             for(let c of dataContainers){
                 let mdata = moduleDatas.get(c[0]);

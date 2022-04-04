@@ -252,7 +252,9 @@ export default class InteractionsManager{
                     .setColor(Colors.Error)
                 ], ephemeral: true });
             }else{
-                return await cmd._exec(interaction, user).catch(async err => {
+                try {
+                    await cmd._exec(interaction, user);
+                } catch (err) {
                     let embed = new Discord.MessageEmbed();
                     if(err instanceof RainbowBOTUserError){
                         embed.title = Emojis.RedErrorCross + err.message;
@@ -267,12 +269,17 @@ export default class InteractionsManager{
                         embed.color = Colors.Error;
                     }
 
-                    if(interaction.replied || interaction.deferred){
-                        await interaction.editReply({ embeds: [embed] });
-                    }else{
-                        await interaction.reply({ embeds: [embed], ephemeral: true });
+                    try{
+                        if(interaction.replied || interaction.deferred){
+                            await interaction.editReply({ embeds: [embed] });
+                        }else{
+                            await interaction.reply({ embeds: [embed], ephemeral: true });
+                        }
+                    }catch{
+                        GlobalLogger.root.warn("InteractionsManager.CommandInteractionProcessing.CommandCallbackError.ErrReply: Can't reply.");
+                        return;
                     }
-                });
+                }
             }
         }
 
