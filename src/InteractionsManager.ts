@@ -254,25 +254,23 @@ export default class InteractionsManager{
             }else{
                 return await cmd._exec(interaction, user).catch(async err => {
                     let embed = new Discord.MessageEmbed();
-                    if(err){
-                        if(err instanceof RainbowBOTUserError){
-                            embed.title = Emojis.RedErrorCross + err.message;
-                            embed.description = err.subMessage ? err.subMessage : null;
-                            embed.color = Colors.Error;
-                        }else{
-                            GlobalLogger.root.error(err);
-                            let trace = GlobalLogger.Trace(interaction, cmd, user, err);
+                    if(err instanceof RainbowBOTUserError){
+                        embed.title = Emojis.RedErrorCross + err.message;
+                        embed.description = err.subMessage ? err.subMessage : null;
+                        embed.color = Colors.Error;
+                    }else{
+                        let trace = GlobalLogger.Trace(interaction, cmd, user, err);
+                        GlobalLogger.root.error("InteractionsManager.CommandInteractionProcessing.CommandCallbackError: ", err, `TraceID: ${trace}`);
 
-                            embed.title = Emojis.RedErrorCross + "Unexpected Error occurred.";
-                            embed.description = `Please contact BOT tech support with following Trace Code: \`\`\`${trace}\`\`\``;
-                            embed.color = Colors.Error;
-                        }
+                        embed.title = Emojis.RedErrorCross + "Unexpected Error occurred.";
+                        embed.description = `Please contact BOT tech support with following Trace Code: \`\`\`${trace}\`\`\``;
+                        embed.color = Colors.Error;
+                    }
 
-                        if(interaction.replied || interaction.deferred){
-                            await interaction.editReply({ embeds: [embed] });
-                        }else{
-                            await interaction.reply({ embeds: [embed] });
-                        }
+                    if(interaction.replied || interaction.deferred){
+                        await interaction.editReply({ embeds: [embed] });
+                    }else{
+                        await interaction.reply({ embeds: [embed] });
                     }
                 });
             }
