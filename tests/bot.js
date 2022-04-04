@@ -1,34 +1,62 @@
 require("dotenv").config("../.env");
 const Discord = require("discord.js");
-const { Module, RainbowBOT, CoreModules } = require("..");
+const { Module, RainbowBOT, CoreModules, GuildOnlyError, NoConfigEntryError } = require("..");
 
 class TestMod extends Module{
     Name         = "TestMod";
     Description  = "test";
     Category     = "BOT";
     Author       = "Thomasss#9258";
-    Access       = [ "admin" ];
+    Access       = [ "admin", "user<508637328349331462>" ];
 
     constructor(bot, UUID) {
         super(bot, UUID);
         this.SlashCommands.push(
-            this.bot.interactions.createCommand("testbtn", this.Access, this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
+            this.bot.interactions.createCommand("testmod", this.Access, this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
                 .setDescription(this.Description)
+                .addSubcommand(opt => opt
+                    .setName("btn")
+                    .setDescription("Test the button.")    
+                )
+                .addSubcommand(opt => opt
+                    .setName("err_uxp")
+                    .setDescription("Throw unexpected error")    
+                )
+                .addSubcommand(opt => opt
+                    .setName("err_go")
+                    .setDescription("Throw GuildOnlyError")    
+                )
+                .addSubcommand(opt => opt
+                    .setName("err_ce")
+                    .setDescription("Throw NoConfigEntryError")    
+                )
                 .onExecute(this.Run.bind(this))
                 .commit()
         );
     }
-    
-    Run(interaction){
-        return new Promise(async (resolve, reject) => {
-            let btn = this.bot.interactions.createButton().setLabel("test").setStyle("PRIMARY");
-            btn.onClick(async (int) => {
-                btn.destroy();
-                await int.reply("clicked. button removed.");
-            });
-            return resolve(await interaction.reply({content: "test123", components: [ 
-                new Discord.MessageActionRow().addComponents(btn) ]}).catch(reject));
+
+    /**
+     * @param {Discord.CommandInteraction} interaction 
+     */
+    async Run(interaction){
+        let subcmd = interaction.options.getSubcommand();
+        if(subcmd === "err_uxp"){
+            throw new Error ("Testing unexpected error.");
+        }
+        if(subcmd === "err_go"){
+            throw new GuildOnlyError();
+        }
+        if(subcmd === "err_ce"){
+            throw new NoConfigEntryError("Cool parameter", "/config user set field:cool_param value_string:rainbowbot core is awesome");
+        }
+
+        let btn1 = this.bot.interactions.createButton().setLabel("test").setStyle("PRIMARY");
+        btn1.onClick(async (int) => {
+            btn1.destroy();
+            await int.reply("clicked. button removed.");
         });
+        
+        await interaction.reply({content: "test123", components: [ new Discord.MessageActionRow().addComponents(btn) ]});
     }
 }
 

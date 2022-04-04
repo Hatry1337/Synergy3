@@ -18,7 +18,7 @@ export default class Profile extends Module{
     constructor(bot: RainbowBOT, UUID: string) {
         super(bot, UUID);
         this.SlashCommands.push(
-            this.bot.interactions.createCommand(this.Name.toLowerCase(), this.Access, this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
+            this.bot.interactions.createCommand(this.Name.toLowerCase(), this.Access, this, this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
                 .setDescription(this.Description)
                 .addUserOption(opt => opt
                     .setName("target_user")

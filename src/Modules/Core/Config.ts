@@ -41,7 +41,7 @@ export default class Config extends Module{
         }
 
         this.SlashCommands.push(
-            (this.bot.interactions.createCommand(this.Name.toLowerCase(), this.Access,this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
+            (this.bot.interactions.createCommand(this.Name.toLowerCase(), this.Access, this, this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
                 .setDescription(this.Description)
                 .addSubcommandGroup(opt => opt
                     .setName("guild")

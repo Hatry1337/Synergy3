@@ -4,8 +4,9 @@ import { GlobalLogger } from "./GlobalLogger";
 import RainbowBOT from "./RainbowBOT";
 import crypto from "crypto";
 import { Routes } from "discord-api-types/rest/v9";
-import { Colors, User, Utils } from ".";
+import { Colors, Emojis, Module, User, Utils } from ".";
 import { AccessTarget } from "./Structures/Access";
+import { RainbowBOTUserError } from "./Structures/Errors";
 
 export type ButtonInteractionCallback = (interaction: Discord.ButtonInteraction) => Promise<void>;
 export type CommandInteractionCallback = (interaction: Discord.CommandInteraction, user: User) => Promise<void>;
@@ -45,7 +46,7 @@ export class InteractiveCommand extends SlashCommandBuilder{
     private execCallback?: CommandInteractionCallback;
     public lastInteraction?: Discord.CommandInteraction;
 
-    constructor(name: string, public access: AccessTarget[], readonly forGuildId?: string){
+    constructor(name: string, public access: AccessTarget[], public module: Module, readonly forGuildId?: string){
         super();
         this.setName(name);
     }
@@ -77,11 +78,11 @@ export default class InteractionsManager{
         this.bot.events.once("Stop", () => { clearInterval(this.updateTimer); });
     }
 
-    public createCommand(name: string, access: AccessTarget[], forGuildId?: string){
+    public createCommand(name: string, access: AccessTarget[], module: Module, forGuildId?: string){
         if(interactiveCommandsRegistry.has(name)){
             throw new Error("This command already exists.");
         }
-        let cmd = new InteractiveCommand(name, access, forGuildId);
+        let cmd = new InteractiveCommand(name, access, module, forGuildId);
         interactiveCommandsRegistry.set(name, cmd);
         return cmd;
     }
@@ -251,7 +252,29 @@ export default class InteractionsManager{
                     .setColor(Colors.Error)
                 ] });
             }else{
-                return await cmd._exec(interaction, user!).catch(err => GlobalLogger.root.error("Command Callback Error:", err));;
+                return await cmd._exec(interaction, user).catch(async err => {
+                    let embed = new Discord.MessageEmbed();
+                    if(err){
+                        if(err instanceof RainbowBOTUserError){
+                            embed.title = Emojis.RedErrorCross + err.message;
+                            embed.description = err.subMessage ? err.subMessage : null;
+                            embed.color = Colors.Error;
+                        }else{
+                            GlobalLogger.root.error(err);
+                            let trace = GlobalLogger.Trace(interaction, cmd, user, err);
+
+                            embed.title = Emojis.RedErrorCross + "Unexpected Error occurred.";
+                            embed.description = `Please contact BOT tech support with following Trace Code: \`\`\`${trace}\`\`\``;
+                            embed.color = Colors.Error;
+                        }
+
+                        if(interaction.replied || interaction.deferred){
+                            await interaction.editReply({ embeds: [embed] });
+                        }else{
+                            await interaction.reply({ embeds: [embed] });
+                        }
+                    }
+                });
             }
         }
 
