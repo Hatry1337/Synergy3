@@ -48,7 +48,7 @@ class EventManager extends EventEmitter{
         try {
             logger.info(`Loggined In! (${this.bot.client.user?.tag})`);
 
-            await sequelize().sync({force: false});
+            await sequelize().sync({force: this.bot.options.sequelizeForceSync || false});
             logger.info(`Fetching system user..`);
             await this.bot.users.updateAssociations();
 

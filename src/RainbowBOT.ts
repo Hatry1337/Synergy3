@@ -32,6 +32,10 @@ export interface RainbowBOTOptions{
      * Load modules' slash commands globally or only on Master Guild
      */
     moduleGlobalLoading: boolean;
+    /**
+     * Specify true if you need to force sync your database (Drop all tables and recreate structure)
+     */
+    sequelizeForceSync?: boolean;
 }
 
 export type ModuleUUIDPair = { UUID: string, Module: typeof Module };
@@ -51,7 +55,7 @@ export default class RainbowBOT{
     public masterGuildId: string;
     public moduleGlobalLoading: boolean;
 
-    constructor(options: RainbowBOTOptions, modules: ModuleUUIDPair[]){
+    constructor(public options: RainbowBOTOptions, modules: ModuleUUIDPair[]){
         this.client = new Discord.Client(options.clientOptions);
         this.rest = new REST({ version: '9' });
         this.events = new EventManager(this);
