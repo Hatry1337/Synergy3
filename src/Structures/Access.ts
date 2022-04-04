@@ -1,3 +1,4 @@
+import Discord from "discord.js";
 
 export type AccessTarget = "admin" | "server_admin" | "server_mod" | "player" | "banned" | string;
 
@@ -10,6 +11,9 @@ export default class Access {
     }
     static SERVER_MOD(): AccessTarget {
         return "server_mod";
+    }
+    static PERM(perm: Discord.PermissionString){
+        return "perm<" + perm + ">";
     }
     static PLAYER(): AccessTarget {
         return "player";

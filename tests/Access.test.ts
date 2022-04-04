@@ -12,6 +12,10 @@ test("Access - GROUP", () => {
     expect(Access.GROUP("test")).toBe("group<test>");
 });
 
+test("Access - PERM", () => {
+    expect(Access.PERM("ADD_REACTIONS")).toBe("perm<ADD_REACTIONS>");
+});
+
 test("Access - PLAYER", () => {
     expect(Access.PLAYER()).toBe("player");
 });
