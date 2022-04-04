@@ -9,6 +9,7 @@ import { StorageUser } from "./Models/StorageUser";
 import { GlobalLogger } from "./GlobalLogger";
 import RainbowBOT from "./RainbowBOT";
 import User, { UserDiscordOptions } from "./Structures/User";
+import { Access } from ".";
 
 export default class UserManager{
     public cached: Map<number, User> = new Map();
@@ -25,7 +26,7 @@ export default class UserManager{
         return this.discordIdsAssociations.get(id);
     }
 
-    public createFromDiscord(dUser: Discord.User, groups: string[] = [ "Player" ]){
+    public createFromDiscord(dUser: Discord.User, groups: string[] = [ Access.PLAYER() ]){
         return new Promise<User>(async (resolve, reject) => {
             let su = await StorageUser.create({
                 nickname: dUser.tag,

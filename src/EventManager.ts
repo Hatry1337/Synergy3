@@ -5,6 +5,7 @@ import User from "./Structures/User";
 import { sequelize } from "./Database";
 import EventEmitter from "events";
 import Guild from "./Structures/Guild";
+import { Access } from ".";
 
 const logger = GlobalLogger.root;
 
@@ -55,7 +56,7 @@ class EventManager extends EventEmitter{
             let sys = await this.bot.users.fetchOne(this.bot.users.idFromDiscordId(this.bot.client.user!.id) || -1, true);
             if(!sys){
                 logger.info(`No system user. Creating new one..`);
-                sys = await this.bot.users.createFromDiscord(this.bot.client.user!, [ "Admin" ]);
+                sys = await this.bot.users.createFromDiscord(this.bot.client.user!, [ Access.ADMIN() ]);
                 logger.info(`Created system user. ID: ${sys.id}`);
             }
             logger.info(`Database Synchronized.`);
