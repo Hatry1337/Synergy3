@@ -220,7 +220,7 @@ export default class InteractionsManager{
                     if(interaction.guild && interaction.member instanceof Discord.GuildMember){
                         let mod_role_id = (await this.bot.config.get("guild", "moderator_role"))[interaction.guild.id] as string | undefined;
                         if(!mod_role_id){
-                            return await interaction.reply({ embeds: [ Utils.ErrMsg("This command requires Moderator Role. Configure them with command `/config guild set field:moderator_role value_role:@Role`") ] });
+                            return await interaction.reply({ embeds: [ Utils.ErrMsg("This command requires Moderator Role. Configure them with command `/config guild set field:moderator_role value_role:@Role`") ], ephemeral: true });
                         }
                         if(interaction.member.roles.cache.has(mod_role_id)){
                             access_flag = true;
@@ -250,7 +250,7 @@ export default class InteractionsManager{
                     .setTitle("You don't have access to this command!")
                     .setDescription("This command requires following access targets:\n`" + cmd.access.join("`\n`") + "`")
                     .setColor(Colors.Error)
-                ] });
+                ], ephemeral: true });
             }else{
                 return await cmd._exec(interaction, user).catch(async err => {
                     let embed = new Discord.MessageEmbed();
@@ -270,7 +270,7 @@ export default class InteractionsManager{
                     if(interaction.replied || interaction.deferred){
                         await interaction.editReply({ embeds: [embed] });
                     }else{
-                        await interaction.reply({ embeds: [embed] });
+                        await interaction.reply({ embeds: [embed], ephemeral: true });
                     }
                 });
             }
