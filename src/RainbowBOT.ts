@@ -60,14 +60,16 @@ export default class RainbowBOT{
     public moduleGlobalLoading: boolean;
 
     constructor(public options: RainbowBOTOptions, modules: ModuleUUIDPair[]){
+        logger.info(`Starting RainbowBOTCore - Rich and Flexible Discord BOT core...`);
+
         this.client = new Discord.Client(options.clientOptions);
         this.rest = new REST({ version: '9' });
         this.events = new EventManager(this);
         this.users = new UserManager(this);
         this.guilds = new GuildManager(this);
         this.config = new ConfigManager(this);
-        this.modules = new ModuleManager(this);
         this.interactions = new InteractionsManager(this);
+        this.modules = new ModuleManager(this);
         
         this.masterGuildId = options.masterGuildId;
         this.moduleGlobalLoading = options.moduleGlobalLoading;
@@ -108,7 +110,7 @@ export default class RainbowBOT{
             let i = 0;
             for(var g of this.client.guilds.cache){
                 if(log){
-                    logger.info(`[GC]`, `Caching Guild ${i}/${this.client.guilds.cache.size}`);
+                    logger.info(`[GC]`, `Caching Guild ${i+1}/${this.client.guilds.cache.size}`);
                 }
                 let gld = await this.client.guilds.fetch({ guild: g[0], force: true, cache: true }).catch(err => {
                     if(err.code === 50001){

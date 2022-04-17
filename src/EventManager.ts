@@ -78,7 +78,7 @@ class EventManager extends EventEmitter{
                 logger.info(`Uploading slash commands...`);
                 await this.bot.interactions.updateSlashCommands();
 
-                logger.info(`BOT Fully ready! Enjoy =)`);
+                logger.info(`RainbowBOTCore is fully ready! Enjoy =)`);
                 this.bot.isReady = true;
                 this.emit("Initialized");
             }

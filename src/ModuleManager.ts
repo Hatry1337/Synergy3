@@ -23,31 +23,27 @@ export default class ModuleManager{
     constructor(public bot: RainbowBOT){
     }
 
-    public RegisterModule(mod: typeof Module, uuid: string, load: boolean = false){
+    public RegisterModule(mod: typeof Module, uuid: string, preLoad: boolean = false){
+        GlobalLogger.root.info(`[ModuleRegistry] Registered "${mod.name}" module.${preLoad ? " Preloading..." : ""}`);
         ModuleRegistry.set(uuid, mod);
-        if(load){
-            let inst = new mod(this.bot, uuid);
-            Modules.push(inst);
+        if(preLoad){
+            return this.LoadModule(uuid, true);
         }
     }
 
     public Init(){
         return new Promise<number>(async (resolve, reject) => {
-            var cmdc = Modules.slice(0);
+            let cmdc = Modules.slice(0);
             cmdc.sort((a, b) => (b.InitPriority - a.InitPriority));
-            var count = 0;
-            for(var c of cmdc){
+            let count = 0;
+            for(let c of cmdc){
                 if(c.Init){
-                    GlobalLogger.root.info(`[ModuleInit] Loading "${c.Name}" module`);
-                    await c.Init().catch(async err => {
-                        GlobalLogger.root.error(`[ModuleInit] Error loading module "${c.Name}" UUID "${Array.from(ModuleRegistry.entries()).find(md => c instanceof md[1])?.[0]}":`, err);
-                        if(c.UnLoad){
-                            await c.UnLoad().catch(() => {});
-                        }
-                        Modules.splice(Modules.indexOf(c));
-                        GlobalLogger.root.warn(`[ModuleInit] Errored module unloaded.`);
-                    });
-                    count++;
+                    if(await this.InitModule(c)){
+                        GlobalLogger.root.info(`[ModuleInit] [${c.Name}] Init sequence completed!`);
+                        count++;
+                    }else{
+                        GlobalLogger.root.warn(`[ModuleInit] [${c.Name}] Module not loaded.`);
+                    }
                 }
             }
             return resolve(count);
@@ -62,9 +58,13 @@ export default class ModuleManager{
         return ModuleRegistry.size;
     }
 
-    public GetModuleCommonInfo(){
+    public GetModuleCommonInfo(module?: string){
         let info: ModuleCommonInfo[] = [];
-        for(let m of Modules){
+        let mods = Modules;
+        if(module){
+            mods = Modules.filter(m => m.Name === module);
+        }
+        for(let m of mods){
             let commands: string[] = [];
             for(let c of m.SlashCommands){
                 commands.push(c.name);
@@ -82,15 +82,31 @@ export default class ModuleManager{
         return info;
     }
 
-    public async LoadModule(uuid: string){
+    public async LoadModule(uuid: string, preLoad: boolean = false){
         let mod = ModuleRegistry.get(uuid);
         if(!mod) return;
         let cmd = new mod(this.bot, uuid);
         Modules.push(cmd);
-        if(cmd.Init){
-            await cmd.Init()
+        if(!preLoad && cmd.Init){
+            await this.InitModule(cmd);
         }
         return cmd;
+    }
+
+    private async InitModule(module: Module){
+        if(!module.Init) return false;
+        try {
+            await module.Init();
+            return true;
+        } catch (err) {
+            GlobalLogger.root.error(`[ModuleLoader] Error loading module "${module.Name}" UUID "${Array.from(ModuleRegistry.entries()).find(md => module instanceof md[1])?.[0]}":`, err);
+            if(module.UnLoad){
+                await module.UnLoad().catch(() => {});
+            }
+            Modules.splice(Modules.indexOf(module));
+            GlobalLogger.root.warn(`[ModuleLoader] Errored module unloaded.`);
+            return false;
+        }
     }
 
     public async UnloadAllModules(){
@@ -108,7 +124,9 @@ export default class ModuleManager{
                 await cmd.UnLoad()
             }
             Modules.splice(i, 1);
+            return true;
         }
+        return false;
     }
 
     public async ReloadModule(cmd: Module){
@@ -116,6 +134,8 @@ export default class ModuleManager{
         if(i !== -1){
             this.UnloadModule(cmd);
             this.LoadModule(cmd.Name);
+            return true;
         }
+        return false;
     }
 }
