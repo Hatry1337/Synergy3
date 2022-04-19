@@ -5,7 +5,6 @@ import User from "../../Structures/User";
 import { Colors, Utils } from "../../Utils";
 import { ConfigDataType } from "../../ConfigManager";
 import { RainbowBOT } from "../..";
-import { InteractiveCommand } from "../../InteractionsManager";
 import Access from "../../Structures/Access";
 
 export interface IGlobalConfiguration{
@@ -41,7 +40,8 @@ export default class Config extends Module{
         }
 
         this.SlashCommands.push(
-            (this.bot.interactions.createCommand(this.Name.toLowerCase(), this.Access, this, this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
+            this.bot.interactions.createSlashCommand(this.Name.toLowerCase(), this.Access, this, this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
+            .build(builder => builder
                 .setDescription(this.Description)
                 .addSubcommandGroup(opt => opt
                     .setName("guild")
@@ -147,9 +147,10 @@ export default class Config extends Module{
                         )
                     )
                     */
-                ) as InteractiveCommand)
-                .onExecute(this.Run.bind(this))
-                .commit()
+                )
+            )
+            .onExecute(this.Run.bind(this))
+            .commit()
         );
     }
 

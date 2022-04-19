@@ -1,18 +1,18 @@
 import Discord from "discord.js";
-import { SlashCommandBuilder } from "@discordjs/builders";
+import { ContextMenuCommandBuilder, SlashCommandBuilder } from "@discordjs/builders";
 import { GlobalLogger } from "./GlobalLogger";
 import RainbowBOT from "./RainbowBOT";
+import { Utils } from "./Utils";
 import crypto from "crypto";
-import { Routes } from "discord-api-types/rest/v9";
-import { Colors, Emojis, Module, User, Utils } from ".";
+import { RESTPostAPIApplicationCommandsJSONBody, Routes } from "discord-api-types/rest/v9";
+import { Colors, Emojis, Module, User } from ".";
 import { AccessTarget } from "./Structures/Access";
 import { RainbowBOTUserError } from "./Structures/Errors";
 
 export type ButtonInteractionCallback = (interaction: Discord.ButtonInteraction) => Promise<void>;
-export type CommandInteractionCallback = (interaction: Discord.CommandInteraction, user: User) => Promise<void>;
 
 const interactiveButtonsRegistry: Map<string, InteractiveButton> = new Map;
-const interactiveCommandsRegistry: Map<string, InteractiveCommand> = new Map;
+const interactiveCommandsRegistry: Map<string, InteractiveCommands> = new Map;
 
 export class InteractiveButton extends Discord.MessageButton {
     private clickCallback?: ButtonInteractionCallback;
@@ -40,27 +40,34 @@ export class InteractiveButton extends Discord.MessageButton {
     }
 }
 
-export class InteractiveCommand extends SlashCommandBuilder{
+export type InteractionType<Type> = Type extends SlashCommandBuilder ? Discord.CommandInteraction : Discord.ContextMenuInteraction;
+export type CallbackType<Type> = (interaction: InteractionType<Type>, user: User) => Promise<void>;
+
+export class InteractiveCommand<Type extends SlashCommandBuilder | ContextMenuCommandBuilder>{
     public isUpdated: boolean = true;
     public isPushed: boolean = false;
-    private execCallback?: CommandInteractionCallback;
-    public lastInteraction?: Discord.CommandInteraction;
+    private execCallback?: CallbackType<Type>;
+    public lastInteraction?: InteractionType<Type>
 
-    constructor(name: string, public access: AccessTarget[], public module: Module, readonly forGuildId?: string){
-        super();
-        this.setName(name);
+    constructor(readonly name: string, public access: AccessTarget[], public module: Module, public builder: Type, readonly forGuildId?: string){
+        this.builder.setName(this.name);
     }
 
-    public onExecute(callback: CommandInteractionCallback){
+    public onExecute(callback: CallbackType<Type>){
         this.execCallback = callback;
         return this;
     }
 
-    public async _exec(interaction: Discord.CommandInteraction, user: User){
+    public async _exec(interaction: InteractionType<Type>, user: User){
         this.lastInteraction = interaction;
         if(this.execCallback){
             await this.execCallback(interaction, user);
         }
+    }
+
+    public build(f: (builder: Type) => Omit<Type, any>){
+        f(this.builder);
+        return this;
     }
 
     public commit(){
@@ -68,6 +75,20 @@ export class InteractiveCommand extends SlashCommandBuilder{
         return this;
     }
 }
+
+export class InteractiveSlashCommand extends InteractiveCommand<SlashCommandBuilder> {
+    constructor(readonly name: string, public access: AccessTarget[], public module: Module, readonly forGuildId?: string){
+        super(name, access, module, new SlashCommandBuilder(), forGuildId);
+    }
+}
+
+export class InteractiveContextMenuCommand extends InteractiveCommand<ContextMenuCommandBuilder> {
+    constructor(readonly name: string, public access: AccessTarget[], public module: Module, readonly forGuildId?: string){
+        super(name, access, module, new ContextMenuCommandBuilder(), forGuildId);
+    }
+}
+
+export type InteractiveCommands = InteractiveSlashCommand | InteractiveContextMenuCommand;
 
 export default class InteractionsManager{
     private updateTimer: NodeJS.Timeout;
@@ -78,13 +99,30 @@ export default class InteractionsManager{
         this.bot.events.once("Stop", () => { clearInterval(this.updateTimer); });
     }
 
-    public createCommand(name: string, access: AccessTarget[], module: Module, forGuildId?: string){
+    public createCommand(name: string, access: AccessTarget[], module: Module, forGuildId?: string, type: "slash" | "menu" = "slash"){
         if(interactiveCommandsRegistry.has(name)){
             throw new Error("This command already exists.");
         }
-        let cmd = new InteractiveCommand(name, access, module, forGuildId);
+        let cmd;
+        switch(type){
+            case "menu": {
+                cmd = new InteractiveContextMenuCommand(name, access, module, forGuildId);
+                break;
+            }
+            case "slash": {
+                cmd = new InteractiveSlashCommand(name, access, module, forGuildId);
+                break;
+            }
+        }
         interactiveCommandsRegistry.set(name, cmd);
         return cmd;
+    }
+
+    public createSlashCommand(name: string, access: AccessTarget[], module: Module, forGuildId?: string){
+        return this.createCommand(name, access, module, forGuildId, "slash") as InteractiveSlashCommand;
+    }
+    public createMenuCommand(name: string, access: AccessTarget[], module: Module, forGuildId?: string){
+        return this.createCommand(name, access, module, forGuildId, "menu")  as InteractiveContextMenuCommand;
     }
 
     public getCommand(name: string){
@@ -115,14 +153,14 @@ export default class InteractionsManager{
                 if(c.isPushed){
                     await this.bot.rest.patch(
                         Routes.applicationGuildCommands(this.bot.client.application!.id, c.forGuildId),
-                        { body: c.toJSON() },
+                        { body: c.builder.toJSON() },
                     ).catch(err => GlobalLogger.root.error("Error Updating Guild Slash Command:", err));
                     c.isUpdated = true;
                     return;
                 }else{
                     await this.bot.rest.post(
                         Routes.applicationGuildCommands(this.bot.client.application!.id, c.forGuildId),
-                        { body: c.toJSON() },
+                        { body: c.builder.toJSON() },
                     ).catch(err => GlobalLogger.root.error("Error Pushing Guild Slash Command:", err));
                     c.isUpdated = true;
                     c.isPushed = true;
@@ -132,14 +170,14 @@ export default class InteractionsManager{
                 if(c.isPushed){
                     await this.bot.rest.patch(
                         Routes.applicationCommands(this.bot.client.application!.id),
-                        { body: c.toJSON() },
+                        { body: c.builder.toJSON() },
                     ).catch(err => GlobalLogger.root.error("Error Updating Global Slash Command:", err));
                     c.isUpdated = true;
                     return;
                 }else{
                     await this.bot.rest.post(
                         Routes.applicationCommands(this.bot.client.application!.id),
-                        { body: c.toJSON() },
+                        { body: c.builder.toJSON() },
                     ).catch(err => GlobalLogger.root.error("Error Pushing Global Slash Command:", err));
                     c.isUpdated = true;
                     c.isPushed = true;
@@ -150,7 +188,7 @@ export default class InteractionsManager{
     }
 
     private async onInteractionCreate(interaction: Discord.Interaction){
-        if(interaction.isCommand()){
+        if(interaction.isCommand() || interaction.isContextMenu()){
             let cmd = Array.from(interactiveCommandsRegistry.values()).find(c => c.name === interaction.commandName);
             if(!cmd){
                 GlobalLogger.root.warn(`Fired "${interaction.commandName}" command but InteractiveCommand not found.`);
@@ -253,7 +291,11 @@ export default class InteractionsManager{
                 ], ephemeral: true });
             }else{
                 try {
-                    await cmd._exec(interaction, user);
+                    if(cmd instanceof InteractiveSlashCommand){
+                        await cmd._exec(interaction as InteractionType<SlashCommandBuilder>, user);
+                    }else{
+                        await cmd._exec(interaction as InteractionType<ContextMenuCommandBuilder>, user);
+                    }
                 } catch (err) {
                     let embed = new Discord.MessageEmbed();
                     if(err instanceof RainbowBOTUserError){

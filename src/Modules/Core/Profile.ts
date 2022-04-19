@@ -18,15 +18,17 @@ export default class Profile extends Module{
     constructor(bot: RainbowBOT, UUID: string) {
         super(bot, UUID);
         this.SlashCommands.push(
-            this.bot.interactions.createCommand(this.Name.toLowerCase(), this.Access, this, this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
+            this.bot.interactions.createSlashCommand(this.Name.toLowerCase(), this.Access, this, this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
+            .build(builder => builder
                 .setDescription(this.Description)
                 .addUserOption(opt => opt
                     .setName("target_user")
                     .setDescription("User who's profile you want to view.")
                     .setRequired(false)
                 )
-                .onExecute(this.Run.bind(this))
-                .commit()
+            )
+            .onExecute(this.Run.bind(this))
+            .commit()
         );
     }
     

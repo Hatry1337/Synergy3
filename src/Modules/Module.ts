@@ -4,6 +4,7 @@ import { RainbowBOT } from "..";
 import { InteractiveCommand } from "../InteractionsManager";
 import { Permissions } from "discord.js";
 import { AccessTarget } from "../Structures/Access";
+import { SlashCommandBuilder } from "@discordjs/builders";
 
 export default class Module implements IModule{
     public Name:           string = "Module";
@@ -14,7 +15,7 @@ export default class Module implements IModule{
     public Logger:         ModuleLogger = new ModuleLogger(this);
     public InitPriority:   number = 1;
     public Access:         AccessTarget[] = [];
-    public SlashCommands:  InteractiveCommand[] = [];
+    public SlashCommands:  InteractiveCommand<SlashCommandBuilder>[] = [];
     public Permissions:    Permissions = new Permissions();
 
     constructor(public bot: RainbowBOT, protected UUID: string) {

@@ -12,7 +12,8 @@ class TestMod extends Module{
     constructor(bot, UUID) {
         super(bot, UUID);
         this.SlashCommands.push(
-            this.bot.interactions.createCommand("testmod", this.Access, this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
+            this.bot.interactions.createSlashCommand("testmod", this.Access, this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
+            .build(builder => builder
                 .setDescription(this.Description)
                 .addSubcommand(opt => opt
                     .setName("btn")
@@ -30,8 +31,9 @@ class TestMod extends Module{
                     .setName("err_ce")
                     .setDescription("Throw NoConfigEntryError")    
                 )
-                .onExecute(this.Run.bind(this))
-                .commit()
+            )
+            .onExecute(this.Run.bind(this))
+            .commit()
         );
     }
 

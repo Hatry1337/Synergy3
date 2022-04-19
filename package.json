@@ -39,7 +39,7 @@
     "reflect-metadata": "^0.1.13",
     "sequelize": "^6.17.0",
     "sequelize-typescript": "^2.1.3",
-    "sqlite3": "^4.2.0"
+    "sqlite3": "^5.0.4"
   },
   "devDependencies": {
     "@types/jest": "^27.4.1",

@@ -3,7 +3,6 @@ import Discord from "discord.js";
 import { Emojis, Colors } from "../../Utils";
 import Module from "../Module";
 import { RainbowBOT } from "../..";
-import { InteractiveCommand } from "../../InteractionsManager";
 import Access from "../../Structures/Access";
 
 export default class RHelp extends Module{
@@ -17,7 +16,8 @@ export default class RHelp extends Module{
     constructor(bot: RainbowBOT, UUID: string) {
         super(bot, UUID);
         this.SlashCommands.push(
-            (this.bot.interactions.createCommand(this.Name.toLowerCase(), this.Access, this, this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
+            this.bot.interactions.createSlashCommand(this.Name.toLowerCase(), this.Access, this, this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
+            .build(builder => builder
                 .setDescription(this.Description)
                 .addIntegerOption(opt => opt
                     .setName("page")
@@ -28,9 +28,10 @@ export default class RHelp extends Module{
                     .setName("category")
                     .setDescription("RHelp commands category.")
                     .setRequired(false)
-                ) as InteractiveCommand)
-                .onExecute(this.Run.bind(this))
-                .commit()
+                )
+            )
+            .onExecute(this.Run.bind(this))
+            .commit(),
         );
     }
 

@@ -3,6 +3,7 @@ import { RainbowBOT } from "..";
 import { InteractiveCommand } from "../InteractionsManager";
 import Discord from "discord.js";
 import { AccessTarget } from "../Structures/Access";
+import { SlashCommandBuilder } from "@discordjs/builders";
 
 
 export default interface IModule{
@@ -15,7 +16,7 @@ export default interface IModule{
     Permissions: Discord.Permissions;
     
     Logger: ModuleLogger;
-    SlashCommands:  InteractiveCommand[];
+    SlashCommands:  InteractiveCommand<SlashCommandBuilder>[];
 
     InitPriority: number;
     Init?(): Promise<void>;
