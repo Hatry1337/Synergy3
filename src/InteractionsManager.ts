@@ -4,7 +4,7 @@ import { GlobalLogger } from "./GlobalLogger";
 import RainbowBOT from "./RainbowBOT";
 import { Utils } from "./Utils";
 import crypto from "crypto";
-import { RESTPostAPIApplicationCommandsJSONBody, Routes } from "discord-api-types/rest/v9";
+import { Routes } from "discord-api-types/rest/v9";
 import { Colors, Emojis, Module, User } from ".";
 import { AccessTarget } from "./Structures/Access";
 import { RainbowBOTUserError } from "./Structures/Errors";
