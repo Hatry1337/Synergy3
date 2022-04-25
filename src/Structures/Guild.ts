@@ -1,5 +1,5 @@
 import Discord from "discord.js";
-import RainbowBOT from "../RainbowBOT";
+import Synergy from "../Synergy";
 
 export interface GuildOptions{
     id: string;
@@ -28,7 +28,7 @@ export default class Guild implements GuildOptions{
 
     public guild?: Discord.Guild | undefined;
 
-    constructor(public bot: RainbowBOT, opts: GuildOptions){
+    constructor(public bot: Synergy, opts: GuildOptions){
         this.id = opts.id;
         this.name = opts.name;
         this.group = opts.group;

@@ -1,5 +1,5 @@
 import { ModuleLogger } from "../GlobalLogger";
-import { RainbowBOT } from "..";
+import { Synergy } from "..";
 import { InteractiveCommand } from "../InteractionsManager";
 import Discord from "discord.js";
 import { AccessTarget } from "../Structures/Access";
@@ -22,5 +22,5 @@ export default interface IModule{
     Init?(): Promise<void>;
     UnLoad?(): Promise<void>;
 
-    bot: RainbowBOT;
+    bot: Synergy;
 }

@@ -1,6 +1,6 @@
 import Discord from "discord.js";
 import { GlobalLogger } from "./GlobalLogger";
-import RainbowBOT from "./RainbowBOT";
+import Synergy from "./Synergy";
 import User from "./Structures/User";
 import { sequelize } from "./Database";
 import EventEmitter from "events";
@@ -21,7 +21,7 @@ declare interface EventManager {
 }
 
 class EventManager extends EventEmitter{
-    constructor(public bot: RainbowBOT) {
+    constructor(public bot: Synergy) {
         super();
         this.bot.client.once(   "ready",                this.onceReady.bind(this));
         this.bot.client.on(     "guildCreate",          this.onGuildCreate.bind(this));
@@ -78,7 +78,7 @@ class EventManager extends EventEmitter{
                 logger.info(`Uploading slash commands...`);
                 await this.bot.interactions.updateSlashCommands();
 
-                logger.info(`RainbowBOTCore is fully ready! Enjoy =)`);
+                logger.info(`Synergy 3 is fully ready! Enjoy =)`);
                 this.bot.isReady = true;
                 this.emit("Initialized");
             }

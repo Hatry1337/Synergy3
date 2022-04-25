@@ -1,4 +1,4 @@
-import RainbowBOT from './RainbowBOT';
+import Synergy from './Synergy';
 import ModuleDataManager from './ModuleDataManager';
 import Module from './Modules/Module';
 import { GlobalLogger } from './GlobalLogger';
@@ -20,7 +20,7 @@ const ModuleRegistry: Map<string, typeof Module> = new Map();
 export default class ModuleManager{
     public data: ModuleDataManager = new ModuleDataManager(this.bot);
 
-    constructor(public bot: RainbowBOT){
+    constructor(public bot: Synergy){
     }
 
     public RegisterModule(mod: typeof Module, uuid: string, preLoad: boolean = false){

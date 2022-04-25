@@ -1,14 +1,14 @@
 {
-  "name": "rainbowbot-core",
+  "name": "synergy3",
   "version": "3.7.0",
-  "description": "RainbowBOT Core",
+  "description": "Synergy 3 - Powerful Discord BOT Framework.",
   "license": "MIT",
   "author": {
     "name": "Hatry1337 (Thomas Sidereal)"
   },
-  "repository": "https://github.com/Hatry1337/RainbowBOT-Core",
+  "repository": "https://github.com/Hatry1337/Synergy3",
   "bugs": {
-    "url": "https://github.com/Hatry1337/RainbowBOT-Core/issues",
+    "url": "https://github.com/Hatry1337/Synergy3/issues",
     "email": "thomas@rainbowbot.xyz"
   },
   "keywords": [
@@ -16,7 +16,10 @@
     "discordjs",
     "bot",
     "core",
-    "rainbowbot"
+    "framework",
+    "synergy",
+    "rainbowbot",
+    "pgsql"
   ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

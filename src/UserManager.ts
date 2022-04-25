@@ -7,7 +7,7 @@ import { StorageUserEconomyInfo } from "./Models/StorageUserEconomyInfo";
 import { StorageUser } from "./Models/StorageUser";
 
 import { GlobalLogger } from "./GlobalLogger";
-import RainbowBOT from "./RainbowBOT";
+import Synergy from "./Synergy";
 import User, { UserDiscordOptions } from "./Structures/User";
 import { Access } from ".";
 
@@ -15,7 +15,7 @@ export default class UserManager{
     public cached: Map<number, User> = new Map();
     private discordIdsAssociations: Map<string, number> = new Map();
     private timer: NodeJS.Timeout;
-    constructor(public bot: RainbowBOT){
+    constructor(public bot: Synergy){
         this.timer = setInterval(async () => {
             await this.syncStorage();
         }, (this.bot.options.dataSyncDelay || 60) * 1000);

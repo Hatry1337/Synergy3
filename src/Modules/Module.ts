@@ -1,6 +1,6 @@
 import IModule from "./IModule";
 import { ModuleLogger } from "../GlobalLogger";
-import { RainbowBOT } from "..";
+import { Synergy } from "..";
 import { InteractiveCommand } from "../InteractionsManager";
 import { Permissions } from "discord.js";
 import { AccessTarget } from "../Structures/Access";
@@ -18,7 +18,7 @@ export default class Module implements IModule{
     public SlashCommands:  InteractiveCommand<SlashCommandBuilder>[] = [];
     public Permissions:    Permissions = new Permissions();
 
-    constructor(public bot: RainbowBOT, protected UUID: string) {
+    constructor(public bot: Synergy, protected UUID: string) {
     }
     
     public async Init?(): Promise<void>;

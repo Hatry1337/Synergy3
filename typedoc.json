@@ -2,7 +2,7 @@
     "entryPointStrategy": "expand",
     "entryPoints": [ "./src" ],
     "out": "docs",
-    "name": "RainbowBOT Core",
+    "name": "Synergy 3",
     "githubPages": false,
     "theme": "default"
 }

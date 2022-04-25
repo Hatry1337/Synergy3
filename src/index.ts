@@ -1,7 +1,7 @@
 import { GlobalLogger, ModuleLogger } from "./GlobalLogger"
 import IModule from "./Modules/IModule"
 import Module from "./Modules/Module"
-import RainbowBOT, { ModuleUUIDPair, RainbowBOTOptions } from "./RainbowBOT"
+import Synergy, { ModuleUUIDPair, SynergyOptions } from "./Synergy"
 import Guild, { GuildOptions } from "./Structures/Guild"
 import User, { UserDiscordOptions, UserEconomyOptions, UserOptions } from "./Structures/User"
 import { Colors, Emojis, Utils } from "./Utils"
@@ -12,7 +12,7 @@ import { GuildManager, UserManager } from "discord.js"
 import ModuleDataManager from "./ModuleDataManager"
 import ModuleManager, { ModuleCommonInfo } from "./ModuleManager"
 import InteractionsManager, { ButtonInteractionCallback, CallbackType, InteractionType, InteractiveButton, InteractiveCommand, InteractiveCommands, InteractiveContextMenuCommand, InteractiveSlashCommand  } from "./InteractionsManager";
-import { GuildOnlyError, RainbowBOTUserError, NoConfigEntryError, MissingPermissionsError } from "./Structures/Errors"
+import { GuildOnlyError, SynergyUserError, NoConfigEntryError, MissingPermissionsError } from "./Structures/Errors"
 import Access, { AccessTarget } from "./Structures/Access"
 
 export {
@@ -28,8 +28,8 @@ export {
     Module,
     IModule,
 
-    RainbowBOT,
-    RainbowBOTOptions,
+    Synergy,
+    SynergyOptions,
     ModuleUUIDPair,
 
     Utils,
@@ -65,7 +65,7 @@ export {
     AccessTarget,
     Access,
 
-    RainbowBOTUserError,
+    SynergyUserError,
     GuildOnlyError,
     NoConfigEntryError,
     MissingPermissionsError

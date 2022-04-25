@@ -4,7 +4,7 @@ import Module from "../Module";
 import User from "../../Structures/User";
 import { Colors, Utils } from "../../Utils";
 import { ConfigDataType } from "../../ConfigManager";
-import { RainbowBOT } from "../..";
+import { Synergy } from "../..";
 import Access from "../../Structures/Access";
 
 export interface IGlobalConfiguration{
@@ -21,7 +21,7 @@ export default class Config extends Module{
 
     public Access: string[] = [ Access.PLAYER(), Access.BANNED() ]
 
-    constructor(bot: RainbowBOT, UUID: string) {
+    constructor(bot: Synergy, UUID: string) {
         super(bot, UUID);
     }
     

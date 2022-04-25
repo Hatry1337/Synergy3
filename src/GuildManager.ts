@@ -4,14 +4,14 @@ import { Op, Transaction } from "sequelize";
 import { sequelize } from "./Database";
 
 import { GlobalLogger } from "./GlobalLogger";
-import RainbowBOT from "./RainbowBOT";
+import Synergy from "./Synergy";
 import Guild, { GuildOptions } from "./Structures/Guild";
 import { StorageGuild } from "./Models/StorageGuild";
 
 export default class GuildManager{
     public cached: Map<string, Guild> = new Map();
     private timer: NodeJS.Timeout;
-    constructor(public bot: RainbowBOT){
+    constructor(public bot: Synergy){
         this.timer = setInterval(async () => {
             await this.syncStorage();
         }, (this.bot.options.dataSyncDelay || 60) * 1000);

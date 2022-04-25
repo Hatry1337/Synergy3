@@ -2,7 +2,7 @@ import Discord from "discord.js";
 
 import { Emojis, Colors } from "../../Utils";
 import Module from "../Module";
-import { RainbowBOT } from "../..";
+import { Synergy } from "../..";
 import Access from "../../Structures/Access";
 
 export default class RHelp extends Module{
@@ -13,7 +13,7 @@ export default class RHelp extends Module{
 
     public Access: string[] = [ Access.PLAYER(), Access.BANNED() ]
 
-    constructor(bot: RainbowBOT, UUID: string) {
+    constructor(bot: Synergy, UUID: string) {
         super(bot, UUID);
         this.SlashCommands.push(
             this.bot.interactions.createSlashCommand(this.Name.toLowerCase(), this.Access, this, this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
@@ -49,7 +49,7 @@ export default class RHelp extends Module{
             var max_page = Math.ceil(modulesInfo.length / 25);
             if(page > 0 && page <= max_page){
                 var embd = new Discord.MessageEmbed({
-                    title: `RainbowBOT's Modules \`${page}/${max_page}\``,
+                    title: `${this.bot.client.user?.username || "Synergy"}'s Modules \`${page}/${max_page}\``,
                     description: "You can watch detailed usage of module by `!usage <module>`",
                     color: Colors.Noraml
                 });

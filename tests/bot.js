@@ -1,6 +1,6 @@
 require("dotenv").config("../.env");
 const Discord = require("discord.js");
-const { Module, RainbowBOT, CoreModules, GuildOnlyError, NoConfigEntryError } = require("..");
+const { Module, Synergy, CoreModules, GuildOnlyError, NoConfigEntryError } = require("..");
 
 class TestMod extends Module{
     Name         = "TestMod";
@@ -49,7 +49,7 @@ class TestMod extends Module{
             throw new GuildOnlyError();
         }
         if(subcmd === "err_ce"){
-            throw new NoConfigEntryError("Cool parameter", "/config user set field:cool_param value_string:rainbowbot core is awesome");
+            throw new NoConfigEntryError("Cool parameter", "/config user set field:cool_param value_string:Synergy core is awesome");
         }
 
         let btn1 = this.bot.interactions.createButton().setLabel("test").setStyle("PRIMARY");
@@ -70,7 +70,7 @@ const modules = [
     { Module: TestMod,                 UUID: "78dc809e-532c-58fa-aa8b-c14f7029f23a"}
 ]
 
-const bot = new RainbowBOT({
+const bot = new Synergy({
     sequelizeURI: process.env.DATABASE_URI,                            // Sequelize initialization URI, see https://sequelize.org/master/manual/getting-started.html#connecting-to-a-database 
     masterGuildId: process.env.MASTER_GUILD_ID,                        // BOT's master guild. Slash Commands will appear on this guild in development mode.
     moduleGlobalLoading: process.env.NODE_ENV === "production",        // "Development mode", if you wanna publish your commands globally use true.
@@ -86,7 +86,7 @@ const bot = new RainbowBOT({
             activities: [
                 {
                     type: "PLAYING",
-                    name: "RainbowBOT Core",
+                    name: "Synergy 3",
                 }
             ]
         }

@@ -1,13 +1,13 @@
 import Discord from "discord.js";
 import { ContextMenuCommandBuilder, SlashCommandBuilder } from "@discordjs/builders";
 import { GlobalLogger } from "./GlobalLogger";
-import RainbowBOT from "./RainbowBOT";
+import Synergy from "./Synergy";
 import { Utils } from "./Utils";
 import crypto from "crypto";
 import { Routes } from "discord-api-types/rest/v9";
 import { Colors, Emojis, Module, User } from ".";
 import { AccessTarget } from "./Structures/Access";
-import { RainbowBOTUserError } from "./Structures/Errors";
+import { SynergyUserError } from "./Structures/Errors";
 
 export type ButtonInteractionCallback = (interaction: Discord.ButtonInteraction) => Promise<void>;
 
@@ -93,7 +93,7 @@ export type InteractiveCommands = InteractiveSlashCommand | InteractiveContextMe
 export default class InteractionsManager{
     private updateTimer: NodeJS.Timeout;
     
-    constructor(public bot: RainbowBOT) {
+    constructor(public bot: Synergy) {
         this.updateTimer = setInterval(this.updateSlashCommands.bind(this), 10000);
         this.bot.client.on("interactionCreate", this.onInteractionCreate.bind(this));
         this.bot.events.once("Stop", () => { clearInterval(this.updateTimer); });
@@ -298,7 +298,7 @@ export default class InteractionsManager{
                     }
                 } catch (err) {
                     let embed = new Discord.MessageEmbed();
-                    if(err instanceof RainbowBOTUserError){
+                    if(err instanceof SynergyUserError){
                         embed.title = Emojis.RedErrorCross + err.message;
                         embed.description = err.subMessage ? err.subMessage : null;
                         embed.color = Colors.Error;

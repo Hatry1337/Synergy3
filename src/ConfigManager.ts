@@ -1,11 +1,11 @@
 import { ModuleDataContainer } from "./ModuleDataManager";
-import RainbowBOT from "./RainbowBOT";
+import Synergy from "./Synergy";
 
 export type ConfigDataType = "string" | "int" | "number" | "bool" | "channel" | "user" | "role";
 
 export default class ConfigManager{
     private dataContainer?: ModuleDataContainer;
-    constructor(public bot: RainbowBOT){
+    constructor(public bot: Synergy){
 
     }
 

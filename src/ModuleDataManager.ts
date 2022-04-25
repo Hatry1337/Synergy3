@@ -1,14 +1,14 @@
 import { sequelize } from './Database';
 import { GlobalLogger } from './GlobalLogger';
 import { StorageModuleDataContainer } from './Models/StorageModuleDataContainer';
-import RainbowBOT from './RainbowBOT';
+import Synergy from './Synergy';
 
 type ModuleDataType = {[key: string]: any};
 const dataContainers: Map<string, ModuleDataContainer> = new Map();
 const moduleDatas: Map<string, ModuleDataType> = new Map();
 
 export class ModuleDataContainer{
-    constructor(public bot: RainbowBOT, private uuid: string, data: ModuleDataType){
+    constructor(public bot: Synergy, private uuid: string, data: ModuleDataType){
         moduleDatas.set(uuid, data);
     }
 
@@ -29,7 +29,7 @@ export class ModuleDataContainer{
 
 export default class ModuleDataManager{
     private timer: NodeJS.Timeout;
-    constructor(public bot: RainbowBOT){
+    constructor(public bot: Synergy){
         this.timer = setInterval(async () => {
             await this.syncStorage().catch(err => GlobalLogger.root.error("ModuleDataManager AutoSync Error:", err));
         }, (this.bot.options.dataSyncDelay || 60) * 1000);

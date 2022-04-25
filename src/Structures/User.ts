@@ -1,5 +1,5 @@
 import Discord from "discord.js";
-import RainbowBOT from "../RainbowBOT";
+import Synergy from "../Synergy";
 
 export interface UserEconomyOptions{
     points: number;
@@ -33,7 +33,7 @@ export default class User implements UserOptions{
     public economy: UserEconomyOptions;
     public discord: UserDiscordOptions;
 
-    constructor(public bot: RainbowBOT, opts: UserOptions){
+    constructor(public bot: Synergy, opts: UserOptions){
         this.id = opts.id;
         this.nickname = opts.nickname;
         this.groups = opts.groups;
