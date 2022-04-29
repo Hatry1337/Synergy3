@@ -23,6 +23,10 @@ export class InteractiveButton extends Discord.MessageButton {
         this.setCustomId(uuid);
     }
 
+    /**
+     *  Set button callback function
+     * @param callback function to execute when button pressed
+     */
     public onClick(callback: ButtonInteractionCallback){
         this.clickCallback = callback;
         return this;
@@ -32,6 +36,9 @@ export class InteractiveButton extends Discord.MessageButton {
         interactiveButtonsRegistry.delete(this.uuid);
     }
 
+    /**
+     * Don't execute this function directly! It is for internal calls 
+     */
     public async _clicked(interaction: Discord.ButtonInteraction){
         this.lastInteraction = interaction;
         if(this.clickCallback){
@@ -53,11 +60,18 @@ export class InteractiveCommand<Type extends SlashCommandBuilder | ContextMenuCo
         this.builder.setName(this.name);
     }
 
+    /**
+     *  Set command callback function
+     * @param callback function to execute when received interaction
+     */
     public onExecute(callback: CallbackType<Type>){
         this.execCallback = callback;
         return this;
     }
 
+    /**
+     * Don't execute this function directly! It is for internal calls 
+     */
     public async _exec(interaction: InteractionType<Type>, user: User){
         this.lastInteraction = interaction;
         if(this.execCallback){
@@ -65,11 +79,17 @@ export class InteractiveCommand<Type extends SlashCommandBuilder | ContextMenuCo
         }
     }
 
+    /**
+     * Get command structure builder
+     */
     public build(f: (builder: Type) => Omit<Type, any>){
         f(this.builder);
         return this;
     }
 
+    /**
+     * Mark command as ready to upload
+     */
     public commit(){
         this.isUpdated = false;
         return this;
@@ -99,6 +119,13 @@ export default class InteractionsManager{
         this.bot.events.once("Stop", () => { clearInterval(this.updateTimer); });
     }
 
+    /**
+     * @param name command name
+     * @param access access targets that allowed to use this command
+     * @param module module that is created this command
+     * @param forGuildId guild id where to upload this command. Leave empty to global upload
+     * @param type command type
+     */
     public createCommand(name: string, access: AccessTarget[], module: Module, forGuildId?: string, type: "slash" | "menu" = "slash"){
         if(interactiveCommandsRegistry.has(name)){
             throw new Error("This command already exists.");
@@ -118,9 +145,22 @@ export default class InteractionsManager{
         return cmd;
     }
 
+    /**
+     * @param name command name
+     * @param access access targets that allowed to use this command
+     * @param module module that is created this command
+     * @param forGuildId guild id where to upload this command. Leave empty to global upload
+     */
     public createSlashCommand(name: string, access: AccessTarget[], module: Module, forGuildId?: string){
         return this.createCommand(name, access, module, forGuildId, "slash") as InteractiveSlashCommand;
     }
+
+    /**
+     * @param name command name
+     * @param access access targets that allowed to use this command
+     * @param module module that is created this command
+     * @param forGuildId guild id where to upload this command. Leave empty to global upload
+     */
     public createMenuCommand(name: string, access: AccessTarget[], module: Module, forGuildId?: string){
         return this.createCommand(name, access, module, forGuildId, "menu")  as InteractiveContextMenuCommand;
     }
@@ -143,6 +183,9 @@ export default class InteractionsManager{
         return interactiveButtonsRegistry.get(uuid);
     }
 
+    /**
+     * Upload all commands to discord servers. Probably you can use this, but it's useless cuz manager execute this periodically by itself
+     */
     public async updateSlashCommands(){
         if(!this.bot.client.isReady()) return;
         let cmds = Array.from(interactiveCommandsRegistry.values()).filter(c => !c.isUpdated);

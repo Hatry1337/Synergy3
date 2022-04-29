@@ -59,6 +59,9 @@ export default class ModuleDataManager{
         });
     }
 
+    /**
+     * Don't execute this function directly! It is for internal calls 
+     */
     public loadFromStorage() {
         return new Promise<void>(async (resolve, reject) => {
             StorageModuleDataContainer.findAll().then(async containers => {
@@ -70,6 +73,9 @@ export default class ModuleDataManager{
         });
     }
 
+    /**
+     * Don't execute this function directly! It is for internal calls 
+     */
     public syncStorage(){
         return new Promise<void>(async (resolve, reject) => {
             GlobalLogger.root.info("[ModuleDataManager] Saving data to storage...");

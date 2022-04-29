@@ -105,6 +105,9 @@ export default class Synergy{
         logger.info(`BOT Stopped.`);
     }
 
+    /**
+     * Don't execute this function directly! It is for internal calls 
+     */
     public CacheGuilds(log: boolean = false){
         return new Promise<number>(async (resolve, reject) => {
             let i = 0;

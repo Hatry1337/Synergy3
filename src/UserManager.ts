@@ -150,6 +150,9 @@ export default class UserManager{
         return user;
     }
 
+    /**
+     * Don't execute this function directly! It is for internal calls 
+     */
     public updateAssociations(){
         return new Promise<void>(async (resolve, reject) => {
             StorageUserDiscordInfo.findAll().then(infos => {
@@ -161,6 +164,9 @@ export default class UserManager{
         });
     }
 
+    /**
+     * Don't execute this function directly! It is for internal calls 
+     */
     public syncStorage(){
         return new Promise<void>(async (resolve, reject) => {
             GlobalLogger.root.info("[UserManager] Saving data to storage...");

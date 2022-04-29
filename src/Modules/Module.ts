@@ -23,4 +23,13 @@ export default class Module implements IModule{
     
     public async Init?(): Promise<void>;
     public async UnLoad?(): Promise<void>;
+
+    public createSlashCommand(name: string, access?: AccessTarget[], forGuildId?: string){
+        let command = this.bot.interactions.createSlashCommand(name, access || this.Access, this, forGuildId);
+        this.SlashCommands.push(command);
+        return command;
+    }
+    public createMenuCommand(name: string, access?: AccessTarget[], forGuildId?: string){
+        return this.bot.interactions.createMenuCommand(name, access || this.Access, this, forGuildId);
+    }
 }

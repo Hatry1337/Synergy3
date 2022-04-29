@@ -31,6 +31,9 @@ export default class ModuleManager{
         }
     }
 
+    /**
+     * Don't execute this function directly! It is for internal calls 
+    */
     public Init(){
         return new Promise<number>(async (resolve, reject) => {
             let cmdc = Modules.slice(0);

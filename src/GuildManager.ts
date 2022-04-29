@@ -134,6 +134,9 @@ export default class GuildManager{
         return guild;
     }
 
+    /**
+     * Don't execute this function directly! It is for internal calls 
+     */
     public syncStorage(){
         return new Promise<void>(async (resolve, reject) => {
             GlobalLogger.root.info("[GuildManager] Saving data to storage...");
