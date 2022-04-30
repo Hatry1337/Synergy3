@@ -26,132 +26,138 @@ export default class Config extends Module{
     }
     
     public async Init(){
-        let user_keys = await this.bot.config.getFields("user");
-        let guild_keys = await this.bot.config.getFields("guild");
-
-        let guild_conf_fields: [name: string, value: string][] = [];
-        for(let f of guild_keys){
-            guild_conf_fields.push([f, f]);
-        }
-
-        let user_conf_fields: [name: string, value: string][] = [];
-        for(let f of user_keys){
-            user_conf_fields.push([f, f]);
-        }
-
-        this.SlashCommands.push(
-            this.bot.interactions.createSlashCommand(this.Name.toLowerCase(), this.Access, this, this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
-            .build(builder => builder
-                .setDescription(this.Description)
-                .addSubcommandGroup(opt => opt
-                    .setName("guild")
-                    .setDescription("Guild-Specific settings.")
-                    .addSubcommand(opt => opt
-                        .setName("list")
-                        .setDescription("List all Guild-Specific settings.")  
-                    )
-                    .addSubcommand(opt => opt
-                        .setName("set")
-                        .setDescription("Set specified field to specified value")    
-                        .addStringOption(opt => opt
-                            .setName("field")
-                            .setDescription("Field to set.")
-                            .addChoices(guild_conf_fields)
-                        )
-                        .addBooleanOption(opt => opt
-                            .setName("value_bool")
-                            .setDescription("Value if parameter is type of bool.")
-                        )
-                        .addIntegerOption(opt => opt
-                            .setName("value_int")
-                            .setDescription("Value if parameter is type of int.")
-                        )
-                        .addStringOption(opt => opt
-                            .setName("value_string")
-                            .setDescription("Value if parameter is type of string.")
-                        )
-                        .addChannelOption(opt => opt
-                            .setName("value_channel")
-                            .setDescription("Value if parameter is type of channel.")
-                        )
-                        .addRoleOption(opt => opt
-                            .setName("value_role")
-                            .setDescription("Value if parameter is type of role.")
-                        )
-                        .addUserOption(opt => opt
-                            .setName("value_user")
-                            .setDescription("Value if parameter is type of user.")
-                        )
-                    )
-                    /*
-                    .addSubcommand(opt => opt
-                        .setName("get")
-                        .setDescription("Get value of specified field.")    
-                        .addStringOption(opt => opt
-                            .setName("field")
-                            .setDescription("Field to get.")
-                            .addChoices(guild_conf_fields)
-                        )
-                    )
-                    */
+        this.createSlashCommand(this.Name.toLowerCase(), this.Access, this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
+        .build(builder => builder
+            .setDescription(this.Description)
+            .addSubcommandGroup(opt => opt
+                .setName("guild")
+                .setDescription("Guild-Specific settings.")
+                .addSubcommand(opt => opt
+                    .setName("list")
+                    .setDescription("List all Guild-Specific settings.")  
                 )
-                
-                .addSubcommandGroup(opt => opt
-                    .setName("user")
-                    .setDescription("User-Specific settings.")
-                    .addSubcommand(opt => opt
-                        .setName("list")
-                        .setDescription("List all User-Specific settings.")  
+                .addSubcommand(opt => opt
+                    .setName("set")
+                    .setDescription("Set specified field to specified value")    
+                    .addStringOption(opt => opt
+                        .setName("field")
+                        .setDescription("Field to set.")
+                        .setAutocomplete(true)
                     )
-                    .addSubcommand(opt => opt
-                        .setName("set")
-                        .setDescription("Set specified field to specified value")    
-                        .addStringOption(opt => opt
-                            .setName("field")
-                            .setDescription("Field to set.")
-                            .addChoices(guild_conf_fields)
-                        )
-                        .addBooleanOption(opt => opt
-                            .setName("value_bool")
-                            .setDescription("Value if parameter is type of bool.")
-                        )
-                        .addIntegerOption(opt => opt
-                            .setName("value_int")
-                            .setDescription("Value if parameter is type of int.")
-                        )
-                        .addStringOption(opt => opt
-                            .setName("value_string")
-                            .setDescription("Value if parameter is type of string.")
-                        )
-                        .addChannelOption(opt => opt
-                            .setName("value_channel")
-                            .setDescription("Value if parameter is type of channel.")
-                        )
-                        .addRoleOption(opt => opt
-                            .setName("value_role")
-                            .setDescription("Value if parameter is type of role.")
-                        )
-                        .addUserOption(opt => opt
-                            .setName("value_user")
-                            .setDescription("Value if parameter is type of user.")
-                        )
+                    .addBooleanOption(opt => opt
+                        .setName("value_bool")
+                        .setDescription("Value if parameter is type of bool.")
                     )
-                    /*
-                    .addSubcommand(opt => opt
-                        .setName("get")
-                        .setDescription("Get value of specified field.")    
-                        .addStringOption(opt => opt
-                            .setName("field")
-                            .setDescription("Field to get.")
-                            .addChoices(guild_conf_fields)
-                        )
+                    .addIntegerOption(opt => opt
+                        .setName("value_int")
+                        .setDescription("Value if parameter is type of int.")
                     )
-                    */
+                    .addStringOption(opt => opt
+                        .setName("value_string")
+                        .setDescription("Value if parameter is type of string.")
+                    )
+                    .addChannelOption(opt => opt
+                        .setName("value_channel")
+                        .setDescription("Value if parameter is type of channel.")
+                    )
+                    .addRoleOption(opt => opt
+                        .setName("value_role")
+                        .setDescription("Value if parameter is type of role.")
+                    )
+                    .addUserOption(opt => opt
+                        .setName("value_user")
+                        .setDescription("Value if parameter is type of user.")
+                    )
                 )
+                /*
+                .addSubcommand(opt => opt
+                    .setName("get")
+                    .setDescription("Get value of specified field.")    
+                    .addStringOption(opt => opt
+                        .setName("field")
+                        .setDescription("Field to get.")
+                        .addChoices(guild_conf_fields)
+                    )
+                )
+                */
             )
-            .onExecute(this.Run.bind(this))
-            .commit()
-        );
+            
+            .addSubcommandGroup(opt => opt
+                .setName("user")
+                .setDescription("User-Specific settings.")
+                .addSubcommand(opt => opt
+                    .setName("list")
+                    .setDescription("List all User-Specific settings.")  
+                )
+                .addSubcommand(opt => opt
+                    .setName("set")
+                    .setDescription("Set specified field to specified value")    
+                    .addStringOption(opt => opt
+                        .setName("field")
+                        .setDescription("Field to set.")
+                        .setAutocomplete(true)
+                    )
+                    .addBooleanOption(opt => opt
+                        .setName("value_bool")
+                        .setDescription("Value if parameter is type of bool.")
+                    )
+                    .addIntegerOption(opt => opt
+                        .setName("value_int")
+                        .setDescription("Value if parameter is type of int.")
+                    )
+                    .addStringOption(opt => opt
+                        .setName("value_string")
+                        .setDescription("Value if parameter is type of string.")
+                    )
+                    .addChannelOption(opt => opt
+                        .setName("value_channel")
+                        .setDescription("Value if parameter is type of channel.")
+                    )
+                    .addRoleOption(opt => opt
+                        .setName("value_role")
+                        .setDescription("Value if parameter is type of role.")
+                    )
+                    .addUserOption(opt => opt
+                        .setName("value_user")
+                        .setDescription("Value if parameter is type of user.")
+                    )
+                )
+                /*
+                .addSubcommand(opt => opt
+                    .setName("get")
+                    .setDescription("Get value of specified field.")    
+                    .addStringOption(opt => opt
+                        .setName("field")
+                        .setDescription("Field to get.")
+                        .addChoices(guild_conf_fields)
+                    )
+                )
+                */
+            )
+        )
+        .onExecute(this.Run.bind(this))
+        .onAutocomplete(async (int) => {
+            let target = int.options.getSubcommandGroup(true);
+            let choises: {name: string, value: string}[] = [];
+            switch(target){
+                case "guild": {
+                    let guild_keys = await this.bot.config.getFields("guild");
+                    for(let f of guild_keys){
+                        choises.push({name: f, value: f});
+                    }
+                    break;
+                }
+                case "user": {
+                    let user_keys = await this.bot.config.getFields("user");
+                    for(let f of user_keys){
+                        choises.push({name: f, value: f});
+                    }
+                    break;
+                }
+            }
+            await int.respond(choises);
+        })
+        .commit()
     }
 
     private makeList(fields: { name: string, value: any, type: ConfigDataType }[]){

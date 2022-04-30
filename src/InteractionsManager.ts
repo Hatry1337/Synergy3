@@ -10,7 +10,7 @@ import { SynergyUserError } from "./Structures/Errors";
 import { InteractiveCommand } from "./Interactions/InteractiveCommand";
 import { InteractiveComponent } from "./Interactions/InteractiveComponent";
 import { ContextMenuCommandBuilder, SlashCommandBuilder } from "@discordjs/builders";
-import { InteractiveCommandTargets, InteractiveComponentTargets, InteractiveInteractions } from "./Interactions/InteractionTypes";
+import { InteractiveCommandTargets, InteractiveComponentTargets } from "./Interactions/InteractionTypes";
 
 const interactiveComponentsRegistry: Map<string, InteractiveComponent<InteractiveComponentTargets>> = new Map;
 const interactiveCommandsRegistry: Map<string, InteractiveCommand<InteractiveCommandTargets>> = new Map;
@@ -134,7 +134,19 @@ export default class InteractionsManager{
 
     private async onInteractionCreate(interaction: Discord.Interaction){
         let target;
-        if(interaction.isApplicationCommand()){
+        if(interaction.isAutocomplete()){
+            let cmd = Array.from(interactiveCommandsRegistry.values()).find(c => c.name === interaction.commandName);
+            if(!cmd){
+                GlobalLogger.root.warn(`Fired "${interaction.commandName}" autocomplete but InteractiveCommand not found.`);
+                return;
+            }
+            try {
+                await cmd._autocomplete(interaction);
+            } catch (error) {
+                GlobalLogger.root.error(`Error autocompleteing "${interaction.commandName}":`, error);
+            }
+            return;
+        }else if(interaction.isApplicationCommand()){
             let cmd = Array.from(interactiveCommandsRegistry.values()).find(c => c.name === interaction.commandName);
             if(!cmd){
                 GlobalLogger.root.warn(`Fired "${interaction.commandName}" command but InteractiveCommand not found.`);
