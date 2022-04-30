@@ -1,120 +1,25 @@
-import Discord from "discord.js";
-import { ContextMenuCommandBuilder, SlashCommandBuilder } from "@discordjs/builders";
-import { GlobalLogger } from "./GlobalLogger";
+import User from "./Structures/User";
+import Module from "./Modules/Module";
 import Synergy from "./Synergy";
-import { Utils } from "./Utils";
-import crypto from "crypto";
+import Discord from "discord.js";
+import { Colors, Emojis, Utils } from "./Utils";
 import { Routes } from "discord-api-types/rest/v9";
-import { Colors, Emojis, Module, User } from ".";
+import { GlobalLogger } from "./GlobalLogger";
 import { AccessTarget } from "./Structures/Access";
 import { SynergyUserError } from "./Structures/Errors";
+import { InteractiveCommand } from "./Interactions/InteractiveCommand";
+import { InteractiveComponent } from "./Interactions/InteractiveComponent";
+import { ContextMenuCommandBuilder, SlashCommandBuilder } from "@discordjs/builders";
+import { InteractiveCommandTargets, InteractiveComponentTargets, InteractiveInteractions } from "./Interactions/InteractionTypes";
 
-export type ButtonInteractionCallback = (interaction: Discord.ButtonInteraction) => Promise<void>;
-
-const interactiveButtonsRegistry: Map<string, InteractiveButton> = new Map;
-const interactiveCommandsRegistry: Map<string, InteractiveCommands> = new Map;
-
-export class InteractiveButton extends Discord.MessageButton {
-    private clickCallback?: ButtonInteractionCallback;
-    public lastInteraction?: Discord.ButtonInteraction;
-
-    constructor(readonly uuid: string){
-        super();
-        this.setCustomId(uuid);
-    }
-
-    /**
-     *  Set button callback function
-     * @param callback function to execute when button pressed
-     */
-    public onClick(callback: ButtonInteractionCallback){
-        this.clickCallback = callback;
-        return this;
-    }
-
-    public destroy(){
-        interactiveButtonsRegistry.delete(this.uuid);
-    }
-
-    /**
-     * Don't execute this function directly! It is for internal calls 
-     */
-    public async _clicked(interaction: Discord.ButtonInteraction){
-        this.lastInteraction = interaction;
-        if(this.clickCallback){
-            await this.clickCallback(interaction);
-        }
-    }
-}
-
-export type InteractionType<Type> = Type extends SlashCommandBuilder ? Discord.CommandInteraction : Discord.ContextMenuInteraction;
-export type CallbackType<Type> = (interaction: InteractionType<Type>, user: User) => Promise<void>;
-
-export class InteractiveCommand<Type extends SlashCommandBuilder | ContextMenuCommandBuilder>{
-    public isUpdated: boolean = true;
-    public isPushed: boolean = false;
-    private execCallback?: CallbackType<Type>;
-    public lastInteraction?: InteractionType<Type>
-
-    constructor(readonly name: string, public access: AccessTarget[], public module: Module, public builder: Type, readonly forGuildId?: string){
-        this.builder.setName(this.name);
-    }
-
-    /**
-     *  Set command callback function
-     * @param callback function to execute when received interaction
-     */
-    public onExecute(callback: CallbackType<Type>){
-        this.execCallback = callback;
-        return this;
-    }
-
-    /**
-     * Don't execute this function directly! It is for internal calls 
-     */
-    public async _exec(interaction: InteractionType<Type>, user: User){
-        this.lastInteraction = interaction;
-        if(this.execCallback){
-            await this.execCallback(interaction, user);
-        }
-    }
-
-    /**
-     * Get command structure builder
-     */
-    public build(f: (builder: Type) => Omit<Type, any>){
-        f(this.builder);
-        return this;
-    }
-
-    /**
-     * Mark command as ready to upload
-     */
-    public commit(){
-        this.isUpdated = false;
-        return this;
-    }
-}
-
-export class InteractiveSlashCommand extends InteractiveCommand<SlashCommandBuilder> {
-    constructor(readonly name: string, public access: AccessTarget[], public module: Module, readonly forGuildId?: string){
-        super(name, access, module, new SlashCommandBuilder(), forGuildId);
-    }
-}
-
-export class InteractiveContextMenuCommand extends InteractiveCommand<ContextMenuCommandBuilder> {
-    constructor(readonly name: string, public access: AccessTarget[], public module: Module, readonly forGuildId?: string){
-        super(name, access, module, new ContextMenuCommandBuilder(), forGuildId);
-    }
-}
-
-export type InteractiveCommands = InteractiveSlashCommand | InteractiveContextMenuCommand;
+const interactiveComponentsRegistry: Map<string, InteractiveComponent<InteractiveComponentTargets>> = new Map;
+const interactiveCommandsRegistry: Map<string, InteractiveCommand<InteractiveCommandTargets>> = new Map;
 
 export default class InteractionsManager{
     private updateTimer: NodeJS.Timeout;
     
     constructor(public bot: Synergy) {
-        this.updateTimer = setInterval(this.updateSlashCommands.bind(this), 10000);
+        this.updateTimer = setInterval(this.updateInteractiveCommands.bind(this), 10000);
         this.bot.client.on("interactionCreate", this.onInteractionCreate.bind(this));
         this.bot.events.once("Stop", () => { clearInterval(this.updateTimer); });
     }
@@ -126,21 +31,11 @@ export default class InteractionsManager{
      * @param forGuildId guild id where to upload this command. Leave empty to global upload
      * @param type command type
      */
-    public createCommand(name: string, access: AccessTarget[], module: Module, forGuildId?: string, type: "slash" | "menu" = "slash"){
+    public createCommand<T extends InteractiveCommandTargets>(name: string, access: AccessTarget[], module: Module, type: new() => T, forGuildId?: string){
         if(interactiveCommandsRegistry.has(name)){
-            throw new Error("This command already exists.");
+            throw new Error("Command with this name already exists.");
         }
-        let cmd;
-        switch(type){
-            case "menu": {
-                cmd = new InteractiveContextMenuCommand(name, access, module, forGuildId);
-                break;
-            }
-            case "slash": {
-                cmd = new InteractiveSlashCommand(name, access, module, forGuildId);
-                break;
-            }
-        }
+        let cmd = new InteractiveCommand<T>(name, access, module, new type(), forGuildId);
         interactiveCommandsRegistry.set(name, cmd);
         return cmd;
     }
@@ -152,7 +47,7 @@ export default class InteractionsManager{
      * @param forGuildId guild id where to upload this command. Leave empty to global upload
      */
     public createSlashCommand(name: string, access: AccessTarget[], module: Module, forGuildId?: string){
-        return this.createCommand(name, access, module, forGuildId, "slash") as InteractiveSlashCommand;
+        return this.createCommand<SlashCommandBuilder>(name, access, module, SlashCommandBuilder, forGuildId);
     }
 
     /**
@@ -162,31 +57,38 @@ export default class InteractionsManager{
      * @param forGuildId guild id where to upload this command. Leave empty to global upload
      */
     public createMenuCommand(name: string, access: AccessTarget[], module: Module, forGuildId?: string){
-        return this.createCommand(name, access, module, forGuildId, "menu")  as InteractiveContextMenuCommand;
+        return this.createCommand<ContextMenuCommandBuilder>(name, access, module, ContextMenuCommandBuilder, forGuildId);
     }
 
     public getCommand(name: string){
         return interactiveCommandsRegistry.get(name);
     }
 
-    public createButton(){
-        let button = new InteractiveButton(crypto.randomUUID() + "-rbc-ibtn");
-        interactiveButtonsRegistry.set(button.uuid, button);
-        return button;
+    public createComponent<T extends InteractiveComponentTargets>(name: string, access: AccessTarget[], module: Module, type: new() => T){
+        if(interactiveComponentsRegistry.has(name)){
+            throw new Error("Component with this name already exists.");
+        }
+        let cmp = new InteractiveComponent<T>(name, access, module, new type(), interactiveComponentsRegistry);
+        interactiveComponentsRegistry.set(name, cmp);
+        return cmp;
     }
 
-    public removeButton(btn: InteractiveButton){
-        interactiveButtonsRegistry.delete(btn.uuid);
+    public createButton(name: string, access: AccessTarget[], module: Module){
+        return this.createComponent<Discord.MessageButton>(name, access, module, Discord.MessageButton);
     }
 
-    public getButton(uuid: string){
-        return interactiveButtonsRegistry.get(uuid);
+    public createSelectMenu(name: string, access: AccessTarget[], module: Module){
+        return this.createComponent<Discord.MessageSelectMenu>(name, access, module, Discord.MessageSelectMenu);
+    }
+
+    public getComponent(name: string){
+        return interactiveComponentsRegistry.get(name);
     }
 
     /**
      * Upload all commands to discord servers. Probably you can use this, but it's useless cuz manager execute this periodically by itself
      */
-    public async updateSlashCommands(){
+    public async updateInteractiveCommands(){
         if(!this.bot.client.isReady()) return;
         let cmds = Array.from(interactiveCommandsRegistry.values()).filter(c => !c.isUpdated);
         if(cmds.length === 0) return;
@@ -197,14 +99,14 @@ export default class InteractionsManager{
                     await this.bot.rest.patch(
                         Routes.applicationGuildCommands(this.bot.client.application!.id, c.forGuildId),
                         { body: c.builder.toJSON() },
-                    ).catch(err => GlobalLogger.root.error("Error Updating Guild Slash Command:", err));
+                    ).catch(err => GlobalLogger.root.error("Error Updating Guild Command:", err));
                     c.isUpdated = true;
                     return;
                 }else{
                     await this.bot.rest.post(
                         Routes.applicationGuildCommands(this.bot.client.application!.id, c.forGuildId),
                         { body: c.builder.toJSON() },
-                    ).catch(err => GlobalLogger.root.error("Error Pushing Guild Slash Command:", err));
+                    ).catch(err => GlobalLogger.root.error("Error Pushing Guild Command:", err));
                     c.isUpdated = true;
                     c.isPushed = true;
                     return;
@@ -214,14 +116,14 @@ export default class InteractionsManager{
                     await this.bot.rest.patch(
                         Routes.applicationCommands(this.bot.client.application!.id),
                         { body: c.builder.toJSON() },
-                    ).catch(err => GlobalLogger.root.error("Error Updating Global Slash Command:", err));
+                    ).catch(err => GlobalLogger.root.error("Error Updating Global Command:", err));
                     c.isUpdated = true;
                     return;
                 }else{
                     await this.bot.rest.post(
                         Routes.applicationCommands(this.bot.client.application!.id),
                         { body: c.builder.toJSON() },
-                    ).catch(err => GlobalLogger.root.error("Error Pushing Global Slash Command:", err));
+                    ).catch(err => GlobalLogger.root.error("Error Pushing Global Command:", err));
                     c.isUpdated = true;
                     c.isPushed = true;
                     return;
@@ -231,153 +133,149 @@ export default class InteractionsManager{
     }
 
     private async onInteractionCreate(interaction: Discord.Interaction){
-        if(interaction.isCommand() || interaction.isContextMenu()){
+        let target;
+        if(interaction.isApplicationCommand()){
             let cmd = Array.from(interactiveCommandsRegistry.values()).find(c => c.name === interaction.commandName);
             if(!cmd){
                 GlobalLogger.root.warn(`Fired "${interaction.commandName}" command but InteractiveCommand not found.`);
                 return;
             }
-
-            let user_id = this.bot.users.idFromDiscordId(interaction.user.id);
-            let user: User | null = null;
-            if(user_id){
-                user = await this.bot.users.fetchOne(user_id);
+            target = cmd;
+        }else if(interaction.isMessageComponent()){
+            let cmp = Array.from(interactiveComponentsRegistry.values()).find(c => c.name === interaction.customId);
+            if(!cmp){
+                GlobalLogger.root.warn(`Activated "${interaction.customId}" component but InteractiveComponent not found.`);
+                return;
             }
-            if(!user){
-                user = await this.bot.users.createFromDiscord(interaction.user);
-            }
+            target = cmp;
+        }else{
+            GlobalLogger.root.info(`[InteractionsManager] Interaction type "${interaction.type}" is not implemented, skipping.`);
+            return;
+        }
 
-            let access_flag = false;
+        let user_id = this.bot.users.idFromDiscordId(interaction.user.id);
+        let user: User | null = null;
+        if(user_id){
+            user = await this.bot.users.fetchOne(user_id);
+        }
+        if(!user){
+            user = await this.bot.users.createFromDiscord(interaction.user);
+        }
 
-            for(let a of cmd.access){
-                if(user.groups.includes("banned")){
-                    if(a.startsWith("banned")){
-                        access_flag = true;
-                    }else{
-                        access_flag = false;
-                    }
-                    break;
+        let access_flag = false;
+
+        for(let a of target.access){
+            if(user.groups.includes("banned")){
+                if(a.startsWith("banned")){
+                    access_flag = true;
+                }else{
+                    access_flag = false;
                 }
-                if(a.startsWith("player")){
+                break;
+            }
+            if(a.startsWith("player")){
+                access_flag = true;
+                break;
+            }
+            if(a.startsWith("group")){
+                let res = /group<(.*)>/.exec(a);
+                if(!res || !res[1]){
+                    GlobalLogger.root.warn("InteractionsManager.InteractionProcessing: Passed invalid group access target \"", a + "\"");
+                    continue;
+                }
+                if(user.groups.includes(res[1])){
                     access_flag = true;
                     break;
                 }
-                if(a.startsWith("group")){
-                    let res = /group<(.*)>/.exec(a);
-                    if(!res || !res[1]){
-                        GlobalLogger.root.warn("InteractionsManager.CommandInteractionProcessing: Passed invalid group access target \"", a + "\"");
-                        continue;
-                    }
-                    if(user.groups.includes(res[1])){
-                        access_flag = true;
-                        break;
-                    }
+            }
+            if(a.startsWith("user")){
+                let res = /user<(.*)>/.exec(a);
+                if(!res || !res[1]){
+                    GlobalLogger.root.warn("InteractionsManager.InteractionProcessing: Passed invalid user access target \"", a + "\"");
+                    continue;
                 }
-                if(a.startsWith("user")){
-                    let res = /user<(.*)>/.exec(a);
-                    if(!res || !res[1]){
-                        GlobalLogger.root.warn("InteractionsManager.CommandInteractionProcessing: Passed invalid user access target \"", a + "\"");
-                        continue;
-                    }
-                    if(user.id.toString() === res[1] || user.discord.id === res[1]){
-                        access_flag = true;
-                        break;
-                    }
+                if(user.id.toString() === res[1] || user.discord.id === res[1]){
+                    access_flag = true;
+                    break;
                 }
-                if(a.startsWith("perm")){
-                    let res = /perm<(.*)>/.exec(a);
-                    if(!res || !res[1]){
-                        GlobalLogger.root.warn("InteractionsManager.CommandInteractionProcessing: Passed invalid perm access target \"", a + "\"");
-                        continue;
-                    }
-                    if(interaction.member && interaction.member.permissions instanceof Discord.Permissions){
-                        if(interaction.member.permissions.has(res[1] as Discord.PermissionResolvable)){
-                            access_flag = true;
-                            break;
-                        }
-                    }
+            }
+            if(a.startsWith("perm")){
+                let res = /perm<(.*)>/.exec(a);
+                if(!res || !res[1]){
+                    GlobalLogger.root.warn("InteractionsManager.InteractionProcessing: Passed invalid perm access target \"", a + "\"");
+                    continue;
                 }
-                if(a.startsWith("server_mod")){
-                    if(interaction.guild && interaction.member instanceof Discord.GuildMember){
-                        let mod_role_id = (await this.bot.config.get("guild", "moderator_role"))[interaction.guild.id] as string | undefined;
-                        if(!mod_role_id){
-                            return await interaction.reply({ embeds: [ Utils.ErrMsg("This command requires Moderator Role. Configure them with command `/config guild set field:moderator_role value_role:@Role`") ], ephemeral: true });
-                        }
-                        if(interaction.member.roles.cache.has(mod_role_id)){
-                            access_flag = true;
-                            break;
-                        }
-                    }
-                }
-                if(a.startsWith("server_admin")){
-                    if(interaction.member && interaction.member.permissions instanceof Discord.Permissions){
-                        if(interaction.member.permissions.has("ADMINISTRATOR")){
-                            access_flag = true;
-                            break;
-                        }
-                    }
-                }
-                if(a.startsWith("admin")){
-                    if(user.groups.includes("admin")){
+                if(interaction.member && interaction.member.permissions instanceof Discord.Permissions){
+                    if(interaction.member.permissions.has(res[1] as Discord.PermissionResolvable)){
                         access_flag = true;
                         break;
                     }
                 }
             }
-            
-            if(!access_flag){
-                return await interaction.reply({ embeds: [ 
-                    new Discord.MessageEmbed()
-                    .setTitle("You don't have access to this command!")
-                    .setDescription("This command requires following access targets:\n`" + cmd.access.join("`\n`") + "`")
-                    .setColor(Colors.Error)
-                ], ephemeral: true });
-            }else{
-                try {
-                    if(cmd instanceof InteractiveSlashCommand){
-                        await cmd._exec(interaction as InteractionType<SlashCommandBuilder>, user);
-                    }else{
-                        await cmd._exec(interaction as InteractionType<ContextMenuCommandBuilder>, user);
+            if(a.startsWith("server_mod")){
+                if(interaction.guild && interaction.member instanceof Discord.GuildMember){
+                    let mod_role_id = (await this.bot.config.get("guild", "moderator_role"))[interaction.guild.id] as string | undefined;
+                    if(!mod_role_id){
+                        return await interaction.reply({ embeds: [ Utils.ErrMsg("You need Moderator Role to do this. Configure them with command `/config guild set field:moderator_role value_role:@Role`") ], ephemeral: true });
                     }
-                } catch (err) {
-                    let embed = new Discord.MessageEmbed();
-                    if(err instanceof SynergyUserError){
-                        embed.title = Emojis.RedErrorCross + err.message;
-                        embed.description = err.subMessage ? err.subMessage : null;
-                        embed.color = Colors.Error;
-                    }else{
-                        let trace = GlobalLogger.Trace(interaction, cmd, user, err);
-                        GlobalLogger.root.error("InteractionsManager.CommandInteractionProcessing.CommandCallbackError: ", err, `TraceID: ${trace}`);
-
-                        embed.title = Emojis.RedErrorCross + "Unexpected Error occurred.";
-                        embed.description = `Please contact BOT tech support with following Trace Code: \`\`\`${trace}\`\`\``;
-                        embed.color = Colors.Error;
+                    if(interaction.member.roles.cache.has(mod_role_id)){
+                        access_flag = true;
+                        break;
                     }
-
-                    try{
-                        if(interaction.replied || interaction.deferred){
-                            await interaction.editReply({ embeds: [embed] });
-                        }else{
-                            await interaction.reply({ embeds: [embed], ephemeral: true });
-                        }
-                    }catch{
-                        GlobalLogger.root.warn("InteractionsManager.CommandInteractionProcessing.CommandCallbackError.ErrReply: Can't reply.");
-                        return;
+                }
+            }
+            if(a.startsWith("server_admin")){
+                if(interaction.member && interaction.member.permissions instanceof Discord.Permissions){
+                    if(interaction.member.permissions.has("ADMINISTRATOR")){
+                        access_flag = true;
+                        break;
                     }
+                }
+            }
+            if(a.startsWith("admin")){
+                if(user.groups.includes("admin")){
+                    access_flag = true;
+                    break;
                 }
             }
         }
+        
+        if(!access_flag){
+            return await interaction.reply({ embeds: [ 
+                new Discord.MessageEmbed()
+                .setTitle("You don't have access to do this!")
+                .setDescription("To do this you need following access targets:\n`" + target.access.join("`\n`") + "`")
+                .setColor(Colors.Error)
+            ], ephemeral: true });
+        }else{
+            try {
+                await target._exec(interaction as any, user); //Yea this is dirty hack, but.... I waste too much time to make it work..
+            } catch (err) {
+                let embed = new Discord.MessageEmbed();
+                if(err instanceof SynergyUserError){
+                    embed.title = Emojis.RedErrorCross + err.message;
+                    embed.description = err.subMessage ? err.subMessage : null;
+                    embed.color = Colors.Error;
+                }else{
+                    let trace = GlobalLogger.Trace(interaction, target, user, err);
+                    GlobalLogger.root.error("InteractionsManager.InteractionProcessing.TargetCallbackError: ", err, `TraceID: ${trace}`);
 
-        if(interaction.isButton()){
-            for(let btn of interactiveButtonsRegistry.entries()){
-                if(interaction.customId === btn[0]){
-                    return await btn[1]._clicked(interaction).catch(err => GlobalLogger.root.error("Button Callback Error:", err));
+                    embed.title = Emojis.RedErrorCross + "Unexpected Error occurred.";
+                    embed.description = `Please contact BOT tech support with following Trace Code: \`\`\`${trace}\`\`\``;
+                    embed.color = Colors.Error;
+                }
+
+                try{
+                    if(interaction.replied || interaction.deferred){
+                        await interaction.editReply({ embeds: [embed] });
+                    }else{
+                        await interaction.reply({ embeds: [embed], ephemeral: true });
+                    }
+                }catch{
+                    GlobalLogger.root.warn("InteractionsManager.InteractionProcessing.TargetCallbackError.ErrReply: Can't reply.");
+                    return;
                 }
             }
-            if(!interaction.replied && !interaction.deferred){
-                await interaction.reply({ ephemeral: true, embeds: [ Utils.ErrMsg("This button is no longer available!") ] });
-            }
-            return;
         }
     }
 }

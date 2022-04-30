@@ -11,9 +11,12 @@ import EventManager from "./EventManager"
 import { GuildManager, UserManager } from "discord.js"
 import ModuleDataManager from "./ModuleDataManager"
 import ModuleManager, { ModuleCommonInfo } from "./ModuleManager"
-import InteractionsManager, { ButtonInteractionCallback, CallbackType, InteractionType, InteractiveButton, InteractiveCommand, InteractiveCommands, InteractiveContextMenuCommand, InteractiveSlashCommand  } from "./InteractionsManager";
+import InteractionsManager from "./InteractionsManager";
 import { GuildOnlyError, SynergyUserError, NoConfigEntryError, MissingPermissionsError } from "./Structures/Errors"
 import Access, { AccessTarget } from "./Structures/Access"
+import { InteractiveComponentTargets, InteractiveCommandTargets, InteractionTypeOf, InteractiveTargets, CallbackTypeOf } from "./Interactions/InteractionTypes";
+import { InteractiveCommand } from "./Interactions/InteractiveCommand";
+import { InteractiveComponent } from "./Interactions/InteractiveComponent";
 
 export {
     Guild,
@@ -44,14 +47,13 @@ export {
     EventManager,
 
     InteractionsManager,
-    ButtonInteractionCallback,
-    InteractionType,
-    CallbackType,
-    InteractiveButton,
     InteractiveCommand,
-    InteractiveCommands,
-    InteractiveSlashCommand,
-    InteractiveContextMenuCommand,
+    InteractiveCommandTargets,
+    InteractiveComponent,
+    InteractiveComponentTargets,
+    InteractiveTargets,
+    InteractionTypeOf,
+    CallbackTypeOf,
     
     GuildManager,
 

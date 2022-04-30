@@ -76,7 +76,7 @@ class EventManager extends EventEmitter{
                 logger.info(`Initialized ${inic} Module Initializers.`);
                 
                 logger.info(`Uploading slash commands...`);
-                await this.bot.interactions.updateSlashCommands();
+                await this.bot.interactions.updateInteractiveCommands();
 
                 logger.info(`Synergy 3 is fully ready! Enjoy =)`);
                 this.bot.isReady = true;

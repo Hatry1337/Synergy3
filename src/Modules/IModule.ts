@@ -1,6 +1,6 @@
 import { ModuleLogger } from "../GlobalLogger";
 import { Synergy } from "..";
-import { InteractiveCommand } from "../InteractionsManager";
+import { InteractiveCommand } from "../Interactions/InteractiveCommand";
 import Discord from "discord.js";
 import { AccessTarget } from "../Structures/Access";
 import { SlashCommandBuilder } from "@discordjs/builders";
