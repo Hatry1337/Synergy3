@@ -52,13 +52,16 @@ class TestMod extends Module{
             throw new NoConfigEntryError("Cool parameter", "/config user set field:cool_param value_string:Synergy core is awesome");
         }
 
-        let btn1 = this.bot.interactions.createButton().setLabel("test").setStyle("PRIMARY");
-        btn1.onClick(async (int) => {
+        let btn1 = this.bot.interactions.createButton("test", this.Access, this).build(btn => btn
+            .setLabel("Test")
+            .setStyle("PRIMARY")
+        );
+        btn1.onExecute(async (int) => {
             btn1.destroy();
             await int.reply("clicked. button removed.");
         });
         
-        await interaction.reply({content: "test123", components: [ new Discord.MessageActionRow().addComponents(btn) ]});
+        await interaction.reply({content: "test123", components: [ new Discord.MessageActionRow().addComponents(btn1.builder) ]});
     }
 }
 
@@ -95,4 +98,7 @@ const bot = new Synergy({
 
 (async () => {
     await bot.login(process.env.DISCORD_TOKEN);
+    bot.client.on("ready", async () => {
+        //await bot.interactions.overwriteInteractiveCommands();
+    })
 })();

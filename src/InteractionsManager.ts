@@ -85,6 +85,40 @@ export default class InteractionsManager{
         return interactiveComponentsRegistry.get(name);
     }
 
+    public async overwriteInteractiveCommands(){
+        if(!this.bot.client.isReady()) return;
+        let cmds = Array.from(interactiveCommandsRegistry.values()).filter(c => !c.isUpdated);
+        if(cmds.length === 0) return;
+
+        let cmd_guilds: Map<string, any[]> = new Map();
+        let cmd_global: any[] = [];
+
+        for(let c of cmds){
+            if(c.forGuildId){
+                let cmds = cmd_guilds.get(c.forGuildId) || [];
+                cmds.push(c.builder.toJSON());
+                cmd_guilds.set(c.forGuildId, cmds);
+                c.isUpdated = true;
+                c.isPushed = true;
+            }else{
+                cmd_global.push(c.builder.toJSON());
+                c.isUpdated = true;
+                c.isPushed = true;
+            }
+        }
+
+
+        for(let cg of cmd_guilds.entries()){
+            await this.bot.rest.put(Routes.applicationGuildCommands(this.bot.client.application!.id, cg[0]), { body: cg[1] })
+                .catch(err => GlobalLogger.root.error("Error Overwriting Guild Commands:", err));
+        }
+
+        if(cmd_global.length !== 0){
+            await this.bot.rest.put(Routes.applicationCommands(this.bot.client.application!.id), { body: cmd_global })
+                .catch(err => GlobalLogger.root.error("Error Overwriting Global Commands:", err));
+        }
+    }
+
     /**
      * Upload all commands to discord servers. Probably you can use this, but it's useless cuz manager execute this periodically by itself
      */
