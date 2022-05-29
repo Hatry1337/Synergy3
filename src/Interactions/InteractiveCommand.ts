@@ -3,6 +3,7 @@ import { AccessTarget } from "../Structures/Access";
 import { InteractiveCommandTargets } from "./InteractionTypes";
 import { InteractiveBase } from "./InteractiveBase";
 import Discord from "discord.js";
+import { ContextMenuCommandBuilder, SlashCommandBuilder } from "@discordjs/builders";
 
 export type AutocompleteCallback = (interaction: Discord.AutocompleteInteraction) => Promise<void>;
 export class InteractiveCommand<T extends InteractiveCommandTargets> extends InteractiveBase<T> {
@@ -13,6 +14,14 @@ export class InteractiveCommand<T extends InteractiveCommandTargets> extends Int
     constructor(name: string, access: AccessTarget[], module: Module, public builder: T, readonly forGuildId?: string){
         super(name, access, module);
         this.builder.setName(this.name);
+    }
+
+    public isSlashCommand(): this is InteractiveCommand<SlashCommandBuilder>{
+        return this.builder instanceof SlashCommandBuilder;
+    }
+
+    public isContextMenuCommand(): this is InteractiveCommand<ContextMenuCommandBuilder>{
+        return this.builder instanceof ContextMenuCommandBuilder;
     }
 
     /**

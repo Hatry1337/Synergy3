@@ -2,11 +2,20 @@ import Module from "../Modules/Module";
 import { AccessTarget } from "../Structures/Access";
 import { InteractiveComponentTargets } from "./InteractionTypes";
 import { InteractiveBase } from "./InteractiveBase";
+import Discord from "discord.js";
 
 export class InteractiveComponent<T extends InteractiveComponentTargets> extends InteractiveBase<T> {
     constructor(name: string, access: AccessTarget[], module: Module, public builder: T, private registry: Map<string, InteractiveComponent<InteractiveComponentTargets>>){
         super(name, access, module);
         this.builder.setCustomId(name);
+    }
+
+    public isMenu(): this is InteractiveComponent<Discord.MessageSelectMenu>{
+        return this.builder.type === "SELECT_MENU";
+    }
+
+    public isButton(): this is InteractiveComponent<Discord.MessageButton>{
+        return this.builder.type === "BUTTON";
     }
 
     /**
