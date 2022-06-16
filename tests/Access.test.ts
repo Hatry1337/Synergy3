@@ -31,3 +31,7 @@ test("Access - SERVER_MOD", () => {
 test("Access - USER", () => {
     expect(Access.USER("508637328349331462")).toBe("user<508637328349331462>");
 });
+
+test("Access - ROLE", () => {
+    expect(Access.ROLE("651094485983428640")).toBe("role<651094485983428640>");
+});

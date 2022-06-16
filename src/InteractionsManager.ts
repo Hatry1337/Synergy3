@@ -245,13 +245,31 @@ export default class InteractionsManager{
                     break;
                 }
             }
-            if(a.startsWith("perm")){
+            if(a.startsWith("role") && interaction.inGuild()){
+                let res = /role<(.*)>/.exec(a);
+                if(!res || !res[1]){
+                    GlobalLogger.root.warn("InteractionsManager.InteractionProcessing: Passed invalid role access target \"", a + "\"");
+                    continue;
+                }
+                if(interaction.member.roles instanceof Discord.GuildMemberRoleManager){
+                    if(interaction.member.roles.cache.has(res[1])){
+                        access_flag = true;
+                        break;
+                    }
+                }else{
+                    if(interaction.member.roles.includes(res[1])){
+                        access_flag = true;
+                        break;
+                    }
+                }
+            }
+            if(a.startsWith("perm") && interaction.inGuild()){
                 let res = /perm<(.*)>/.exec(a);
                 if(!res || !res[1]){
                     GlobalLogger.root.warn("InteractionsManager.InteractionProcessing: Passed invalid perm access target \"", a + "\"");
                     continue;
                 }
-                if(interaction.member && interaction.member.permissions instanceof Discord.Permissions){
+                if(interaction.member.permissions instanceof Discord.Permissions){
                     if(interaction.member.permissions.has(res[1] as Discord.PermissionResolvable)){
                         access_flag = true;
                         break;

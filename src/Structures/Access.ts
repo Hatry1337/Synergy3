@@ -27,4 +27,7 @@ export default class Access {
     static USER(user_id: number | string): AccessTarget {
         return "user<" + user_id.toString() + ">";
     }
+    static ROLE(role_id: string): AccessTarget {
+        return "role<" + role_id + ">";
+    }
 }
