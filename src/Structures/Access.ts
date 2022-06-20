@@ -1,6 +1,6 @@
 import Discord from "discord.js";
 
-export type AccessTarget = "admin" | "server_admin" | "server_mod" | "player" | "banned" | string;
+export type AccessTarget = "admin" | "server_admin" | "server_mod" | "player" | "banned" | `perm<${string}>` | `group<${string}>` | `user<${string}>` | `role<${string}>`;
 
 export default class Access {
     static ADMIN(): AccessTarget {
@@ -12,8 +12,8 @@ export default class Access {
     static SERVER_MOD(): AccessTarget {
         return "server_mod";
     }
-    static PERM(perm: Discord.PermissionString){
-        return "perm<" + perm + ">";
+    static PERM(perm: Discord.PermissionString): AccessTarget{
+        return `perm<${perm}>`;
     }
     static PLAYER(): AccessTarget {
         return "player";
@@ -22,12 +22,12 @@ export default class Access {
         return "banned";
     }
     static GROUP(group: string): AccessTarget {
-        return "group<" + group + ">";
+        return `group<${group}>`;
     }
     static USER(user_id: number | string): AccessTarget {
-        return "user<" + user_id.toString() + ">";
+        return `user<${user_id.toString()}>`;
     }
     static ROLE(role_id: string): AccessTarget {
-        return "role<" + role_id + ">";
+        return `role<${role_id}>`;
     }
 }

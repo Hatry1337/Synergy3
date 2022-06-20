@@ -10,9 +10,23 @@ import { SynergyUserError } from "./Structures/Errors";
 import { InteractiveCommand } from "./Interactions/InteractiveCommand";
 import { InteractiveComponent } from "./Interactions/InteractiveComponent";
 import { ContextMenuCommandBuilder, SlashCommandBuilder } from "@discordjs/builders";
-import { InteractiveCommandTargets, InteractiveComponentTargets } from "./Interactions/InteractionTypes";
+import { InteractiveCommandTargets, InteractiveComponentTargets, InteractiveTargets } from "./Interactions/InteractionTypes";
+import crypto from "crypto";
+import InteractiveBase from "./Interactions/InteractiveBase";
+
+export interface ITemporaryComponentInfo {
+    id: string;
+    component: InteractiveComponent<InteractiveComponentTargets>;
+    isTemporary: boolean;
+    interactionsLimit: number;
+    interactions: number;
+    lifeTime: number;
+    createdTime: Date;
+}
 
 const interactiveComponentsRegistry: Map<string, InteractiveComponent<InteractiveComponentTargets>> = new Map;
+const temporaryComponents: Map<string, ITemporaryComponentInfo> = new Map;
+
 const interactiveCommandsRegistry: Map<string, InteractiveCommand<InteractiveCommandTargets>> = new Map;
 
 export default class InteractionsManager{
@@ -73,12 +87,90 @@ export default class InteractionsManager{
         return cmp;
     }
 
-    public createButton(name: string, access: AccessTarget[], module: Module){
-        return this.createComponent<Discord.MessageButton>(name, access, module, Discord.MessageButton);
+    public createTempComponent<T extends InteractiveComponentTargets>(access: AccessTarget[], module: Module, type: new() => T, maxInts: number = -1, lifeTime: number = -1){
+        let id = crypto.randomUUID().toLowerCase();
+        while(interactiveComponentsRegistry.has(id)){
+            id = crypto.randomUUID().toLowerCase();
+        }
+
+        let cmp = new InteractiveComponent<T>(id, access, module, new type(), interactiveComponentsRegistry);
+        interactiveComponentsRegistry.set(id, cmp);
+        temporaryComponents.set(id, {
+            id,
+            component: cmp,
+            isTemporary: true,
+            interactionsLimit: maxInts,
+            interactions: 0,
+            lifeTime,
+            createdTime: new Date()
+        });
+        return cmp;
     }
 
-    public createSelectMenu(name: string, access: AccessTarget[], module: Module){
-        return this.createComponent<Discord.MessageSelectMenu>(name, access, module, Discord.MessageSelectMenu);
+    /**
+     * Creates normal interactive button
+     * @param name Name of the component (identifier)
+     * @param access Allowed access targets to interact with this component
+     * @param module Module that created this component
+     */
+    public createButton(name: string, access: AccessTarget[], module: Module): InteractiveComponent<Discord.MessageButton>;
+    /**
+     * Creates temporary interactive button that will be removed by interactions limit or lifetime limit
+     * @param access Allowed access targets to interact with this component
+     * @param module Module that created this component
+     * @param interactionsLimit After reaching this amount of interactions component will be removed (-1 for no limit)
+     */
+    public createButton(access: AccessTarget[], module: Module, interactionsLimit?: number): InteractiveComponent<Discord.MessageButton>;
+    /**
+     * Creates temporary interactive button that will be removed by interactions limit or lifetime limit
+     * @param access Allowed access targets to interact with this component
+     * @param module Module that created this component
+     * @param interactionsLimit After reaching this amount of interactions component will be removed (-1 for no limit)
+     * @param lifeTime After this amount of milliseconds component will be removed (-1 for no limit)
+     */
+    public createButton(access: AccessTarget[], module: Module, interactionsLimit?: number, lifeTime?: number): InteractiveComponent<Discord.MessageButton>;
+
+    public createButton(arg1: string | AccessTarget[], arg2: AccessTarget[] | Module, arg3?: Module | number, arg4?: number){
+        if(typeof arg1 === "string"){
+            return this.createComponent<Discord.MessageButton>(arg1, arg2 as AccessTarget[], arg3 as Module, Discord.MessageButton);
+        }else{
+            return this.createTempComponent<Discord.MessageButton>(arg1, arg2 as Module, Discord.MessageButton, (arg3 as number) ?? -1, arg4 ?? -1);
+        }
+    }
+
+    /**
+     * Creates normal interactive button
+     * @param name Name of the component (identifier)
+     * @param access Allowed access targets to interact with this component
+     * @param module Module that created this component
+     */
+    public createSelectMenu(name: string, access: AccessTarget[], module: Module): InteractiveComponent<Discord.MessageSelectMenu>;
+    /**
+     * Creates temporary interactive select menu that will be removed by interactions limit or lifetime limit
+     * @param access Allowed access targets to interact with this component
+     * @param module Module that created this component
+     * @param interactionsLimit After reaching this amount of interactions component will be removed (-1 for no limit)
+     */
+    public createSelectMenu(access: AccessTarget[], module: Module, interactionsLimit?: number): InteractiveComponent<Discord.MessageSelectMenu>;
+    /**
+     * Creates temporary interactive select menu that will be removed by interactions limit or lifetime limit
+     * @param access Allowed access targets to interact with this component
+     * @param module Module that created this component
+     * @param interactionsLimit After reaching this amount of interactions component will be removed (-1 for no limit)
+     * @param lifeTime After this amount of milliseconds component will be removed (-1 for no limit)
+     */
+    public createSelectMenu(access: AccessTarget[], module: Module, interactionsLimit?: number, lifeTime?: number): InteractiveComponent<Discord.MessageSelectMenu>;
+
+    public createSelectMenu(arg1: string | AccessTarget[], arg2: AccessTarget[] | Module, arg3?: Module | number, arg4?: number){
+        if(typeof arg1 === "string"){
+            return this.createComponent<Discord.MessageSelectMenu>(arg1, arg2 as AccessTarget[], arg3 as Module, Discord.MessageSelectMenu);
+        }else{
+            return this.createTempComponent<Discord.MessageSelectMenu>(arg1, arg2 as Module, Discord.MessageSelectMenu, (arg3 as number) ?? -1, arg4 ?? -1);
+        }
+    }
+
+    public getTempInfo(name: string){
+        return temporaryComponents.get(name);
     }
 
     public getComponent(name: string){
@@ -167,7 +259,7 @@ export default class InteractionsManager{
     }
 
     private async onInteractionCreate(interaction: Discord.Interaction){
-        let target;
+        let target: InteractiveBase<InteractiveTargets>;
         if(interaction.isAutocomplete()){
             let cmd = Array.from(interactiveCommandsRegistry.values()).find(c => c.name === interaction.commandName);
             if(!cmd){
@@ -313,6 +405,17 @@ export default class InteractionsManager{
             ], ephemeral: true });
         }else{
             try {
+                if(temporaryComponents.has(target.name)){
+                    let cmp = temporaryComponents.get(target.name) as ITemporaryComponentInfo;
+                    cmp.interactions++;
+                    if((cmp.interactionsLimit !== -1 && cmp.interactions > cmp.interactionsLimit) || 
+                       (cmp.lifeTime !== -1 && new Date().getTime() - cmp.createdTime.getTime() > cmp.lifeTime)){
+
+                        interactiveComponentsRegistry.delete(cmp.id);
+                        temporaryComponents.delete(cmp.id);
+                        throw new SynergyUserError("This interactive component is no longer available. Try to re-run command that created this component.")
+                    }
+                }
                 await target._exec(interaction as any, user); //Yea this is dirty hack, but.... I waste too much time to make it work..
             } catch (err) {
                 let embed = new Discord.MessageEmbed();

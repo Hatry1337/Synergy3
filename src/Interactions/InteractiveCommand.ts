@@ -1,7 +1,7 @@
 import Module from "../Modules/Module";
 import { AccessTarget } from "../Structures/Access";
 import { InteractiveCommandTargets } from "./InteractionTypes";
-import { InteractiveBase } from "./InteractiveBase";
+import InteractiveBase from "./InteractiveBase";
 import Discord from "discord.js";
 import { ContextMenuCommandBuilder, SlashCommandBuilder } from "@discordjs/builders";
 

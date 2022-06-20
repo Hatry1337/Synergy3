@@ -4,7 +4,7 @@ import { Colors, Utils } from "../../Utils";
 import Module from "../Module";
 import User from "../../Structures/User";
 import { Synergy } from "../..";
-import Access from "../../Structures/Access";
+import Access, { AccessTarget } from "../../Structures/Access";
 
 export default class Profile extends Module{
     public Name:        string = "Profile";
@@ -12,7 +12,7 @@ export default class Profile extends Module{
     public Category:    string = "Info";
     public Author:      string = "Thomasss#9258";
 
-    public Access: string[] = [ Access.PLAYER(), Access.BANNED() ]
+    public Access: AccessTarget[] = [ Access.PLAYER(), Access.BANNED() ]
 
 
     constructor(bot: Synergy, UUID: string) {

@@ -3,7 +3,7 @@ import { AccessTarget } from "../Structures/Access";
 import User from "../Structures/User";
 import { CallbackTypeOf, InteractionTypeOf, InteractiveTargets } from "./InteractionTypes";
 
-export class InteractiveBase<T extends InteractiveTargets> {
+export default class InteractiveBase<T extends InteractiveTargets> {
     private execCallback?: CallbackTypeOf<T>;
     public lastInteraction?: InteractionTypeOf<T>
 

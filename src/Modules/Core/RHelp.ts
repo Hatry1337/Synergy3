@@ -3,7 +3,7 @@ import Discord from "discord.js";
 import { Emojis, Colors } from "../../Utils";
 import Module from "../Module";
 import { Synergy } from "../..";
-import Access from "../../Structures/Access";
+import Access, { AccessTarget } from "../../Structures/Access";
 
 export default class RHelp extends Module{
     public Name:        string = "RHelp";
@@ -11,7 +11,7 @@ export default class RHelp extends Module{
     public Category:    string = "Info";
     public Author:      string = "Thomasss#9258";
 
-    public Access: string[] = [ Access.PLAYER(), Access.BANNED() ]
+    public Access: AccessTarget[] = [ Access.PLAYER(), Access.BANNED() ]
 
     constructor(bot: Synergy, UUID: string) {
         super(bot, UUID);

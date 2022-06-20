@@ -2,7 +2,7 @@ import Discord from "discord.js";
 import { Emojis, Colors } from "../../Utils";
 import Module from "../Module";
 import { Synergy } from "../..";
-import Access from "../../Structures/Access";
+import Access, { AccessTarget } from "../../Structures/Access";
 
 export default class Avatar extends Module{
     public Name:        string = "Avatar";
@@ -10,7 +10,7 @@ export default class Avatar extends Module{
     public Category:    string = "Utility";
     public Author:      string = "Thomasss#9258";
 
-    public Access: string[] = [ Access.PLAYER(), Access.BANNED() ]
+    public Access: AccessTarget[] = [ Access.PLAYER(), Access.BANNED() ]
 
     constructor(bot: Synergy, UUID: string) {
         super(bot, UUID);

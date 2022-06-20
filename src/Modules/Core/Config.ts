@@ -5,7 +5,7 @@ import User from "../../Structures/User";
 import { Colors, Utils } from "../../Utils";
 import { ConfigDataType } from "../../ConfigManager";
 import { Synergy } from "../..";
-import Access from "../../Structures/Access";
+import Access, { AccessTarget } from "../../Structures/Access";
 
 export interface IGlobalConfiguration{
     [key: string]: any;
@@ -19,7 +19,7 @@ export default class Config extends Module{
     public Category:    string = "BOT";
     public Author:      string = "Thomasss#9258";
 
-    public Access: string[] = [ Access.PLAYER(), Access.BANNED() ]
+    public Access: AccessTarget[] = [ Access.PLAYER(), Access.BANNED() ]
 
     constructor(bot: Synergy, UUID: string) {
         super(bot, UUID);
