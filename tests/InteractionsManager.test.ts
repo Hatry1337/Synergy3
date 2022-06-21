@@ -33,7 +33,7 @@ let bot = {
     events: {
         once: (event: string, callback: () => any) => {
             console.log("[InteractionsManagerTest]", "events.once called: ", event, callback);
-            if(event === "Stp["){
+            if(event === "Stop"){
                 stopCallback = callback;
             }
         },
