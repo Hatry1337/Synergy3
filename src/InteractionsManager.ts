@@ -3,7 +3,7 @@ import Module from "./Modules/Module";
 import Synergy from "./Synergy";
 import Discord from "discord.js";
 import { Colors, Emojis, Utils } from "./Utils";
-import { Routes } from "discord-api-types/rest/v9";
+import { RESTPostAPIApplicationCommandsJSONBody, Routes } from "discord-api-types/rest/v9";
 import { GlobalLogger } from "./GlobalLogger";
 import { AccessTarget } from "./Structures/Access";
 import { SynergyUserError } from "./Structures/Errors";
@@ -13,6 +13,7 @@ import { ContextMenuCommandBuilder, SlashCommandBuilder } from "@discordjs/build
 import { InteractiveCommandTargets, InteractiveComponentTargets, InteractiveTargets } from "./Interactions/InteractionTypes";
 import crypto from "crypto";
 import InteractiveBase from "./Interactions/InteractiveBase";
+import { RequestData } from "@discordjs/rest";
 
 export interface ITemporaryComponentInfo {
     id: string;
@@ -33,7 +34,10 @@ export default class InteractionsManager{
     private updateTimer: NodeJS.Timeout;
     
     constructor(public bot: Synergy) {
-        this.updateTimer = setInterval(this.updateInteractiveCommands.bind(this), 10000);
+        this.updateTimer = setInterval(async () => {
+            GlobalLogger.root.info(`[TIMER] Updating slash commands...`);
+            await this.updateInteractiveCommands();
+        }, 600000);
         this.bot.client.on("interactionCreate", this.onInteractionCreate.bind(this));
         this.bot.events.once("Stop", () => { clearInterval(this.updateTimer); });
     }
@@ -179,26 +183,31 @@ export default class InteractionsManager{
 
     public async overwriteInteractiveCommands(){
         if(!this.bot.client.isReady()) return;
-        let cmds = Array.from(interactiveCommandsRegistry.values()).filter(c => !c.isUpdated);
+        let cmds = Array.from(interactiveCommandsRegistry.values());
         if(cmds.length === 0) return;
 
-        let cmd_guilds: Map<string, any[]> = new Map();
-        let cmd_global: any[] = [];
+        let cmd_guilds: Map<string, RESTPostAPIApplicationCommandsJSONBody[]> = new Map();
+        let cmd_global: RESTPostAPIApplicationCommandsJSONBody[] = [];
 
         for(let c of cmds){
-            if(c.forGuildId){
-                let cmds = cmd_guilds.get(c.forGuildId) || [];
-                cmds.push(c.builder.toJSON());
-                cmd_guilds.set(c.forGuildId, cmds);
-                c.isUpdated = true;
-                c.isPushed = true;
-            }else{
-                cmd_global.push(c.builder.toJSON());
-                c.isUpdated = true;
-                c.isPushed = true;
+            try {
+                if(c.forGuildId){
+                    let cmds = cmd_guilds.get(c.forGuildId) || [];
+                    cmds.push(c.builder.toJSON());
+                    cmd_guilds.set(c.forGuildId, cmds);
+                    c.isUpdated = true;
+                    c.isPushed = true;
+                }else{
+                    cmd_global.push(c.builder.toJSON());
+                    c.isUpdated = true;
+                    c.isPushed = true;
+                }
+            } catch (error) {
+                GlobalLogger.root.error("Error serializing interactive command builder:", error, c);
+                continue;
             }
+            
         }
-
 
         for(let cg of cmd_guilds.entries()){
             await this.bot.rest.put(Routes.applicationGuildCommands(this.bot.client.application!.id, cg[0]), { body: cg[1] })
@@ -220,40 +229,29 @@ export default class InteractionsManager{
         if(cmds.length === 0) return;
 
         for(let c of cmds){
-            if(c.forGuildId){
+            GlobalLogger.root.info(`Uploading ${c.name} command...`);
+            let payload: RequestData;
+            try {
+                payload = { body: c.builder.toJSON() };
+            } catch (error) {
+                GlobalLogger.root.error("Error serializing interactive command builder:", error, c);
+                continue;
+            }
+
+            let endpoint = c.forGuildId 
+                            ? Routes.applicationGuildCommands(this.bot.client.application!.id, c.forGuildId) 
+                            : Routes.applicationCommands(this.bot.client.application!.id);
+
+            try {
                 if(c.isPushed){
-                    await this.bot.rest.patch(
-                        Routes.applicationGuildCommands(this.bot.client.application!.id, c.forGuildId),
-                        { body: c.builder.toJSON() },
-                    ).catch(err => GlobalLogger.root.error("Error Updating Guild Command:", err));
-                    c.isUpdated = true;
-                    return;
+                    await this.bot.rest.patch(endpoint, payload);
                 }else{
-                    await this.bot.rest.post(
-                        Routes.applicationGuildCommands(this.bot.client.application!.id, c.forGuildId),
-                        { body: c.builder.toJSON() },
-                    ).catch(err => GlobalLogger.root.error("Error Pushing Guild Command:", err));
-                    c.isUpdated = true;
+                    await this.bot.rest.post(endpoint, payload);
                     c.isPushed = true;
-                    return;
                 }
-            }else{
-                if(c.isPushed){
-                    await this.bot.rest.patch(
-                        Routes.applicationCommands(this.bot.client.application!.id),
-                        { body: c.builder.toJSON() },
-                    ).catch(err => GlobalLogger.root.error("Error Updating Global Command:", err));
-                    c.isUpdated = true;
-                    return;
-                }else{
-                    await this.bot.rest.post(
-                        Routes.applicationCommands(this.bot.client.application!.id),
-                        { body: c.builder.toJSON() },
-                    ).catch(err => GlobalLogger.root.error("Error Pushing Global Command:", err));
-                    c.isUpdated = true;
-                    c.isPushed = true;
-                    return;
-                }
+                c.isUpdated = true;
+            } catch (error) {
+                GlobalLogger.root.error("Error Uploading Guild Command:", error, c);
             }
         }
     }
