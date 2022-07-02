@@ -4,7 +4,7 @@ import Module from "../Module";
 import User from "../../Structures/User";
 import { Colors, Utils } from "../../Utils";
 import { ConfigDataType } from "../../ConfigManager";
-import { Synergy } from "../..";
+import { Synergy, SynergyUserError } from "../..";
 import Access, { AccessTarget } from "../../Structures/Access";
 
 export interface IGlobalConfiguration{
@@ -69,17 +69,6 @@ export default class Config extends Module{
                         .setDescription("Value if parameter is type of user.")
                     )
                 )
-                /*
-                .addSubcommand(opt => opt
-                    .setName("get")
-                    .setDescription("Get value of specified field.")    
-                    .addStringOption(opt => opt
-                        .setName("field")
-                        .setDescription("Field to get.")
-                        .addChoices(guild_conf_fields)
-                    )
-                )
-                */
             )
             
             .addSubcommandGroup(opt => opt
@@ -122,17 +111,47 @@ export default class Config extends Module{
                         .setDescription("Value if parameter is type of user.")
                     )
                 )
-                /*
+            )
+            .addSubcommandGroup(opt => opt
+                .setName("bot")
+                .setDescription("BOT Settings. Only for BOT Admins.")
                 .addSubcommand(opt => opt
-                    .setName("get")
-                    .setDescription("Get value of specified field.")    
+                    .setName("list")
+                    .setDescription("List all BOT-Specific settings.")  
+                )
+                .addSubcommand(opt => opt
+                    .setName("set")
+                    .setDescription("Set specified field to specified value")    
                     .addStringOption(opt => opt
                         .setName("field")
-                        .setDescription("Field to get.")
-                        .addChoices(guild_conf_fields)
+                        .setDescription("Field to set.")
+                        .setAutocomplete(true)
+                    )
+                    .addBooleanOption(opt => opt
+                        .setName("value_bool")
+                        .setDescription("Value if parameter is type of bool.")
+                    )
+                    .addIntegerOption(opt => opt
+                        .setName("value_int")
+                        .setDescription("Value if parameter is type of int.")
+                    )
+                    .addStringOption(opt => opt
+                        .setName("value_string")
+                        .setDescription("Value if parameter is type of string.")
+                    )
+                    .addChannelOption(opt => opt
+                        .setName("value_channel")
+                        .setDescription("Value if parameter is type of channel.")
+                    )
+                    .addRoleOption(opt => opt
+                        .setName("value_role")
+                        .setDescription("Value if parameter is type of role.")
+                    )
+                    .addUserOption(opt => opt
+                        .setName("value_user")
+                        .setDescription("Value if parameter is type of user.")
                     )
                 )
-                */
             )
         )
         .onExecute(this.Run.bind(this))
@@ -192,14 +211,37 @@ export default class Config extends Module{
                 }
             }
 
+            if(target === "bot"){
+                if(!user.groups.includes(Access.ADMIN())){
+                    throw new SynergyUserError("You can't use this command.");
+                }
+            }
+
             if(action === "list"){
-                if(target === "user" || target === "guild"){
+                if(target === "user" || target === "guild" || target === "bot"){
                     let keys = await this.bot.config.getFields(target);
                     let fields: { name: string, value: any, type: ConfigDataType }[] = [];
                     for(let k of keys){
+                        let container = (await this.bot.config.get(target, k) || {});
+                        let val;
+                        switch(target){
+                            case "user": {
+                                val = container[interaction.user.id];
+                                break;
+                            }
+                            case "guild": {
+                                val = container[interaction.guild?.id!];
+                                break;
+                            }
+                            case "bot": {
+                                val = container;
+                                break;
+                            }
+                        }
+
                         fields.push({
                             name: k,
-                            value: (await this.bot.config.get(target, k) || {})[target === "user" ? interaction.user.id : interaction.guild?.id!],
+                            value: val,
                             type:  (await this.bot.config.getType(target, k))!
                         });
                     }
@@ -216,13 +258,14 @@ export default class Config extends Module{
             }
 
             if(action === "set"){
-                if(target === "user" || target === "guild"){
+                if(target === "user" || target === "guild" || target === "bot"){
                     let keys = await this.bot.config.getFields(target);
                     if(!field || !keys.includes(field)){
                         return resolve(await interaction.reply({ embeds: [ await Utils.ErrMsg("This field doesen't exist.") ] }).catch(reject));
                     }
 
-                    let value = values[(await this.bot.config.getType(target, field))!];
+                    let type = await this.bot.config.getType(target, field) as ConfigDataType;
+                    let value = values[type];
                     
                     if(!value){
                         return resolve(await interaction.reply({ embeds: [ await Utils.ErrMsg("Incorrect data type selected.") ] }).catch(reject));
@@ -232,9 +275,29 @@ export default class Config extends Module{
                         value = value.id;
                     }
 
-                    let old_value = (await this.bot.config.get(target, field) || {})[target === "user" ? interaction.user.id : interaction.guild?.id!];
+                    let container = (await this.bot.config.get(target, field) || {});
+
+                    let old_value: any
                     
-                    (await this.bot.config.get(target, field) || {})[target === "user" ? interaction.user.id : interaction.guild?.id!] = value;
+                    switch(target){
+                        case "user": {
+                            old_value = container[interaction.user.id];
+                            container[interaction.user.id] = value;
+                            break;
+                        }
+                        case "guild": {
+                            old_value = container[interaction.guild?.id!];
+                            container[interaction.guild?.id!] = value;
+                            break;
+                        }
+                        case "bot": {
+                            old_value = container;
+                            container = value;
+                            break;
+                        }
+                    }
+
+                    await this.bot.config.set(target, field, container, type);
 
                     var embd = new Discord.MessageEmbed({
                         title: `${target} config`,
