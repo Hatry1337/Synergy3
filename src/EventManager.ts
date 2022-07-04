@@ -60,10 +60,6 @@ class EventManager extends EventEmitter{
                 logger.info(`Created system user. ID: ${sys.id}`);
             }
             logger.info(`Database Synchronized.`);
-            
-            logger.info("Running guilds caching...");
-            let cachec = await this.bot.CacheGuilds(true);
-            logger.info(`Cached ${cachec} guilds.`);
 
             logger.info(`Running Modules Initialization...`);
             await this.bot.modules.data.loadFromStorage();
