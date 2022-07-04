@@ -196,9 +196,32 @@ export default class Config extends Module{
     }
 
     private makeList(fields: { name: string, value: any, type: ConfigDataType }[]){
+        function formatType(value: any, type: ConfigDataType){
+            if(!value){
+                return "[not set]"
+            }
+            if(type === "user"){
+                return `<@${value}>`;
+            }
+            if(type === "role"){
+                return `<@&${value}>`;
+            }
+            if(type === "channel"){
+                return `<#${value}>`;
+            }
+            if(type === "bool"){
+                return value ? "*true*" : "*false*";
+            }
+            if(type.startsWith("array")){
+                let atype = (/array<(.*)>/.exec(type) || [])[1] as ConfigDataType;
+                return "[" + value.map((v: any) => formatType(v, atype)).join(", ") as string + "]";
+            }
+            return `${value}`;
+        }
+
         let text = "";
         for(let f of fields){
-            text += `${f.name}: **${f.type}** = \`${f.value || "[not set]"}\`\n`;
+            text += `${f.name}: **${f.type}** = ${formatType(f.value, f.type)}\n`;
         }
         return text;
     }
