@@ -1,7 +1,20 @@
 import { ModuleDataContainer } from "./ModuleDataManager";
 import Synergy from "./Synergy";
+import Discord from "discord.js";
 
-export type ConfigDataType = "string" | "int" | "number" | "bool" | "channel" | "user" | "role";
+export type ConfigCommonDataType = "string" | "int" | "number" | "bool" | "channel" | "user" | "role" | "attachment";
+export type ConfigArrayDataType = `array<${ConfigCommonDataType}>`;
+export type ConfigDataType = ConfigCommonDataType | ConfigArrayDataType;
+
+export type TypeOfConfigCommonDataType<T extends ConfigCommonDataType> =   
+    T extends "string"  ? string  :
+    T extends "int"     ? number  :
+    T extends "number"  ? number  :
+    T extends "bool"    ? boolean :
+    T extends "channel" ? Discord.GuildBasedChannel :
+    T extends "user"    ? Discord.User :
+    T extends "role"    ? Discord.Role :
+    Discord.MessageAttachment
 
 export default class ConfigManager{
     private dataContainer?: ModuleDataContainer;

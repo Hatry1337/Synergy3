@@ -4,7 +4,7 @@ import User from "../Structures/User";
 import { CallbackTypeOf, InteractionTypeOf, InteractiveTargets } from "./InteractionTypes";
 
 export default class InteractiveBase<T extends InteractiveTargets> {
-    private execCallback?: CallbackTypeOf<T>;
+    protected execCallback?: CallbackTypeOf<T>;
     public lastInteraction?: InteractionTypeOf<T>
 
     constructor(readonly name: string, public access: AccessTarget[], public module: Module){

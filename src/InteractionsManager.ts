@@ -265,7 +265,15 @@ export default class InteractionsManager{
                 return;
             }
             try {
-                await cmd._autocomplete(interaction);
+                let user_id = this.bot.users.idFromDiscordId(interaction.user.id);
+                let user: User | null = null;
+                if(user_id){
+                    user = await this.bot.users.fetchOne(user_id);
+                }
+                if(!user){
+                    user = await this.bot.users.createFromDiscord(interaction.user);
+                }
+                await cmd._autocomplete(interaction, user);
             } catch (error) {
                 GlobalLogger.root.error(`Error autocompleteing "${interaction.commandName}":`, error);
             }
@@ -307,7 +315,7 @@ export default class InteractionsManager{
                 }else{
                     access_flag = false;
                 }
-                break;
+                continue;
             }
             if(a.startsWith("player")){
                 access_flag = true;
