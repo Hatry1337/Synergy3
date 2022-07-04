@@ -57,7 +57,7 @@ export class InteractiveCommand<T extends InteractiveCommandTargets> extends Int
      public async _exec(interaction: InteractionTypeOf<T>, user: User){
         this.lastInteraction = interaction;
 
-        if(interaction instanceof Discord.CommandInteraction){
+        if(interaction instanceof Discord.CommandInteraction && interaction.options.getSubcommand(false)){
             let cb = this.subcommandCallbacks.get(interaction.options.getSubcommand());
             if(cb){
                 await cb(interaction, user);
