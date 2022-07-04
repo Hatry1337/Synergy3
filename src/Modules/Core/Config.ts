@@ -157,6 +157,7 @@ export default class Config extends Module{
         .onSubcommand("list", this.handleList.bind(this))
         .onSubcommand("set", this.handleSet.bind(this))
         .onSubcommand("add", this.handleAdd.bind(this))
+        .onSubcommand("remove", this.handleRemove.bind(this))
         .commit()
     }
 
