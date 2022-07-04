@@ -156,6 +156,7 @@ export default class Config extends Module{
         .onAutocomplete(this.handleAutocomplete.bind(this))
         .onSubcommand("list", this.handleList.bind(this))
         .onSubcommand("set", this.handleSet.bind(this))
+        .onSubcommand("add", this.handleAdd.bind(this))
         .commit()
     }
 
