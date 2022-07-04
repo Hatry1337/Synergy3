@@ -19,7 +19,9 @@ export class ModuleDataContainer{
 
     public set(field: string, value: any) {
         let data = moduleDatas.get(this.uuid);
-        data ? data[field] = value : 0;
+        if(data){
+            data[field] = value;
+        }
     }
 
     public wipe(){

@@ -411,7 +411,7 @@ export default class InteractionsManager{
 
                         interactiveComponentsRegistry.delete(cmp.id);
                         temporaryComponents.delete(cmp.id);
-                        throw new SynergyUserError("This interactive component is no longer available. Try to re-run command that created this component.")
+                        throw new SynergyUserError("This interactive component is no longer available. Try to re-run command that created this component.");
                     }
                 }
                 await target._exec(interaction as any, user); //Yea this is dirty hack, but.... I waste too much time to make it work..

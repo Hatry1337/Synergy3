@@ -277,7 +277,7 @@ export default class Config extends Module{
 
                     let container = (await this.bot.config.get(target, field) || {});
 
-                    let old_value: any
+                    let old_value: any;
                     
                     switch(target){
                         case "user": {
