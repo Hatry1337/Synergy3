@@ -1,4 +1,5 @@
 import Discord from "discord.js";
+import { Access, AccessTarget } from "..";
 import Synergy from "../Synergy";
 
 export interface UserEconomyOptions{
@@ -40,5 +41,9 @@ export default class User implements UserOptions{
         this.lang = opts.lang;
         this.economy = opts.economy;
         this.discord = opts.discord;
+    }
+
+    public async haveAccess(access: AccessTarget[], guild: Discord.Guild){
+        return await Access.Check(this, access, guild);
     }
 }
