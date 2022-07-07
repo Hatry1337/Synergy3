@@ -3,7 +3,7 @@ import Discord from "discord.js";
 import Module from "../Module";
 import User from "../../Structures/User";
 import { Colors } from "../../Utils";
-import { ConfigArrayDataType, ConfigCommonDataType, ConfigDataType, TypeOfConfigCommonDataType } from "../../ConfigManager";
+import { ConfigArrayDataType, ConfigCommonDataType, ConfigDataType } from "../../ConfigManager";
 import { GuildOnlyError, MissingPermissionsError, Synergy, SynergyUserError } from "../..";
 import Access, { AccessTarget } from "../../Structures/Access";
 import { SlashCommandSubcommandBuilder } from "@discordjs/builders";
@@ -197,7 +197,7 @@ export default class Config extends Module{
 
     private makeList(fields: { name: string, value: any, type: ConfigDataType }[]){
         function formatType(value: any, type: ConfigDataType){
-            if(!value){
+            if(type !== "bool" && !value){
                 return "[not set]"
             }
             if(type === "user"){
@@ -355,7 +355,7 @@ export default class Config extends Module{
             description: `Successfully changed "${field}" from "${old_value || "`[not set]`"}" to "${value}"`,
             color: Colors.Noraml,
         });
-        return await interaction.reply({ embeds: [emb] })
+        return await interaction.reply({ embeds: [emb] });
     }
 
     public async handleAdd(interaction: Discord.CommandInteraction, user: User){
@@ -431,7 +431,7 @@ export default class Config extends Module{
             description: `Successfully added value ${value} to array "${field}"`,
             color: Colors.Noraml,
         });
-        return await interaction.reply({ embeds: [emb] })
+        return await interaction.reply({ embeds: [emb] });
     }
 
     public async handleRemove(interaction: Discord.CommandInteraction, user: User){
@@ -488,6 +488,6 @@ export default class Config extends Module{
             description: `Successfully removed ${rm_value} from array "${field}"`,
             color: Colors.Noraml,
         });
-        return await interaction.reply({ embeds: [emb] })
+        return await interaction.reply({ embeds: [emb] });
     }
 }
