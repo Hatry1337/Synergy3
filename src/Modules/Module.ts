@@ -7,6 +7,8 @@ import { AccessTarget } from "../Structures/Access";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import Discord from "discord.js";
 
+export type ModuleSharedMethods = { [key: string]: (...args: any) => any };
+
 export default class Module implements IModule{
     /**
      * Name of the module. Recommended to be equal with class name
@@ -39,6 +41,8 @@ export default class Module implements IModule{
 
     readonly Logger: ModuleLogger = new ModuleLogger(this);
     readonly SlashCommands: InteractiveCommand<SlashCommandBuilder>[] = [];
+
+    protected sharedMethods: ModuleSharedMethods = {};
 
     constructor(public bot: Synergy, protected UUID: string) {
     }
@@ -115,5 +119,17 @@ export default class Module implements IModule{
         }else{
             return this.bot.interactions.createSelectMenu(arg1 || this.Access, this, arg2 as number, arg3)
         }
+    }
+
+    /**
+     * Set module's shared methods. These methods can call any other module.
+     * @param methods Object with methods
+     */
+    protected setSharedMethods(methods: ModuleSharedMethods){
+        this.sharedMethods = methods;
+    }
+
+    public getSharedMethods<T extends ModuleSharedMethods = ModuleSharedMethods>(){
+        return this.sharedMethods as T;
     }
 }

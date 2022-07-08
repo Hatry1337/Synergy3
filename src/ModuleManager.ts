@@ -1,10 +1,10 @@
 import Synergy from './Synergy';
 import ModuleDataManager from './ModuleDataManager';
-import Module from './Modules/Module';
+import Module, { ModuleSharedMethods } from './Modules/Module';
 import { GlobalLogger } from './GlobalLogger';
 import { AccessTarget } from './Structures/Access';
 
-export interface ModuleCommonInfo{
+export interface ModuleCommonInfo<T extends ModuleSharedMethods = ModuleSharedMethods>{
     name: string;
     description: string;
     category: string;
@@ -12,6 +12,7 @@ export interface ModuleCommonInfo{
     access: AccessTarget[];
     commands: string[];
     initPriority: number;
+    sharedMethods: T;
 }
 
 const Modules: Module[] = [];
@@ -79,7 +80,8 @@ export default class ModuleManager{
                 access: m.Access,
                 category: m.Category,
                 initPriority: m.InitPriority,
-                commands
+                commands,
+                sharedMethods: m.getSharedMethods()
             });
         }
         return info;
