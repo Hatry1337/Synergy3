@@ -49,7 +49,7 @@ export default class UserManager{
                 groups: su.groups,
                 lang: su.lang,
                 discord,
-                economy: {
+                economy: this.bot.options.userDefaultEconomy || {
                     points: 0.0005,
                     lvl: 1,
                     xp: 0

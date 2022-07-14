@@ -17,7 +17,6 @@ export class StorageUserEconomyInfo extends Model {
     @Column({
         type: DataType.REAL,
         allowNull: false,
-        defaultValue: 0.0005
     })
     economyPoints!: number;
 

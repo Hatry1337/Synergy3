@@ -11,6 +11,7 @@ import GuildManager from "./GuildManager";
 
 import { initsequelize, sequelize } from "./Database";
 import InteractionsManager from "./InteractionsManager";
+import { UserEconomyOptions } from ".";
 
 const logger = GlobalLogger.root;
 
@@ -40,6 +41,11 @@ export interface SynergyOptions{
      *  Delay between data savings to storage in managers like GuildManager, ModuleDataManager, UserManager, etc. (60 sec default.)
      */
     dataSyncDelay?: number;
+
+    /**
+     *  Default values of user's economy data
+     */
+    userDefaultEconomy?: UserEconomyOptions;
 }
 
 export type ModuleUUIDPair = { UUID: string, Module: typeof Module };
