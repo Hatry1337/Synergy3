@@ -1,3 +1,5 @@
+import { User } from "..";
+import Discord from "discord.js";
 export class SynergyUserError extends Error {
     public subMessage?: string;
     constructor(message: string, subMessage?: string){
@@ -22,5 +24,11 @@ export class NoConfigEntryError extends SynergyUserError {
 export class MissingPermissionsError extends SynergyUserError {
     constructor(){
         super("You don't have permissions to use this command.");
+    }
+}
+
+export class UserAlreadyExistError extends Error {
+    constructor(user: User | Discord.User){
+        super(`Error: User ${user instanceof Discord.User ? user.tag : user.nickname}(${user.id}) already exist.`);
     }
 }
