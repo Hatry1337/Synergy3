@@ -46,8 +46,8 @@ export default class UserManager{
             id: dUser.id,
             tag: dUser.tag,
             createdAt: dUser.createdAt,
-            avatar: dUser.avatar ? dUser.avatar : undefined,
-            banner: dUser.banner ? dUser.banner : undefined,
+            avatar: dUser.displayAvatarURL(),
+            banner: dUser.banner ?? undefined,
             user: dUser
         }
         let user = new User(this.bot, {

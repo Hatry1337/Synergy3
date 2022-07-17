@@ -11,7 +11,7 @@ export interface UserEconomyOptions{
 export interface UserDiscordOptions {
     id: string;
     tag: string;
-    avatar?: string;
+    avatar: string;
     banner?: string;
     createdAt: Date;
     user?: Discord.User;

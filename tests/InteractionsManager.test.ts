@@ -25,6 +25,7 @@ let bot = {
                 discord: {
                     id: "888888888888",
                     tag: "TestUser#1337",
+                    avatar: "https://cdn.discordapp.com/avatars/508637328349331462/ced8cce78f895423ffa0fda824697c2e.webp",
                     createdAt: new Date()
                 }
             })

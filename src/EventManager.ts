@@ -147,10 +147,6 @@ class EventManager extends EventEmitter{
             this.bot.users.createFromDiscord(member.user);
             return;
         }
-        user.discord.tag = member.user.tag;
-        user.discord.avatar = member.user.avatar ? member.user.avatar : undefined;
-        user.discord.banner = member.user.banner ? member.user.banner : undefined;
-        user.discord.user = member.user;
     }
 
     private onGuildMemberRemove(member: Discord.GuildMember | Discord.PartialGuildMember){

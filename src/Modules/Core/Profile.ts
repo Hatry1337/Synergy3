@@ -35,7 +35,7 @@ export default class Profile extends Module{
     private createMessageTemplate(user: User){
         let embd = new Discord.MessageEmbed({
             title: `${user.nickname}'s profile`,
-            thumbnail: user.discord?.avatar ? { url: `https://cdn.discordapp.com/avatars/${user.discord.id}/${user.discord.avatar}.png` } : undefined,
+            thumbnail: user.discord?.avatar ? { url: user.discord.avatar } : undefined,
             fields: [
                 { name: "Info", value:  `ID: ${user.id}\n` +
                                         `Groups: ${user.groups.join(", ")}\n` +
