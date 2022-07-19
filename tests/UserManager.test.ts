@@ -51,6 +51,8 @@ test("UserManager - Test ids associations", async () => {
         let id = umgr.idFromDiscordId(e[0]);
         expect(id).toBe(e[1]);
     }
+
+    bot.events.emit("Stop");
 });
 
 test("UserManager - fetchOne", async () => {
@@ -101,6 +103,8 @@ test("UserManager - fetchOne", async () => {
         expect(user.id).toBe(e[1]);
         expect(user.discord.id).toBe(e[0]);
     }
+
+    bot.events.emit("Stop");
 });
 
 test("UserManager - fetchBulk", async () => {
@@ -151,4 +155,6 @@ test("UserManager - fetchBulk", async () => {
         expect(u).toBeTruthy();
         expect(ids.get(u.discord.id)).toBe(u.id);
     }
+
+    bot.events.emit("Stop");
 });

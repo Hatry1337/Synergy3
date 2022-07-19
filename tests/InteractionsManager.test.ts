@@ -13,9 +13,7 @@ test("InteractionsManager - Create Manager", () => {
     let manager: InteractionsManager | undefined;
     try {
         manager = new InteractionsManager(bot as unknown as Synergy);
-        if(bot.callbacks.stopCallback){
-            bot.callbacks.stopCallback();
-        }
+        bot.events.emit("Stop");
     } catch (error) {
         console.log(error);
     }
@@ -27,9 +25,7 @@ test("InteractionsManager - Create interactive button", () => {
     let manager = new InteractionsManager(bot as unknown as Synergy);
     let button = manager.createButton("test-button", [ Access.PLAYER() ], test_module);
     
-    if(bot.callbacks.stopCallback){
-        bot.callbacks.stopCallback();
-    }
+    bot.events.emit("Stop");
     expect(manager.getComponent(button.name)).toBe(button);
 });
 
@@ -37,9 +33,7 @@ test("InteractionsManager - Create temporary interactive button", () => {
     let manager = new InteractionsManager(bot as unknown as Synergy);
     let button = manager.createButton([ Access.PLAYER() ], test_module, 3);
     
-    if(bot.callbacks.stopCallback){
-        bot.callbacks.stopCallback();
-    }
+    bot.events.emit("Stop");
     expect(manager.getComponent(button.name)).toBe(button);
 });
 
@@ -54,20 +48,18 @@ test("InteractionsManager - Test normal interactive button deletion", async () =
     int.isMessageComponent = () => { return true };
     int.customId = button.name;
     int.user = { id: "888888888888" } as Discord.User;
+
     int.reply = (async (options: Discord.InteractionReplyOptions) => {
+        expect(manager.getComponent(button.name)).toBe(button); //Must not be deleted after any amount of interactions.
         console.log("Replied to interaction: ", options);
         return;
     }) as any;
     
     for(let i = 0; i < 50; i++){
-        await bot.callbacks.interactionCallback(int);
+        bot.client.emit("interactionCreate", int);
     }
 
-    expect(manager.getComponent(button.name)).toBe(button); //Must not be deleted after any amount of interactions.
-
-    if(bot.callbacks.stopCallback){
-        bot.callbacks.stopCallback();
-    }
+    bot.events.emit("Stop");
 });
 
 test("InteractionsManager - Test temporary interactive button deletion [IntLimit]", async () => {
@@ -81,23 +73,24 @@ test("InteractionsManager - Test temporary interactive button deletion [IntLimit
     int.customId = button.name;
     int.user = { id: "888888888888" } as Discord.User;
     int.reply = (async (options: Discord.InteractionReplyOptions) => {
+        expect(manager.getComponent(button.name)).toBe(button);    
         console.log("Replied to interaction: ", options);
         return;
     }) as any;
     
     for(let i = 0; i < 3; i++){
-        await bot.callbacks.interactionCallback(int);
+        bot.client.emit("interactionCreate", int);
     }
 
-    expect(manager.getComponent(button.name)).toBe(button);
+    int.reply = (async (options: Discord.InteractionReplyOptions) => {
+        expect(manager.getComponent(button.name)).toBeFalsy(); //Must work for 3 interactions and removed on 4th 
+        console.log("Replied to interaction: ", options);
+        return;
+    }) as any;
 
-    await bot.callbacks.interactionCallback(int);
+    bot.client.emit("interactionCreate", int);
 
-    expect(manager.getComponent(button.name)).toBeFalsy(); //Must work for 3 interactions and removed on 4th 
-
-    if(bot.callbacks.stopCallback){
-        bot.callbacks.stopCallback();
-    }
+    bot.events.emit("Stop");
 });
 
 test("InteractionsManager - Test temporary interactive button deletion [TimeLimit]", async () => {
@@ -110,22 +103,25 @@ test("InteractionsManager - Test temporary interactive button deletion [TimeLimi
     int.isMessageComponent = () => { return true };
     int.customId = button.name;
     int.user = { id: "888888888888" } as Discord.User;
+
+
     int.reply = (async (options: Discord.InteractionReplyOptions) => {
+        expect(manager.getComponent(button.name)).toBe(button);
         console.log("Replied to interaction: ", options);
         return;
     }) as any;
-    
-    await bot.callbacks.interactionCallback(int);
-    expect(manager.getComponent(button.name)).toBe(button);
+    bot.client.emit("interactionCreate", int);
 
     await new Promise((res) => { setTimeout(res, 3000) });
 
-    await bot.callbacks.interactionCallback(int);
-    expect(manager.getComponent(button.name)).toBeFalsy(); //Must work for 2 sec and removed on 3th 
+    int.reply = (async (options: Discord.InteractionReplyOptions) => {
+        expect(manager.getComponent(button.name)).toBeFalsy(); //Must work for 2 sec and removed on 3th 
+        console.log("Replied to interaction: ", options);
+        return;
+    }) as any;
+    bot.client.emit("interactionCreate", int);
 
-    if(bot.callbacks.stopCallback){
-        bot.callbacks.stopCallback();
-    }
+    bot.events.emit("Stop");
 });
 
 
@@ -135,9 +131,7 @@ test("InteractionsManager - Create interactive select menu", () => {
     let manager = new InteractionsManager(bot as unknown as Synergy);
     let menu = manager.createSelectMenu("test-menu", [ Access.PLAYER() ], test_module);
     
-    if(bot.callbacks.stopCallback){
-        bot.callbacks.stopCallback();
-    }
+    bot.events.emit("Stop");
     expect(manager.getComponent(menu.name)).toBe(menu);
 });
 
@@ -145,9 +139,7 @@ test("InteractionsManager - Create temporary interactive select menu", () => {
     let manager = new InteractionsManager(bot as unknown as Synergy);
     let menu = manager.createSelectMenu([ Access.PLAYER() ], test_module, 3);
     
-    if(bot.callbacks.stopCallback){
-        bot.callbacks.stopCallback();
-    }
+    bot.events.emit("Stop");
     expect(manager.getComponent(menu.name)).toBe(menu);
 });
 
@@ -168,14 +160,11 @@ test("InteractionsManager - Test normal interactive select menu deletion", async
     }) as any;
     
     for(let i = 0; i < 50; i++){
-        await bot.callbacks.interactionCallback(int);
+        bot.client.emit("interactionCreate", int);
     }
 
     expect(manager.getComponent(menu.name)).toBe(menu); //Must not be deleted after any amount of interactions.
-
-    if(bot.callbacks.stopCallback){
-        bot.callbacks.stopCallback();
-    }
+    bot.events.emit("Stop");
 });
 
 test("InteractionsManager - Test temporary interactive select menu deletion [IntLimit]", async () => {
@@ -188,24 +177,25 @@ test("InteractionsManager - Test temporary interactive select menu deletion [Int
     int.isMessageComponent = () => { return true };
     int.customId = menu.name;
     int.user = { id: "888888888888" } as Discord.User;
+    
     int.reply = (async (options: Discord.InteractionReplyOptions) => {
+        expect(manager.getComponent(menu.name)).toBe(menu);
         console.log("Replied to interaction: ", options);
         return;
     }) as any;
     
     for(let i = 0; i < 3; i++){
-        await bot.callbacks.interactionCallback(int);
+        bot.client.emit("interactionCreate", int);
     }
 
-    expect(manager.getComponent(menu.name)).toBe(menu);
+    int.reply = (async (options: Discord.InteractionReplyOptions) => {
+        expect(manager.getComponent(menu.name)).toBeFalsy(); //Must work for 3 interactions and removed on 4th 
+        console.log("Replied to interaction: ", options);
+        return;
+    }) as any;
+    bot.client.emit("interactionCreate", int);
 
-    await bot.callbacks.interactionCallback(int);
-
-    expect(manager.getComponent(menu.name)).toBeFalsy(); //Must work for 3 interactions and removed on 4th 
-
-    if(bot.callbacks.stopCallback){
-        bot.callbacks.stopCallback();
-    }
+    bot.events.emit("Stop");
 });
 
 test("InteractionsManager - Test temporary interactive select menu deletion [TimeLimit]", async () => {
@@ -218,20 +208,22 @@ test("InteractionsManager - Test temporary interactive select menu deletion [Tim
     int.isMessageComponent = () => { return true };
     int.customId = menu.name;
     int.user = { id: "888888888888" } as Discord.User;
+
     int.reply = (async (options: Discord.InteractionReplyOptions) => {
+        expect(manager.getComponent(menu.name)).toBe(menu);
         console.log("Replied to interaction: ", options);
         return;
     }) as any;
-    
-    await bot.callbacks.interactionCallback(int);
-    expect(manager.getComponent(menu.name)).toBe(menu);
+    bot.client.emit("interactionCreate", int);
 
     await new Promise((res) => { setTimeout(res, 3000) });
 
-    await bot.callbacks.interactionCallback(int);
-    expect(manager.getComponent(menu.name)).toBeFalsy(); //Must work for 2 sec and removed on 3th 
+    int.reply = (async (options: Discord.InteractionReplyOptions) => {
+        expect(manager.getComponent(menu.name)).toBeFalsy(); //Must work for 2 sec and removed on 3th 
+        console.log("Replied to interaction: ", options);
+        return;
+    }) as any;
+    bot.client.emit("interactionCreate", int);
 
-    if(bot.callbacks.stopCallback){
-        bot.callbacks.stopCallback();
-    }
+    bot.events.emit("Stop");
 });
