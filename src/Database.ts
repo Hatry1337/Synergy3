@@ -11,7 +11,9 @@ const logger = log4js.getLogger("database");
 
 let seq: Sequelize;
 
-export function initsequelize(dburi: string){
+export function initsequelize(dburi: string, logging: boolean = true, force: boolean = false){
+    if(seq && !force) return;
+
     seq = new Sequelize(dburi, {
         models: [
             StorageGuild,
@@ -20,9 +22,7 @@ export function initsequelize(dburi: string){
             StorageUserEconomyInfo,
             StorageModuleDataContainer,
         ],
-        logging: (sql) => {
-            logger.info(sql);
-        }
+        logging: logging ? ((sql) => { logger.info(sql) }) : false
     });
 }
 

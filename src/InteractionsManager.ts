@@ -257,12 +257,8 @@ export default class InteractionsManager{
     }
 
     private async onInteractionCreate(interaction: Discord.Interaction){
-        if(!this.bot.isReady && interaction.isRepliable()){
-            return await interaction.reply({ embeds: [ 
-                new Discord.MessageEmbed()
-                .setTitle("⌛ BOT is still loading. Please wait a bit.")
-                .setColor(Colors.Error)
-            ], ephemeral: true });
+        if(!this.bot.isReady){
+            return;
         }
 
         let target: InteractiveBase<InteractiveTargets>;

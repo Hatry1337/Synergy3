@@ -220,6 +220,26 @@ export default class UserManager{
     }
 
     private async syncCacheEntry(user: User, storageUser: StorageUser, t: Transaction){
+        await StorageUser.update({
+            nickname: user.nickname,
+            groups: user.groups,
+            lang: user.lang,
+        }, {
+            where: {
+                id: storageUser.id
+            },
+            transaction: t
+        }).catch(err => GlobalLogger.root.warn("UserManager.syncCacheEntry Error Updating StorageUser:", err));
+
+        await StorageUserEconomyInfo.upsert({
+            id: storageUser.id,
+            economyPoints: user.economy.points,
+            economyLVL: user.economy.lvl,
+            economyXP: user.economy.xp,
+        }, {
+            transaction: t
+        }).catch(err => GlobalLogger.root.warn("UserManager.syncCacheEntry Error Upserting StorageUserEconomyInfo:", err));
+
         if(user.discord){
             this.discordIdsAssociations.set(user.discord.id, storageUser.id);
             await StorageUserDiscordInfo.upsert({
@@ -233,25 +253,5 @@ export default class UserManager{
                 transaction: t
             }).catch(err => GlobalLogger.root.warn("UserManager.syncCacheEntry Error Upserting StorageUserDiscordInfo:", err));    
         }
-        
-        await StorageUserEconomyInfo.upsert({
-            id: storageUser.id,
-            economyPoints: user.economy.points,
-            economyLVL: user.economy.lvl,
-            economyXP: user.economy.xp,
-        }, {
-            transaction: t
-        }).catch(err => GlobalLogger.root.warn("UserManager.syncCacheEntry Error Upserting StorageUserEconomyInfo:", err));
-
-        await StorageUser.update({
-            nickname: user.nickname,
-            groups: user.groups,
-            lang: user.lang,
-        }, {
-            where: {
-                id: storageUser.id
-            },
-            transaction: t
-        }).catch(err => GlobalLogger.root.warn("UserManager.syncCacheEntry Error Updating StorageUser:", err));
     }
 }
