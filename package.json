@@ -27,7 +27,7 @@
     "build": "tsc",
     "docs": "npx typedoc",
     "prepublish": "npm run build",
-    "test": "npx jest --setupFiles dotenv/config"
+    "test": "npx jest --setupFiles dotenv/config --detectOpenHandles"
   },
   "dependencies": {
     "@discordjs/builders": "^0.15.0",
