@@ -90,15 +90,13 @@ export default class UserManager{
         let out: User[] = [];
 
         if(!force){
+            out = userIds.filter(i => this.cached.has(i)).map(i => this.cached.get(i)!);
             toBeCached = userIds.filter(i => !this.cached.has(i));
         }else{
             toBeCached = userIds;
         }
 
         if(toBeCached.length === 0){
-            for(let i of userIds){
-                out.push(this.cached.get(i)!);
-            }
             return out;
         }
 
@@ -112,14 +110,11 @@ export default class UserManager{
         });
 
         for(let u of storage_users){
-            out.push(await this.cacheFromStorageInstance(u));
-        }
-        for(let i of userIds){
-            if(out.findIndex(u => u.id === i) === -1){
-                out.push(this.cached.get(i)!);
+            let cached = await this.cacheFromStorageInstance(u);
+            if(cached){
+                out.push(cached);
             }
         }
-
         return out;
     }
 
