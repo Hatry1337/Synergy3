@@ -46,6 +46,11 @@ export interface SynergyOptions{
      *  Default values of user's economy data
      */
     userDefaultEconomy?: UserEconomyOptions;
+
+    /**
+     *  Save sql requests to log file?
+     */
+    saveSQLToFile?: boolean;
 }
 
 export type ModuleUUIDPair = { UUID: string, Module: typeof Module };
@@ -82,7 +87,7 @@ export default class Synergy{
 
         if(!this.options.dataSyncDelay) this.options.dataSyncDelay = 60;
 
-        initsequelize(options.sequelizeURI);
+        initsequelize(options.sequelizeURI, options.saveSQLToFile ?? false);
         for(let m of modules){
             this.modules.RegisterModule(m.Module, m.UUID, true);
         }
