@@ -37,11 +37,11 @@ class EventManager extends EventEmitter{
 
     private async onError(err: any, fatal: boolean){
         if(fatal){
-            logger.fatal("Fatal Error Occured:", err);
+            logger.fatal("Fatal Error Occurred:", err);
             await this.bot.stop();
             process.exit(-1);
         }else{
-            logger.info("Error Occured:", err);
+            logger.info("Error Occurred:", err);
         }
     }
 
@@ -53,7 +53,7 @@ class EventManager extends EventEmitter{
             logger.info(`Fetching system user..`);
             await this.bot.users.updateAssociations();
 
-            let sys = await this.bot.users.fetchOne(this.bot.client.user!.id);
+            let sys = await this.bot.users.fetchOne(this.bot.client.user?.id ?? "alice");
             if(!sys){
                 logger.info(`No system user. Creating new one..`);
                 sys = await this.bot.users.createFromDiscord(this.bot.client.user!, [ Access.ADMIN() ]);
@@ -67,7 +67,7 @@ class EventManager extends EventEmitter{
 
             let inic = await this.bot.modules.Init().catch(err => GlobalLogger.root.error("[Ready Event] Error intializing modules:", err));
             if(!inic && inic !== 0){
-                logger.fatal("Fatal error occured. Can't load modules.");
+                logger.fatal("Fatal error occurred. Can't load modules.");
             }else{
                 logger.info(`Initialized ${inic} Module Initializers.`);
                 

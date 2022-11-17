@@ -40,9 +40,13 @@ export default class UserManager extends CachedManager<User>{
      * @param id Discord id of user to fetch
      */
     public async fetchOne(id: string) {
+        let legacyId = this.idFromDiscordId(id);
+
+        if(!legacyId) return undefined;
+
         let storageUser = await StorageUser.findOne({
             where: {
-                id: this.idFromDiscordId(id)
+                id: legacyId
             },
             include: [StorageUserDiscordInfo, StorageUserEconomyInfo]
         });
@@ -63,10 +67,12 @@ export default class UserManager extends CachedManager<User>{
     public async fetchBulk(ids: string[]) {
         let res: Map<string, User> = new Map();
 
+        let legacyIds = ids.map(i => this.idFromDiscordId(i)).filter(i => i !== undefined);
+
         let storageUsers = await StorageUser.findAll({
             where: {
                 id: {
-                    [Op.in]: ids.map(i => this.idFromDiscordId(i))
+                    [Op.in]: legacyIds
                 }
             },
             include: [ StorageUserDiscordInfo, StorageUserEconomyInfo ]
@@ -102,7 +108,7 @@ export default class UserManager extends CachedManager<User>{
             tag: dUser.tag,
             createdAt: dUser.createdAt,
             avatar: dUser.displayAvatarURL(),
-            banner: dUser.bannerURL() ?? undefined,
+            banner: dUser.banner ?? undefined,
             user: dUser
         }
         let user = new User(this.bot, {

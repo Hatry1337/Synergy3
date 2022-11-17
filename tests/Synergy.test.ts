@@ -35,6 +35,7 @@ test("Synergy - login", async () => {
     }, modules);
     bot.login(process.env.DISCORD_TOKEN as string);
     let isready = await new Promise<boolean>(resolve => bot.events.once("Initialized", () => resolve(bot.isReady)));
-    await bot.stop();
     expect(isready).toBeTruthy();
+    await bot.stop();
+    expect(bot.isReady).toBeFalsy();
 }, 60000);
