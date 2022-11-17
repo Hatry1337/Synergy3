@@ -10,7 +10,7 @@ import UserManager from "../src/UserManager";
 test("UserManager - Test ids associations", async () => {
     let bot = createDummyBOT();
 
-    initsequelize("sqlite::memory:");
+    initsequelize("sqlite:database.sqlite");
     await sequelize().sync({ force: true });
 
     let ids: Map<string, number> = new Map();
@@ -96,7 +96,7 @@ test("UserManager - fetchOne", async () => {
     await umgr.updateAssociations();
 
     for(let e of ids){
-        let user = await umgr.fetchOne(e[1]);
+        let user = await umgr.fetchOne(e[0]);
         if(!user) return fail(`User ${e} failed to fetch.`);
 
         expect(user).toBeTruthy();
@@ -147,11 +147,11 @@ test("UserManager - fetchBulk", async () => {
     let umgr = new UserManager(bot);
     await umgr.updateAssociations();
 
-    let users = await umgr.fetchBulk(Array.from(ids.values()));
+    let users = await umgr.fetchBulk(Array.from(ids.keys()));
 
-    expect(users.length).toBe(ids.size);
+    expect(users.size).toBe(ids.size);
 
-    for(let u of users){
+    for(let u of users.values()){
         expect(u).toBeTruthy();
         expect(ids.get(u.discord.id)).toBe(u.id);
     }

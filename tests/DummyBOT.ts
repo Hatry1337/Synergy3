@@ -1,4 +1,5 @@
 import { Synergy, User } from "../src";
+import UserManager from "../src/UserManager";
 import Discord from "discord.js";
 import EventEmitter from "events";
 
@@ -32,9 +33,9 @@ class DummyBOT {
     public isReady = true;
     public users = {
         idFromDiscordId: (id: string) => { return 1337 },
-        fetchOne: (id: number) => {
+        fetchOne: (id: string) => {
             return new User(this as unknown as Synergy, {
-                id,
+                id: this.users.idFromDiscordId(id),
                 nickname: "TestUser#1337",
                 groups: [ "palayer" ],
                 lang: "en",
@@ -44,12 +45,40 @@ class DummyBOT {
                     lvl: 1
                 },
                 discord: {
-                    id: "888888888888",
+                    id,
                     tag: "TestUser#1337",
                     avatar: "https://cdn.discordapp.com/avatars/508637328349331462/ced8cce78f895423ffa0fda824697c2e.webp",
                     createdAt: new Date()
                 }
             })
+        },
+        fetchBulk: (ids: string[]) => {
+            return ids.map(id =>
+                new User(this as unknown as Synergy, {
+                    id: this.users.idFromDiscordId(id),
+                    nickname: "TestUser#1337",
+                    groups: [ "palayer" ],
+                    lang: "en",
+                    economy: {
+                        points: 2,
+                        xp: 0,
+                        lvl: 1
+                    },
+                    discord: {
+                        id,
+                        tag: "TestUser#1337",
+                        avatar: "https://cdn.discordapp.com/avatars/508637328349331462/ced8cce78f895423ffa0fda824697c2e.webp",
+                        createdAt: new Date()
+                    }
+                })
+            );
+        },
+        get(id: string | string[]) {
+            if(typeof id === "string"){
+                return this.fetchOne(id);
+            }else {
+                return this.fetchBulk(id);
+            }
         }
     };
     public events = new EventEmitter();
