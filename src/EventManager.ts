@@ -53,7 +53,7 @@ class EventManager extends EventEmitter{
             logger.info(`Fetching system user..`);
             await this.bot.users.updateAssociations();
 
-            let sys = await this.bot.users.fetchOne(this.bot.users.idFromDiscordId(this.bot.client.user!.id) || -1, true);
+            let sys = await this.bot.users.fetchOne(this.bot.client.user!.id);
             if(!sys){
                 logger.info(`No system user. Creating new one..`);
                 sys = await this.bot.users.createFromDiscord(this.bot.client.user!, [ Access.ADMIN() ]);
@@ -142,9 +142,9 @@ class EventManager extends EventEmitter{
     private async onGuildMemberAdd(member: Discord.GuildMember){
         GlobalLogger.userlog.info(`${member} (${member.user.tag}) joined guild ${member.guild} (${member.guild.name}).`);
 
-        let user = await this.bot.users.fetchOne(this.bot.users.idFromDiscordId(member.id) || -1);
+        let user = await this.bot.users.get(member.id);
         if(!user){
-            this.bot.users.createFromDiscord(member.user);
+            await this.bot.users.createFromDiscord(member.user);
             return;
         }
     }

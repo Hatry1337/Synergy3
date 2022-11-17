@@ -1,4 +1,3 @@
-import User from "./Structures/User";
 import Module from "./Modules/Module";
 import Synergy from "./Synergy";
 import Discord from "discord.js";
@@ -204,9 +203,7 @@ export default class InteractionsManager{
                 }
             } catch (error) {
                 GlobalLogger.root.error("Error serializing interactive command builder:", error, c);
-                continue;
             }
-            
         }
 
         for(let cg of cmd_guilds.entries()){
@@ -269,11 +266,8 @@ export default class InteractionsManager{
                 return;
             }
             try {
-                let user_id = this.bot.users.idFromDiscordId(interaction.user.id);
-                let user: User | null = null;
-                if(user_id){
-                    user = await this.bot.users.fetchOne(user_id);
-                }
+                let user = await this.bot.users.get(interaction.user.id);
+
                 if(!user){
                     user = await this.bot.users.createFromDiscord(interaction.user);
                 }
@@ -301,11 +295,8 @@ export default class InteractionsManager{
             return;
         }
 
-        let user_id = this.bot.users.idFromDiscordId(interaction.user.id);
-        let user: User | null = null;
-        if(user_id){
-            user = await this.bot.users.fetchOne(user_id);
-        }
+        let user = await this.bot.users.get(interaction.user.id);
+
         if(!user){
             user = await this.bot.users.createFromDiscord(interaction.user);
         }

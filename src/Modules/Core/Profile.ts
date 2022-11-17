@@ -64,11 +64,8 @@ export default class Profile extends Module{
                     return resolve(await interaction.reply({ embeds: [ Utils.ErrMsg("You can't view BOT's profile.") ] }).catch(reject));
                 }
 
-                let target_id = this.bot.users.idFromDiscordId(target_user.id);
-                let target: User | null = null;
-                if(target_id){
-                    target = await this.bot.users.fetchOne(target_id);
-                }
+                let target = await this.bot.users.get(target_user.id);
+
                 if(!target){
                     target = await this.bot.users.createFromDiscord(target_user);
                 }

@@ -105,7 +105,11 @@ export default class Synergy{
         logger.info(`Stopping the BOT...`);
         await this.modules.UnloadAllModules().catch(logger.error);
         logger.info(`# Modules unloaded.`);
-        await this.users.syncStorage().catch(logger.error);
+
+        //TODO Check if "del" event called on cache flush
+        //await this.users.syncStorage().catch(logger.error);
+        this.users.flushCache();
+
         await this.modules.data.syncStorage().catch(logger.error);
         await this.guilds.syncStorage().catch(logger.error);
         logger.info(`# Data locked and saved.`);
@@ -120,9 +124,9 @@ export default class Synergy{
      * Don't execute this function directly! It is for internal calls 
      */
     public CacheGuilds(log: boolean = false){
-        return new Promise<number>(async (resolve, reject) => {
+        return new Promise<number>(async (resolve) => {
             let i = 0;
-            for(var g of this.client.guilds.cache){
+            for(let g of this.client.guilds.cache){
                 if(log){
                     logger.info(`[GC]`, `Caching Guild ${i+1}/${this.client.guilds.cache.size}`);
                 }
