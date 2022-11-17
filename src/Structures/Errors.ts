@@ -1,5 +1,6 @@
 import { User } from "..";
 import Discord from "discord.js";
+import Guild from "./Guild";
 export class SynergyUserError extends Error {
     public subMessage?: string;
     constructor(message: string, subMessage?: string){
@@ -30,5 +31,11 @@ export class MissingPermissionsError extends SynergyUserError {
 export class UserAlreadyExistError extends Error {
     constructor(user: User | Discord.User){
         super(`Error: User ${user instanceof Discord.User ? user.tag : user.nickname}(${user.id}) already exist.`);
+    }
+}
+
+export class GuildAlreadyExistError extends Error {
+    constructor(guild: Guild | Discord.Guild){
+        super(`Error: Guild ${guild.name}(${guild.id}) already exist.`);
     }
 }

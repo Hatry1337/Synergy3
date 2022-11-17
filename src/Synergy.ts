@@ -111,7 +111,7 @@ export default class Synergy{
         this.users.flushCache();
 
         await this.modules.data.syncStorage().catch(logger.error);
-        await this.guilds.syncStorage().catch(logger.error);
+        //await this.guilds.syncStorage().catch(logger.error);
         logger.info(`# Data locked and saved.`);
         this.client.destroy();
         logger.info(`# Client destroyed.`);

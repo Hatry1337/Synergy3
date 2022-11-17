@@ -6,7 +6,6 @@ import crypto from "crypto";
 import { StorageUser } from "../src/Models/StorageUser";
 import UserManager from "../src/UserManager";
 
-
 test("UserManager - Test ids associations", async () => {
     let bot = createDummyBOT();
 

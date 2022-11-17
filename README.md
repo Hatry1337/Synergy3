@@ -11,7 +11,7 @@ Synergy 3 - is rich, powerful and flexible Discord BOT framework.
 
 Synergy is Interaction-Based framework, it takes over interactions management, processing and event delivery to your modules. Synergy have its own Data Storage based on Sequelize and PostgreSQL (also works with SQLite, but not tested well), it uses it for internal needs and also provides Universal Data Storage for Modules (UDSM data is serialized to JSONB, so keep in mind JSONB limits).
 
-You can find API refference here: https://rainbowbot.xyz/docs
+You can find API refference here: https://rbot.irisdev.xyz/docs
 
 ## Installation
 

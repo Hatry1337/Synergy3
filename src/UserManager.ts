@@ -124,9 +124,6 @@ export default class UserManager extends CachedManager<User>{
             }
         });
 
-        let t = await sequelize().transaction();
-        await t.commit();
-
         this.cacheStorage.set(user.discord.id, user);
         return user;
     }
