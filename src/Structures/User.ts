@@ -23,6 +23,7 @@ export interface UserOptions{
     nickname: string;
     groups: string[];
     lang: string;
+    discordId: string;
     discord: UserDiscordOptions;
     economy: UserEconomyOptions;
 }
@@ -32,6 +33,7 @@ export default class User implements UserOptions{
     public nickname: string;
     public groups: string[];
     public lang: string;
+    public discordId: string;
     public economy: UserEconomyOptions;
     public discord: UserDiscordOptions;
 
@@ -40,6 +42,7 @@ export default class User implements UserOptions{
         this.nickname = opts.nickname;
         this.groups = opts.groups;
         this.lang = opts.lang;
+        this.discordId = opts.discordId;
         this.economy = opts.economy;
         this.discord = opts.discord;
     }
@@ -49,7 +52,7 @@ export default class User implements UserOptions{
     }
 
     public async fetchDiscordUser() {
-        this.discord.user = await this.bot.client.users.fetch(this.discord.id);
+        this.discord.user = await this.bot.client.users.fetch(this.discordId);
         this.discord.tag = this.discord.user.tag;
         this.discord.avatar = this.discord.user.displayAvatarURL();
         this.discord.banner = this.discord.user.banner ?? undefined;
@@ -71,6 +74,7 @@ export default class User implements UserOptions{
             nickname: storageUser.nickname,
             groups: storageUser.groups,
             lang: storageUser.lang,
+            discordId: storageUser.discordId,
             discord: discordOpts,
             economy: {
                 points: storageUser.economy.economyPoints,

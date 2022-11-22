@@ -5,7 +5,7 @@ import { sequelize } from "./Database";
 
 import { GlobalLogger } from "./GlobalLogger";
 import Synergy from "./Synergy";
-import Guild, { GuildOptions } from "./Structures/Guild";
+import Guild from "./Structures/Guild";
 import { StorageGuild } from "./Models/StorageGuild";
 import CachedManager from "./Structures/CachedManager";
 import { GuildAlreadyExistError } from "./Structures/Errors";
@@ -14,6 +14,7 @@ export default class GuildManager extends CachedManager<Guild> {
     constructor(public bot: Synergy){
         super();
         this.cacheStorage.on("del", this.onCacheEntryDeleted.bind(this));
+        this.bot.events.once("Stop", this.onceBOTStop.bind(this));
     }
 
     public async createFromDiscord(dGuild: Discord.Guild, group: string = "default"){
@@ -42,13 +43,6 @@ export default class GuildManager extends CachedManager<Guild> {
 
         this.cacheStorage.set(guild.id, guild);
         return guild;
-    }
-
-    /**
-     * Flush whole Guilds cache
-     */
-    public flushCache() {
-        this.cacheStorage.flushAll();
     }
 
     /**
@@ -94,6 +88,13 @@ export default class GuildManager extends CachedManager<Guild> {
             res.set(storageGuild.id, guild);
         }
         return res;
+    }
+
+    private async onceBOTStop() {
+        for(let k of this.cacheStorage.keys()) {
+            this.cacheStorage.del(k);
+        }
+        this.cacheStorage.close();
     }
 
     private async onCacheEntryDeleted(discordId: string, guild: Guild) {

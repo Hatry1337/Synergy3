@@ -108,7 +108,6 @@ export default class Synergy{
 
         //TODO Check if "del" event called on cache flush
         //await this.users.syncStorage().catch(logger.error);
-        this.users.flushCache();
 
         await this.modules.data.syncStorage().catch(logger.error);
         //await this.guilds.syncStorage().catch(logger.error);
@@ -118,43 +117,5 @@ export default class Synergy{
         await sequelize().close().catch(logger.error);
         logger.info(`# Database disconnected.`);
         logger.info(`BOT Stopped.`);
-    }
-
-    /**
-     * Don't execute this function directly! It is for internal calls 
-     */
-    public CacheGuilds(log: boolean = false){
-        return new Promise<number>(async (resolve) => {
-            let i = 0;
-            for(let g of this.client.guilds.cache){
-                if(log){
-                    logger.info(`[GC]`, `Caching Guild ${i+1}/${this.client.guilds.cache.size}`);
-                }
-                let gld = await this.client.guilds.fetch({ guild: g[0], force: true, cache: true }).catch(err => {
-                    if(err.code === 50001){
-                        logger.warn(`[GC]`, g[0], 'Guild Fetch Error: Missing Access');
-                    }else{
-                        logger.warn(`[GC]`, 'Guild Fetch Error:', err);
-                    }
-                });
-                if(gld){
-                    let g = await this.guilds.fetchOne(gld.id);
-                    if(!g){
-                        await this.guilds.createFromDiscord(gld);
-                        i++;
-                        continue;
-                    }
-                    g.name = gld.name;
-                    g.lang = gld.preferredLocale;
-                    g.ownerId = gld.ownerId;
-                    g.icon = gld.icon ? gld.icon : undefined;
-                    g.banner = gld.banner ? gld.banner : undefined;
-                    g.systemChannelId = gld.systemChannelId ? gld.systemChannelId : undefined;
-                    g.botJoinedAt = gld.joinedAt;
-                }
-                i++;
-            }
-            return resolve(i);
-        });
     }
 }

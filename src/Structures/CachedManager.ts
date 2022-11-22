@@ -37,6 +37,20 @@ export default abstract class CachedManager<T> {
     }
 
     /**
+     * Get all cached items keys
+     */
+    public getCachedKeys() {
+        return this.cacheStorage.keys();
+    }
+
+    /**
+     * Get cache stats (misses, hits, etc.)
+     */
+    public getCacheStats() {
+        return this.cacheStorage.stats;
+    }
+
+    /**
      * Fetch object directly from storage
      * @param key
      */

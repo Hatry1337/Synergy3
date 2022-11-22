@@ -18,6 +18,7 @@ export default class UserManager extends CachedManager<User>{
     constructor(public bot: Synergy){
         super();
         this.cacheStorage.on("del", this.onCacheEntryDeleted.bind(this));
+        this.bot.events.once("Stop", this.onceBOTStop.bind(this));
     }
 
     /**
@@ -29,24 +30,13 @@ export default class UserManager extends CachedManager<User>{
     }
 
     /**
-     * Flush whole Users cache
-     */
-    public flushCache() {
-        this.cacheStorage.flushAll();
-    }
-
-    /**
      * Fetches User from storage
      * @param id Discord id of user to fetch
      */
     public async fetchOne(id: string) {
-        let legacyId = this.idFromDiscordId(id);
-
-        if(!legacyId) return undefined;
-
         let storageUser = await StorageUser.findOne({
             where: {
-                id: legacyId
+                discordId: id
             },
             include: [StorageUserDiscordInfo, StorageUserEconomyInfo]
         });
@@ -67,12 +57,10 @@ export default class UserManager extends CachedManager<User>{
     public async fetchBulk(ids: string[]) {
         let res: Map<string, User> = new Map();
 
-        let legacyIds = ids.map(i => this.idFromDiscordId(i)).filter(i => i !== undefined);
-
         let storageUsers = await StorageUser.findAll({
             where: {
-                id: {
-                    [Op.in]: legacyIds
+                discordId: {
+                    [Op.in]: ids
                 }
             },
             include: [ StorageUserDiscordInfo, StorageUserEconomyInfo ]
@@ -83,7 +71,7 @@ export default class UserManager extends CachedManager<User>{
             await user.fetchDiscordUser();
 
             this.cacheStorage.set(user.id, user);
-            res.set(user.discord.id, user);
+            res.set(user.discordId, user);
         }
         return res;
     }
@@ -101,6 +89,7 @@ export default class UserManager extends CachedManager<User>{
             nickname: dUser.tag,
             groups,
             lang: "en",
+            discordId: dUser.id
         });
 
         let discord: UserDiscordOptions = {
@@ -116,6 +105,7 @@ export default class UserManager extends CachedManager<User>{
             nickname: storageUser.nickname,
             groups: storageUser.groups,
             lang: storageUser.lang,
+            discordId: storageUser.discordId,
             discord,
             economy: this.bot.options.userDefaultEconomy || {
                 points: 0.0005,
@@ -124,7 +114,7 @@ export default class UserManager extends CachedManager<User>{
             }
         });
 
-        this.cacheStorage.set(user.discord.id, user);
+        this.cacheStorage.set(user.discordId, user);
         return user;
     }
 
@@ -133,6 +123,13 @@ export default class UserManager extends CachedManager<User>{
         for(let i of infos){
             this.discordIdsAssociations.set(i.discordId, i.id);
         }
+    }
+
+    private async onceBOTStop() {
+        for(let k of this.cacheStorage.keys()) {
+            this.cacheStorage.del(k);
+        }
+        this.cacheStorage.close();
     }
 
     private async onCacheEntryDeleted(discordId: string, user: User) {

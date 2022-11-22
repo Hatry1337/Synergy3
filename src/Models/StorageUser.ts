@@ -25,6 +25,12 @@ export class StorageUser extends Model {
     nickname!: string;
 
     @Column({
+        type: DataType.STRING,
+        allowNull: false,
+    })
+    discordId!: string;
+
+    @Column({
         type: DataType.JSONB,
         allowNull: false,
         defaultValue: [ "player" ]
