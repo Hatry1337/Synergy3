@@ -28,12 +28,13 @@ export default abstract class CachedManager<T> {
                 val = await this.fetchOne(key);
             }
             return val;
+        }else if(Array.isArray(key)){
+            let res: Map<string, T> = new Map();
+            for(let e of Object.entries(this.cacheStorage.mget<T>(key))) {
+                res.set(e[0], e[1]);
+            }
+            return res;
         }
-        let res: Map<string, T> = new Map();
-        for(let e of Object.entries(this.cacheStorage.mget<T>(key))) {
-            res.set(e[0], e[1]);
-        }
-        return res;
     }
 
     /**
