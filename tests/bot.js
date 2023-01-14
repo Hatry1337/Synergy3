@@ -1,5 +1,7 @@
 require("dotenv").config("../.env");
+
 const Discord = require("discord.js");
+
 const { Module, Synergy, CoreModules, GuildOnlyError, NoConfigEntryError } = require("..");
 
 class TestMod extends Module{
@@ -74,15 +76,16 @@ const modules = [
 ]
 
 const bot = new Synergy({
+    sequelizeForceSync: false,
     sequelizeURI: process.env.DATABASE_URI,                            // Sequelize initialization URI, see https://sequelize.org/master/manual/getting-started.html#connecting-to-a-database 
     masterGuildId: process.env.MASTER_GUILD_ID,                        // BOT's master guild. Slash Commands will appear on this guild in development mode.
     moduleGlobalLoading: process.env.NODE_ENV === "production",        // "Development mode", if you wanna publish your commands globally use true.
     clientOptions: {                                                   // Standard Discord.js Client options, see https://discord.js.org/#/docs/discord.js/stable/typedef/ClientOptions
         intents: [
-            Discord.Intents.FLAGS.DIRECT_MESSAGES,
-            Discord.Intents.FLAGS.GUILDS,
-            Discord.Intents.FLAGS.GUILD_MESSAGES,
-            Discord.Intents.FLAGS.GUILD_MEMBERS,
+            Discord.GatewayIntentBits.DirectMessages,
+            Discord.GatewayIntentBits.Guilds,
+            Discord.GatewayIntentBits.GuildMessages,
+            Discord.GatewayIntentBits.GuildMembers
         ],
         presence: {
             status: "online",

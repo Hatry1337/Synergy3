@@ -4,43 +4,43 @@ import { StorageUser } from "./StorageUser";
 @Table({
     timestamps: true,
 })
-export class StorageUserDiscordInfo extends Model {
+export class StorageUserDiscordInfo extends Model<StorageUserDiscordInfo> {
     @ForeignKey(() => StorageUser)
     @PrimaryKey
     @Column
-    id!: number;
+    declare id: number;
 
     @BelongsTo(() => StorageUser)
-    user!: StorageUser
+    declare user: StorageUser
 
     //Discord Options
     @Column({
         type: DataType.STRING,
         allowNull: false,
     })
-    discordId!: string;
+    declare discordId: string;
 
     @Column({
         type: DataType.STRING,
         allowNull: false,
     })
-    discordTag!: string;
+    declare discordTag: string;
 
     @Column({
         type: DataType.STRING,
         allowNull: true,
     })
-    discordAvatar!: string | null;
+    declare discordAvatar: string | null;
 
     @Column({
         type: DataType.STRING,
         allowNull: true,
     })
-    discordBanner!: string | null;
+    declare discordBanner: string | null;
 
     @Column({
         type: DataType.DATE,
         allowNull: false,
     })
-    discordCreatedAt!: Date;
+    declare discordCreatedAt: Date;
 }

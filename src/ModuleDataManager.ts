@@ -33,7 +33,7 @@ export default class ModuleDataManager{
     private timer: NodeJS.Timeout;
     constructor(public bot: Synergy){
         this.timer = setInterval(async () => {
-            await this.syncStorage().catch(err => GlobalLogger.root.error("ModuleDataManager AutoSync Error:", err));
+            await this._syncStorage().catch(err => GlobalLogger.root.error("ModuleDataManager AutoSync Error:", err));
         }, (this.bot.options.dataSyncDelay || 60) * 1000);
         this.bot.events.once("Stop", () => { clearInterval(this.timer); });
     }
@@ -52,7 +52,7 @@ export default class ModuleDataManager{
                 defaults: {
                     uuid: uuid,
                     kvData: {}
-                }
+                } as StorageModuleDataContainer
             }).then(async storage_container => {
                 container = new ModuleDataContainer(this.bot, uuid, storage_container[0].kvData);
                 dataContainers.set(uuid, container);
@@ -64,7 +64,7 @@ export default class ModuleDataManager{
     /**
      * Don't execute this function directly! It is for internal calls 
      */
-    public loadFromStorage() {
+    public _loadFromStorage() {
         return new Promise<void>(async (resolve, reject) => {
             StorageModuleDataContainer.findAll().then(async containers => {
                 for(let c of containers){
@@ -78,8 +78,8 @@ export default class ModuleDataManager{
     /**
      * Don't execute this function directly! It is for internal calls 
      */
-    public syncStorage(){
-        return new Promise<void>(async (resolve, reject) => {
+    public _syncStorage(){
+        return new Promise<void>(async (resolve) => {
             GlobalLogger.root.info("[ModuleDataManager] Saving data to storage...");
             let t = await sequelize().transaction();
             for(let c of dataContainers){

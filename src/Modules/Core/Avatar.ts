@@ -35,36 +35,40 @@ export default class Avatar extends Module{
             if(!user){
                 let avatar = interaction.user.avatarURL({ size: 2048 });
                 if(avatar){
-                    var embd = new Discord.MessageEmbed({
+                    let embd = new Discord.EmbedBuilder({
                         title: `${interaction.user.username}'s avatar`,
                         image: { url: avatar },
                         color: Colors.Noraml
                     });
-                    return resolve(await interaction.reply({ embeds: [embd]}).catch(reject));
+                    await interaction.reply({ embeds: [embd]}).catch(reject);
+                    return resolve();
                 }else{
-                    var embd = new Discord.MessageEmbed({
+                    let embd = new Discord.EmbedBuilder({
                         title: `${Emojis.RedErrorCross} Cannot get your avatar!`,
                         color: Colors.Error
                     });
-                    return resolve(await interaction.reply({ embeds: [embd] }).catch(reject));
+                    await interaction.reply({ embeds: [embd] }).catch(reject);
+                    return resolve();
                 }                    
             }else{
                 var avatar = user.avatarURL({ size: 2048 });
 
                 if(!avatar){
-                    var embd = new Discord.MessageEmbed({
+                    let embd = new Discord.EmbedBuilder({
                         title: `${Emojis.RedErrorCross} Cannot get user's avatar!`,
                         color: Colors.Error
                     });
-                    return resolve(await interaction.reply({ embeds: [embd] }).catch(reject));
+                    await interaction.reply({ embeds: [embd] }).catch(reject);
+                    return resolve();
                 }
 
-                var embd = new Discord.MessageEmbed({
+                let embd = new Discord.EmbedBuilder({
                     title: `${user.username}'s avatar`,
                     image: { url: avatar },
                     color: Colors.Noraml
                 });
-                return resolve(await interaction.reply({ embeds: [embd]}).catch(reject));
+                await interaction.reply({ embeds: [embd]}).catch(reject);
+                return resolve();
             }
         });
     }

@@ -8,7 +8,6 @@ import { AccessTarget } from "./Structures/Access";
 import { SynergyUserError } from "./Structures/Errors";
 import { InteractiveCommand } from "./Interactions/InteractiveCommand";
 import { InteractiveComponent } from "./Interactions/InteractiveComponent";
-import { ContextMenuCommandBuilder, SlashCommandBuilder } from "@discordjs/builders";
 import { InteractiveCommandTargets, InteractiveComponentTargets, InteractiveTargets } from "./Interactions/InteractionTypes";
 import crypto from "crypto";
 import InteractiveBase from "./Interactions/InteractiveBase";
@@ -64,7 +63,7 @@ export default class InteractionsManager{
      * @param forGuildId guild id where to upload this command. Leave empty to global upload
      */
     public createSlashCommand(name: string, access: AccessTarget[], module: Module, forGuildId?: string){
-        return this.createCommand<SlashCommandBuilder>(name, access, module, SlashCommandBuilder, forGuildId);
+        return this.createCommand<Discord.SlashCommandBuilder>(name, access, module, Discord.SlashCommandBuilder, forGuildId);
     }
 
     /**
@@ -74,7 +73,7 @@ export default class InteractionsManager{
      * @param forGuildId guild id where to upload this command. Leave empty to global upload
      */
     public createMenuCommand(name: string, access: AccessTarget[], module: Module, forGuildId?: string){
-        return this.createCommand<ContextMenuCommandBuilder>(name, access, module, ContextMenuCommandBuilder, forGuildId);
+        return this.createCommand<Discord.ContextMenuCommandBuilder>(name, access, module, Discord.ContextMenuCommandBuilder, forGuildId);
     }
 
     public getCommand(name: string){
@@ -116,14 +115,14 @@ export default class InteractionsManager{
      * @param access Allowed access targets to interact with this component
      * @param module Module that created this component
      */
-    public createButton(name: string, access: AccessTarget[], module: Module): InteractiveComponent<Discord.MessageButton>;
+    public createButton(name: string, access: AccessTarget[], module: Module): InteractiveComponent<Discord.ButtonBuilder>;
     /**
      * Creates temporary interactive button that will be removed by interactions limit or lifetime limit
      * @param access Allowed access targets to interact with this component
      * @param module Module that created this component
      * @param interactionsLimit After reaching this amount of interactions component will be removed (-1 for no limit)
      */
-    public createButton(access: AccessTarget[], module: Module, interactionsLimit?: number): InteractiveComponent<Discord.MessageButton>;
+    public createButton(access: AccessTarget[], module: Module, interactionsLimit?: number): InteractiveComponent<Discord.ButtonBuilder>;
     /**
      * Creates temporary interactive button that will be removed by interactions limit or lifetime limit
      * @param access Allowed access targets to interact with this component
@@ -131,13 +130,13 @@ export default class InteractionsManager{
      * @param interactionsLimit After reaching this amount of interactions component will be removed (-1 for no limit)
      * @param lifeTime After this amount of milliseconds component will be removed (-1 for no limit)
      */
-    public createButton(access: AccessTarget[], module: Module, interactionsLimit?: number, lifeTime?: number): InteractiveComponent<Discord.MessageButton>;
+    public createButton(access: AccessTarget[], module: Module, interactionsLimit?: number, lifeTime?: number): InteractiveComponent<Discord.ButtonBuilder>;
 
     public createButton(arg1: string | AccessTarget[], arg2: AccessTarget[] | Module, arg3?: Module | number, arg4?: number){
         if(typeof arg1 === "string"){
-            return this.createComponent<Discord.MessageButton>(arg1, arg2 as AccessTarget[], arg3 as Module, Discord.MessageButton);
+            return this.createComponent<Discord.ButtonBuilder>(arg1, arg2 as AccessTarget[], arg3 as Module, Discord.ButtonBuilder);
         }else{
-            return this.createTempComponent<Discord.MessageButton>(arg1, arg2 as Module, Discord.MessageButton, (arg3 as number) ?? -1, arg4 ?? -1);
+            return this.createTempComponent<Discord.ButtonBuilder>(arg1, arg2 as Module, Discord.ButtonBuilder, (arg3 as number) ?? -1, arg4 ?? -1);
         }
     }
 
@@ -147,14 +146,14 @@ export default class InteractionsManager{
      * @param access Allowed access targets to interact with this component
      * @param module Module that created this component
      */
-    public createSelectMenu(name: string, access: AccessTarget[], module: Module): InteractiveComponent<Discord.MessageSelectMenu>;
+    public createSelectMenu(name: string, access: AccessTarget[], module: Module): InteractiveComponent<Discord.SelectMenuBuilder>;
     /**
      * Creates temporary interactive select menu that will be removed by interactions limit or lifetime limit
      * @param access Allowed access targets to interact with this component
      * @param module Module that created this component
      * @param interactionsLimit After reaching this amount of interactions component will be removed (-1 for no limit)
      */
-    public createSelectMenu(access: AccessTarget[], module: Module, interactionsLimit?: number): InteractiveComponent<Discord.MessageSelectMenu>;
+    public createSelectMenu(access: AccessTarget[], module: Module, interactionsLimit?: number): InteractiveComponent<Discord.SelectMenuBuilder>;
     /**
      * Creates temporary interactive select menu that will be removed by interactions limit or lifetime limit
      * @param access Allowed access targets to interact with this component
@@ -162,13 +161,13 @@ export default class InteractionsManager{
      * @param interactionsLimit After reaching this amount of interactions component will be removed (-1 for no limit)
      * @param lifeTime After this amount of milliseconds component will be removed (-1 for no limit)
      */
-    public createSelectMenu(access: AccessTarget[], module: Module, interactionsLimit?: number, lifeTime?: number): InteractiveComponent<Discord.MessageSelectMenu>;
+    public createSelectMenu(access: AccessTarget[], module: Module, interactionsLimit?: number, lifeTime?: number): InteractiveComponent<Discord.SelectMenuBuilder>;
 
     public createSelectMenu(arg1: string | AccessTarget[], arg2: AccessTarget[] | Module, arg3?: Module | number, arg4?: number){
         if(typeof arg1 === "string"){
-            return this.createComponent<Discord.MessageSelectMenu>(arg1, arg2 as AccessTarget[], arg3 as Module, Discord.MessageSelectMenu);
+            return this.createComponent<Discord.SelectMenuBuilder>(arg1, arg2 as AccessTarget[], arg3 as Module, Discord.SelectMenuBuilder);
         }else{
-            return this.createTempComponent<Discord.MessageSelectMenu>(arg1, arg2 as Module, Discord.MessageSelectMenu, (arg3 as number) ?? -1, arg4 ?? -1);
+            return this.createTempComponent<Discord.SelectMenuBuilder>(arg1, arg2 as Module, Discord.SelectMenuBuilder, (arg3 as number) ?? -1, arg4 ?? -1);
         }
     }
 
@@ -253,7 +252,7 @@ export default class InteractionsManager{
         }
     }
 
-    private async onInteractionCreate(interaction: Discord.Interaction){
+    private async onInteractionCreate(interaction: Discord.Interaction): Promise<void> {
         if(!this.bot.isReady){
             return;
         }
@@ -276,7 +275,7 @@ export default class InteractionsManager{
                 GlobalLogger.root.error(`Error autocompleteing "${interaction.commandName}":`, error);
             }
             return;
-        }else if(interaction.isApplicationCommand()){
+        }else if(interaction.type === Discord.InteractionType.ApplicationCommand){
             let cmd = Array.from(interactiveCommandsRegistry.values()).find(c => c.name === interaction.commandName);
             if(!cmd){
                 GlobalLogger.root.warn(`Fired "${interaction.commandName}" command but InteractiveCommand not found.`);
@@ -305,11 +304,7 @@ export default class InteractionsManager{
 
         for(let a of target.access){
             if(user.groups.includes("banned")){
-                if(a.startsWith("banned")){
-                    access_flag = true;
-                }else{
-                    access_flag = false;
-                }
+                access_flag = a.startsWith("banned");
                 continue;
             }
             if(a.startsWith("player")){
@@ -362,7 +357,7 @@ export default class InteractionsManager{
                     GlobalLogger.root.warn("InteractionsManager.InteractionProcessing: Passed invalid perm access target \"", a + "\"");
                     continue;
                 }
-                if(interaction.member.permissions instanceof Discord.Permissions){
+                if(interaction.member.permissions instanceof Discord.PermissionsBitField){
                     if(interaction.member.permissions.has(res[1] as Discord.PermissionResolvable)){
                         access_flag = true;
                         break;
@@ -373,7 +368,8 @@ export default class InteractionsManager{
                 if(interaction.guild && interaction.member instanceof Discord.GuildMember){
                     let mod_role_id = (await this.bot.config.get("guild", "moderator_role"))[interaction.guild.id] as string | undefined;
                     if(!mod_role_id){
-                        return await interaction.reply({ embeds: [ Utils.ErrMsg("You need Moderator Role to do this. Configure them with command `/config guild set field:moderator_role value_role:@Role`") ], ephemeral: true });
+                        await interaction.reply({ embeds: [ Utils.ErrMsg("You need Moderator Role to do this. Configure them with command `/config guild set field:moderator_role value_role:@Role`") ], ephemeral: true });
+                        return;
                     }
                     if(interaction.member.roles.cache.has(mod_role_id)){
                         access_flag = true;
@@ -382,8 +378,8 @@ export default class InteractionsManager{
                 }
             }
             if(a.startsWith("server_admin")){
-                if(interaction.member && interaction.member.permissions instanceof Discord.Permissions){
-                    if(interaction.member.permissions.has("ADMINISTRATOR")){
+                if(interaction.member && interaction.member.permissions instanceof Discord.PermissionsBitField){
+                    if(interaction.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator)){
                         access_flag = true;
                         break;
                     }
@@ -398,12 +394,13 @@ export default class InteractionsManager{
         }
         
         if(!access_flag){
-            return await interaction.reply({ embeds: [ 
-                new Discord.MessageEmbed()
+            await interaction.reply({ embeds: [
+                new Discord.EmbedBuilder()
                 .setTitle("You don't have access to do this!")
                 .setDescription("To do this you need following access targets:\n`" + target.access.join("`\n`") + "`")
                 .setColor(Colors.Error)
             ], ephemeral: true });
+            return;
         }else{
             try {
                 if(temporaryComponents.has(target.name)){
@@ -419,18 +416,18 @@ export default class InteractionsManager{
                 }
                 await target._exec(interaction as any, user); //Yea this is dirty hack, but.... I waste too much time to make it work..
             } catch (err) {
-                let embed = new Discord.MessageEmbed();
+                let embed = new Discord.EmbedBuilder();
                 if(err instanceof SynergyUserError){
-                    embed.title = Emojis.RedErrorCross + err.message;
-                    embed.description = err.subMessage ? err.subMessage : null;
-                    embed.color = Colors.Error;
+                    embed.setTitle(Emojis.RedErrorCross + err.message);
+                    embed.setDescription(err.subMessage ? err.subMessage : null);
+                    embed.setColor(Colors.Error);
                 }else{
                     let trace = GlobalLogger.Trace(interaction, target, user, err);
                     GlobalLogger.root.error("InteractionsManager.InteractionProcessing.TargetCallbackError: ", err, `TraceID: ${trace}`);
 
-                    embed.title = Emojis.RedErrorCross + "Unexpected Error occurred.";
-                    embed.description = `Please contact BOT tech support with following Trace Code: \`\`\`${trace}\`\`\``;
-                    embed.color = Colors.Error;
+                    embed.setTitle(Emojis.RedErrorCross + "Unexpected Error occurred.");
+                    embed.setDescription(`Please contact BOT tech support with following Trace Code: \`\`\`${trace}\`\`\``);
+                    embed.setColor(Colors.Error);
                 }
 
                 try{

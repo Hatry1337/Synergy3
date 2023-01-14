@@ -62,7 +62,7 @@ class EventManager extends EventEmitter{
             logger.info(`Database Synchronized.`);
 
             logger.info(`Running Modules Initialization...`);
-            await this.bot.modules.data.loadFromStorage();
+            await this.bot.modules.data._loadFromStorage();
             await this.bot.config.get("amogus", "sus"); // This is for underlying data container fetching (container is sus lmfao)
 
             let inic = await this.bot.modules.Init().catch(err => GlobalLogger.root.error("[Ready Event] Error intializing modules:", err));

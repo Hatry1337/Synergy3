@@ -14,7 +14,7 @@ export type TypeOfConfigCommonDataType<T extends ConfigCommonDataType> =
     T extends "channel" ? Discord.GuildBasedChannel :
     T extends "user"    ? Discord.User :
     T extends "role"    ? Discord.Role :
-    Discord.MessageAttachment
+    Discord.AttachmentBuilder
 
 export default class ConfigManager{
     private dataContainer?: ModuleDataContainer;

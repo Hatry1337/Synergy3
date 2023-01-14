@@ -1,8 +1,6 @@
 import Discord from "discord.js";
 import Synergy from "../Synergy";
-import {StorageUser} from "../Models/StorageUser";
-import {UserDiscordOptions} from "./User";
-import {StorageGuild} from "../Models/StorageGuild";
+import { StorageGuild } from "../Models/StorageGuild";
 
 export interface GuildOptions{
     id: string;
@@ -57,7 +55,7 @@ export default class Guild implements GuildOptions{
     }
 
     public static fromStorageGuild(bot: Synergy, storageGuild: StorageGuild): Guild {
-        let guild = new Guild(bot, {
+        return new Guild(bot, {
             id: storageGuild.id,
             group: storageGuild.group,
             name: storageGuild.name,
@@ -69,6 +67,5 @@ export default class Guild implements GuildOptions{
             botJoinedAt: storageGuild.botJoinedAt,
             guild: undefined
         });
-        return guild;
     }
 }

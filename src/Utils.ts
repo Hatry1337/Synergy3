@@ -14,11 +14,10 @@ export class Utils{
     }
 
     static ErrMsg(message: string){
-        var embd = new Discord.MessageEmbed({
+        return new Discord.EmbedBuilder({
             title: `${Emojis.RedErrorCross} ${message}`,
             color: Colors.Error
         });
-        return embd;
     }
 
     static getRandomInt(min: number, max: number) {
@@ -26,7 +25,7 @@ export class Utils{
     }
     
     static arrayRandElement<T>(arr: Array<T>) {
-        var rand = Math.floor(Math.random() * arr.length);
+        let rand = Math.floor(Math.random() * arr.length);
         return arr[rand];
     }
 
@@ -51,20 +50,20 @@ export class Utils{
         if (raw_data?.startsWith("<<@")) {   //idk where to search for this tag, if you have one, please leave issue.
             return raw_data?.split(">")[1];
         } else if (raw_data?.startsWith("<@!")) {
-            raw_data = raw_data?.replace(/\<\@\!/g, "");
-            raw_data = raw_data?.replace(/\>/g, "");
+            raw_data = raw_data?.replace(/<@!/g, "");
+            raw_data = raw_data?.replace(/>/g, "");
             return raw_data;
         } else if (raw_data?.startsWith("<@&")) {
-            raw_data = raw_data?.replace(/\<\@\&/g, "");
-            raw_data = raw_data?.replace(/\>/g, "");
+            raw_data = raw_data?.replace(/<@&/g, "");
+            raw_data = raw_data?.replace(/>/g, "");
             return raw_data;
         }else if (raw_data?.startsWith("<@")) {
-            raw_data = raw_data?.replace(/\<\@/g, "");
-            raw_data = raw_data?.replace(/\>/g, "");
+            raw_data = raw_data?.replace(/<@/g, "");
+            raw_data = raw_data?.replace(/>/g, "");
             return raw_data;
         }else if (raw_data?.startsWith("<#")) {
-            raw_data = raw_data?.replace(/\<\#/g, "");
-            raw_data = raw_data?.replace(/\>/g, "");
+            raw_data = raw_data?.replace(/<#/g, "");
+            raw_data = raw_data?.replace(/>/g, "");
             return raw_data;
         } else {
             return raw_data;
@@ -103,10 +102,10 @@ export class Utils{
     }
 
     static formatTime(s: number){
-        var stime;
-        var m = this.div(s, 60);
-        var h = this.div(s, 60 * 60);
-        var d = this.div(s, 60 * 60 * 24);
+        let stime;
+        let m = this.div(s, 60);
+        let h = this.div(s, 60 * 60);
+        let d = this.div(s, 60 * 60 * 24);
 
         if (s < 60) {
             stime = `${s} secs`;
@@ -127,10 +126,10 @@ export class Utils{
 
     static parseShortTime(raw_data: string){
         raw_data = raw_data.toLowerCase();
-        var secs = 0;
+        let secs = 0;
 
-        var reg = /([0-9][0-9]*?)(d|h|m|s)/g;
-        var match;
+        let reg = /([0-9]+)([dhms])/g;
+        let match;
         while (match = reg.exec(raw_data)) {
             switch(match[2]){
                 case "d":
@@ -153,10 +152,10 @@ export class Utils{
 
     static secondsToDhms(seconds: number) {
         seconds = Number(seconds);
-        var d = Math.floor(seconds / (3600 * 24));
-        var h = Math.floor(seconds % (3600 * 24) / 3600);
-        var m = Math.floor(seconds % 3600 / 60);
-        var s = Math.floor(seconds % 60);
+        let d = Math.floor(seconds / (3600 * 24));
+        let h = Math.floor(seconds % (3600 * 24) / 3600);
+        let m = Math.floor(seconds % 3600 / 60);
+        let s = Math.floor(seconds % 60);
         return `${d}:${h}:${m}:${s}`;
     };
 

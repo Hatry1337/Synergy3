@@ -3,7 +3,6 @@ import { AccessTarget } from "../Structures/Access";
 import { InteractionTypeOf, InteractiveCommandTargets } from "./InteractionTypes";
 import InteractiveBase from "./InteractiveBase";
 import Discord from "discord.js";
-import { ContextMenuCommandBuilder, SlashCommandBuilder } from "@discordjs/builders";
 import { CallbackTypeOf, User } from "..";
 
 export type AutocompleteCallback = (interaction: Discord.AutocompleteInteraction, user: User) => Promise<void>;
@@ -18,12 +17,12 @@ export class InteractiveCommand<T extends InteractiveCommandTargets> extends Int
         this.builder.setName(this.name);
     }
 
-    public isSlashCommand(): this is InteractiveCommand<SlashCommandBuilder>{
-        return this.builder instanceof SlashCommandBuilder;
+    public isSlashCommand(): this is InteractiveCommand<Discord.SlashCommandBuilder>{
+        return this.builder instanceof Discord.SlashCommandBuilder;
     }
 
-    public isContextMenuCommand(): this is InteractiveCommand<ContextMenuCommandBuilder>{
-        return this.builder instanceof ContextMenuCommandBuilder;
+    public isContextMenuCommand(): this is InteractiveCommand<Discord.ContextMenuCommandBuilder>{
+        return this.builder instanceof Discord.ContextMenuCommandBuilder;
     }
 
     /**
@@ -44,6 +43,7 @@ export class InteractiveCommand<T extends InteractiveCommandTargets> extends Int
 
     /**
      *  Add subcommand callback function
+     * @param name name of subcommand
      * @param callback function to execute when received interaction with subcommand
      */
     public onSubcommand(name: string, callback: CallbackTypeOf<T>){
@@ -57,7 +57,7 @@ export class InteractiveCommand<T extends InteractiveCommandTargets> extends Int
      public async _exec(interaction: InteractionTypeOf<T>, user: User){
         this.lastInteraction = interaction;
 
-        if(interaction instanceof Discord.CommandInteraction && interaction.options.getSubcommand(false)){
+        if(interaction.isChatInputCommand() && interaction.options.getSubcommand(false)){
             let cb = this.subcommandCallbacks.get(interaction.options.getSubcommand());
             if(cb){
                 await cb(interaction, user);

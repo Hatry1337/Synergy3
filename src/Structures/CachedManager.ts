@@ -61,4 +61,12 @@ export default abstract class CachedManager<T> {
      * @param keys
      */
     public abstract fetchBulk(keys: string[]): Promise<Map<string, T>>;
+
+    /**
+     * Free all resources used by cache manager (and save data if implemented)
+     */
+    public async destroy(): Promise<void> {
+        this.cacheStorage.flushAll();
+        this.cacheStorage.close();
+    }
 }

@@ -13,7 +13,7 @@ test("Access - GROUP", () => {
 });
 
 test("Access - PERM", () => {
-    expect(Access.PERM("ADD_REACTIONS")).toBe("perm<ADD_REACTIONS>");
+    expect(Access.PERM("AddReactions")).toBe("perm<AddReactions>");
 });
 
 test("Access - PLAYER", () => {

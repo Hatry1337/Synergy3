@@ -1,9 +1,9 @@
-import { Colors, Emojis, Utils } from "../src/Utils";
+import { Colors, Emojis, Utils } from "../src";
 
 test("Utils - ErrMsg", () => {
     let embd = Utils.ErrMsg("test error message qwer123");
-    expect(embd.title).toBe(`${Emojis.RedErrorCross} test error message qwer123`);
-    expect(embd.color).toBe(Colors.Error);
+    expect(embd.data.title).toBe(`${Emojis.RedErrorCross} test error message qwer123`);
+    expect(embd.data.color).toBe(Colors.Error);
 });
 
 test("Utils - getRandomInt x1000", () => {

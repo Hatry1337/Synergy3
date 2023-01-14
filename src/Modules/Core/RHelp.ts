@@ -1,8 +1,8 @@
 import Discord from "discord.js";
 
-import { Emojis, Colors } from "../../Utils";
+import { Colors } from "../../Utils";
 import Module from "../Module";
-import { Synergy } from "../..";
+import { Synergy, SynergyUserError } from "../..";
 import Access, { AccessTarget } from "../../Structures/Access";
 
 export default class RHelp extends Module{
@@ -35,49 +35,49 @@ export default class RHelp extends Module{
         );
     }
 
-    public Run(interaction: Discord.CommandInteraction){
-        return new Promise<void>(async (resolve, reject) => {
-            let page = interaction.options.getInteger("page") || 1;
-            let cat = interaction.options.getString("category");
+    public async Run(interaction: Discord.ChatInputCommandInteraction){
+        let page = interaction.options.getInteger("page") || 1;
+        let cat = interaction.options.getString("category");
 
-            let modulesInfo = this.bot.modules.GetModuleCommonInfo();
+        let modulesInfo = this.bot.modules.GetModuleCommonInfo();
 
-            if(cat){
-                modulesInfo = modulesInfo.filter(md => md.category === cat);
+        if(cat){
+            modulesInfo = modulesInfo.filter(md => md.category === cat);
+        }
+
+        let max_page = Math.ceil(modulesInfo.length / 25);
+        if(page > 0 && page <= max_page){
+            let embd = new Discord.EmbedBuilder({
+                title: `${this.bot.client.user?.username || "Synergy"}'s Modules \`${page}/${max_page}\``,
+                description: "You can watch detailed usage of module by `!usage <module>`",
+                color: Colors.Noraml
+            });
+            let page_start = ((page-1) * 25);
+            let page_end = page_start + 25;
+
+
+            if(modulesInfo.length < page_end){
+                page_end = modulesInfo.length;
+            }
+            for(let i = page_start; i < page_end; i++){
+                let md = modulesInfo[i];
+                embd.addFields([
+                    {
+                        name: md.name,
+                        value:  md.description + `\n\n` +
+                                ((md.commands.length === 0) ? "" : `Commands: \`/${md.commands.join("`, `/")}\`\n`) +
+                                `Category: \`${md.category}\`\n` +
+                                `Access: \`${md.access.join("`, `")}\`\n` +
+                                `Author: \`${md.author}\``,
+                        inline: true
+                    }
+                ]);
             }
 
-            var max_page = Math.ceil(modulesInfo.length / 25);
-            if(page > 0 && page <= max_page){
-                var embd = new Discord.MessageEmbed({
-                    title: `${this.bot.client.user?.username || "Synergy"}'s Modules \`${page}/${max_page}\``,
-                    description: "You can watch detailed usage of module by `!usage <module>`",
-                    color: Colors.Noraml
-                });
-                var page_start = ((page-1) * 25);
-                var page_end = page_start + 25;
-
-
-                if(modulesInfo.length < page_end){
-                    page_end = modulesInfo.length;
-                }
-                for(var i = page_start; i < page_end; i++){
-                    let md = modulesInfo[i];
-                    embd.addField(  `${md.name}`, md.description + `\n\n` + 
-                                    ((md.commands.length === 0) ? "" : `Commands: \`/${md.commands.join("`, `/")}\`\n`) + 
-                                    `Category: \`${md.category}\`\n` +
-                                    `Access: \`${md.access.join("`, `")}\`\n` +
-                                    `Author: \`${md.author}\``, true);
-                }
-    
-                return resolve(await interaction.reply({ embeds: [embd] }).catch(reject));
-
-            }else{
-                var embd = new Discord.MessageEmbed({
-                    title: `${Emojis.RedErrorCross} This page doesen't exist.`,
-                    color: Colors.Error
-                });
-                return resolve(await interaction.reply({ embeds: [embd] }).catch(reject));
-            }
-        });
+            await interaction.reply({ embeds: [embd] });
+            return;
+        }else{
+            throw new SynergyUserError("This page doesen't exist.")
+        }
     }
 }

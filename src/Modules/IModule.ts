@@ -3,7 +3,6 @@ import { Synergy } from "..";
 import { InteractiveCommand } from "../Interactions/InteractiveCommand";
 import Discord from "discord.js";
 import { AccessTarget } from "../Structures/Access";
-import { SlashCommandBuilder } from "@discordjs/builders";
 
 
 export default interface IModule{
@@ -13,10 +12,10 @@ export default interface IModule{
     Author: string;
 
     Access: AccessTarget[];
-    Permissions: Discord.Permissions;
+    Permissions: Discord.PermissionsBitField;
     
     Logger: ModuleLogger;
-    SlashCommands:  InteractiveCommand<SlashCommandBuilder>[];
+    SlashCommands:  InteractiveCommand<Discord.SlashCommandBuilder>[];
 
     InitPriority: number;
     Init?(): Promise<void>;

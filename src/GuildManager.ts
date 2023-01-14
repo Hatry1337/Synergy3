@@ -14,7 +14,6 @@ export default class GuildManager extends CachedManager<Guild> {
     constructor(public bot: Synergy){
         super();
         this.cacheStorage.on("del", this.onCacheEntryDeleted.bind(this));
-        this.bot.events.once("Stop", this.onceBOTStop.bind(this));
     }
 
     public async createFromDiscord(dGuild: Discord.Guild, group: string = "default"){
@@ -36,7 +35,7 @@ export default class GuildManager extends CachedManager<Guild> {
             banner: dGuild.banner,
             systemChannelId: dGuild.systemChannelId,
             botJoinedAt: dGuild.joinedAt
-        });
+        } as StorageGuild);
 
         let guild = Guild.fromStorageGuild(this.bot, storageGuild);
         guild.guild = dGuild;
@@ -90,11 +89,11 @@ export default class GuildManager extends CachedManager<Guild> {
         return res;
     }
 
-    private async onceBOTStop() {
+    public override async destroy() {
         for(let k of this.cacheStorage.keys()) {
-            this.cacheStorage.del(k);
+            await this.onCacheEntryDeleted(k, this.cacheStorage.get(k)!);
         }
-        this.cacheStorage.close();
+        await super.destroy();
     }
 
     private async onCacheEntryDeleted(discordId: string, guild: Guild) {

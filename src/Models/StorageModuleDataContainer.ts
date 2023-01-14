@@ -4,18 +4,18 @@ import { Table, Model, Column, DataType } from "sequelize-typescript";
     timestamps: true,
 })
 
-export class StorageModuleDataContainer extends Model {
+export class StorageModuleDataContainer extends Model<StorageModuleDataContainer> {
     @Column({
         type: DataType.STRING,
         primaryKey: true,
         allowNull: false,
     })
-    uuid!: string;
+    declare uuid: string;
 
     @Column({
         type: DataType.JSONB,
         allowNull: false,
         defaultValue: {}
     })
-    kvData!: {[key: string]: any};
+    declare kvData: {[key: string]: any};
 }

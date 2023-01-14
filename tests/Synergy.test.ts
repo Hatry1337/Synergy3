@@ -17,23 +17,23 @@ test("Synergy - login", async () => {
         moduleGlobalLoading: false,
         clientOptions: {
             intents: [
-                Discord.Intents.FLAGS.DIRECT_MESSAGES,
-                Discord.Intents.FLAGS.GUILDS,
-                Discord.Intents.FLAGS.GUILD_MESSAGES,
-                Discord.Intents.FLAGS.GUILD_MEMBERS
+                Discord.GatewayIntentBits.DirectMessages,
+                Discord.GatewayIntentBits.Guilds,
+                Discord.GatewayIntentBits.GuildMessages,
+                Discord.GatewayIntentBits.GuildMembers
             ],
             presence: {
                 status: "online",
                 activities: [
                     {
-                        type: "PLAYING",
+                        type: Discord.ActivityType.Playing,
                         name: "Synergy Core Unit Testing",
                     }
                 ]
             }
         }
     }, modules);
-    bot.login(process.env.DISCORD_TOKEN as string);
+    await bot.login(process.env.DISCORD_TOKEN as string);
     let isready = await new Promise<boolean>(resolve => bot.events.once("Initialized", () => resolve(bot.isReady)));
     expect(isready).toBeTruthy();
     await bot.stop();
