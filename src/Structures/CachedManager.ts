@@ -4,7 +4,7 @@ export default abstract class CachedManager<T> {
     protected cacheStorage: NodeCache;
     protected constructor(nodeCacheOptions?: NodeCache.Options) {
         if(!nodeCacheOptions) {
-            nodeCacheOptions = { stdTTL: 100, checkperiod: 120, useClones: false };
+            nodeCacheOptions = { stdTTL: 300, checkperiod: 60, useClones: false };
         }
         this.cacheStorage = new NodeCache(nodeCacheOptions);
     }
@@ -26,11 +26,14 @@ export default abstract class CachedManager<T> {
             let val = this.cacheStorage.get<T>(key);
             if(!val){
                 val = await this.fetchOne(key);
+            } else {
+                this.cacheStorage.ttl(key, 300);
             }
             return val;
         }else if(Array.isArray(key)){
             let res: Map<string, T> = new Map();
             for(let e of Object.entries(this.cacheStorage.mget<T>(key))) {
+                this.cacheStorage.ttl(e[0], 300);
                 res.set(e[0], e[1]);
             }
             return res;
