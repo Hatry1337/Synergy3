@@ -6,7 +6,7 @@ import Guild, { GuildOptions } from "./Structures/Guild"
 import User, { UserDiscordOptions, UserEconomyOptions, UserOptions } from "./Structures/User"
 import { Colors, Emojis, Utils } from "./Utils"
 import CoreModules from "./Modules/Core";
-import ConfigManager, { ConfigDataType } from "./ConfigManager"
+import ConfigManager from "./ConfigManager/ConfigManager"
 import EventManager from "./EventManager"
 import { GuildManager, UserManager } from "discord.js"
 import ModuleDataManager from "./ModuleDataManager"
@@ -42,7 +42,7 @@ export {
     ModuleLogger,
     
     ConfigManager,
-    ConfigDataType,
+    //ConfigDataType,
 
     EventManager,
 

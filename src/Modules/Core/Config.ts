@@ -3,15 +3,17 @@ import Discord from "discord.js";
 import Module from "../Module";
 import User from "../../Structures/User";
 import { Colors } from "../../Utils";
-import { ConfigArrayDataType, ConfigCommonDataType, ConfigDataType } from "../../ConfigManager";
 import { GuildOnlyError, MissingPermissionsError, Synergy, SynergyUserError } from "../..";
 import Access, { AccessTarget } from "../../Structures/Access";
-
-export interface IGlobalConfiguration{
-    [key: string]: any;
-    guild_specific: {[key: string]: any}
-    user_specific: {[key: string]: any}
-}
+import { ConfigCommonDataType } from "../../ConfigManager/ConfigDataTypes";
+import { ConfigEntryMapStructure } from "../../ConfigManager/ConfigManager";
+import {
+    ConfigAttachment,
+    ConfigDataStructure,
+    ConfigGuildChannel,
+    ConfigRole,
+    ConfigUser
+} from "../../ConfigManager/ConfigDataStructures";
 
 export default class Config extends Module{
     public Name:        string = "Config";
@@ -26,86 +28,8 @@ export default class Config extends Module{
     }
     
     public async Init(){
-
-        function typedOptions(builder: Discord.SlashCommandSubcommandBuilder){
+        function namespaceFieldOptions(builder: Discord.SlashCommandSubcommandBuilder) {
             builder
-                .addAttachmentOption(opt => opt
-                    .setName("value_attach")
-                    .setDescription("Value if parameter is type of Attachment.")
-                )
-                .addBooleanOption(opt => opt
-                    .setName("value_bool")
-                    .setDescription("Value if parameter is type of bool.")
-                )
-                .addNumberOption(opt => opt
-                    .setName("value_int")
-                    .setDescription("Value if parameter is type of integer.")
-                )
-                .addNumberOption(opt => opt
-                    .setName("value_number")
-                    .setDescription("Value if parameter is type of number.")
-                )
-                .addStringOption(opt => opt
-                    .setName("value_string")
-                    .setDescription("Value if parameter is type of string.")
-                )
-                .addChannelOption(opt => opt
-                    .setName("value_channel")
-                    .setDescription("Value if parameter is type of Channel.")
-                )
-                .addRoleOption(opt => opt
-                    .setName("value_role")
-                    .setDescription("Value if parameter is type of Role.")
-                )
-                .addUserOption(opt => opt
-                    .setName("value_user")
-                    .setDescription("Value if parameter is type of User.")
-                )
-            return builder;
-        }
-        
-        this.createSlashCommand(this.Name.toLowerCase(), this.Access, this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
-        .build(builder => builder
-            .setDescription(this.Description)
-            
-            .addSubcommand(sub => sub
-                .setName("list")
-                .setDescription("List all settings for specified namespace.")    
-                .addStringOption(opt => opt
-                    .setName("namespace")
-                    .setDescription("Target namespace")
-                    .addChoices({ name: "user", value: "user" })
-                    .addChoices({ name: "guild", value: "guild" })
-                    .addChoices({ name: "bot", value: "bot" })
-                    .setRequired(true)
-                )
-            )
-
-            .addSubcommand(sub => { sub
-                .setName("set")
-                .setDescription("Set value of specified field in specified namespace.")    
-                .addStringOption(opt => opt
-                    .setName("namespace")
-                    .setDescription("Target namespace")
-                    .addChoices({ name: "user", value: "user" })
-                    .addChoices({ name: "guild", value: "guild" })
-                    .addChoices({ name: "bot", value: "bot" })
-                    .setRequired(true)
-                )
-
-                .addStringOption(opt => opt
-                    .setName("field")
-                    .setDescription("Field to set.")
-                    .setAutocomplete(true)
-                    .setRequired(true)
-                )
-
-                return typedOptions(sub)
-            })
-
-            .addSubcommand(sub => { sub
-                .setName("add")
-                .setDescription("Add value to Array of specified field in specified namespace.")    
                 .addStringOption(opt => opt
                     .setName("namespace")
                     .setDescription("Target namespace")
@@ -118,82 +42,174 @@ export default class Config extends Module{
                 .addStringOption(opt => opt
                     .setName("field")
                     .setDescription("Field to add to.")
-                    .setAutocomplete(true)
                     .setRequired(true)
                 )
+            return builder;
+        }
 
+        function typedOptions(builder: Discord.SlashCommandSubcommandGroupBuilder){
+            builder
+                .addSubcommand(sub =>
+                    namespaceFieldOptions(sub)
+                        .setName("string")
+                        .setDescription("Set string value.")
+                        .addStringOption(opt => opt
+                            .setName("value")
+                            .setDescription("String to set as value.")
+                            .setRequired(true)
+                        )
+                )
+                .addSubcommand(sub =>
+                    namespaceFieldOptions(sub)
+                        .setName("attachment")
+                        .setDescription("Set attachment value.")
+                        .addAttachmentOption(opt => opt
+                            .setName("value")
+                            .setDescription("Attachment to set as value.")
+                            .setRequired(true)
+                        )
+                )
+                .addSubcommand(sub =>
+                    namespaceFieldOptions(sub)
+                        .setName("bool")
+                        .setDescription("Set bool value.")
+                        .addBooleanOption(opt => opt
+                            .setName("value")
+                            .setDescription("Boolean to set as value.")
+                            .setRequired(true)
+                        )
+                )
+                .addSubcommand(sub =>
+                    namespaceFieldOptions(sub)
+                        .setName("int")
+                        .setDescription("Set int value.")
+                        .addNumberOption(opt => opt
+                            .setName("value")
+                            .setDescription("Integer to set as value.")
+                            .setRequired(true)
+                        )
+                )
+                .addSubcommand(sub =>
+                    namespaceFieldOptions(sub)
+                        .setName("number")
+                        .setDescription("Set number value.")
+                        .addNumberOption(opt => opt
+                            .setName("value")
+                            .setDescription("Number to set as value.")
+                            .setRequired(true)
+                        )
+                )
+                .addSubcommand(sub =>
+                    namespaceFieldOptions(sub)
+                        .setName("channel")
+                        .setDescription("Set channel value.")
+                        .addChannelOption(opt => opt
+                            .setName("value")
+                            .setDescription("Channel to set as value.")
+                            .setRequired(true)
+                        )
+                )
+                .addSubcommand(sub =>
+                    namespaceFieldOptions(sub)
+                        .setName("role")
+                        .setDescription("Set role value.")
+                        .addRoleOption(opt => opt
+                            .setName("value")
+                            .setDescription("Role to set as value.")
+                            .setRequired(true)
+                        )
+                )
+                .addSubcommand(sub =>
+                    namespaceFieldOptions(sub)
+                        .setName("user")
+                        .setDescription("Set user value.")
+                        .addUserOption(opt => opt
+                            .setName("value")
+                            .setDescription("User to set as value.")
+                            .setRequired(true)
+                        )
+                )
+            return builder;
+        }
+        
+        this.createSlashCommand(this.Name.toLowerCase(), this.Access, this.bot.moduleGlobalLoading ? undefined : this.bot.masterGuildId)
+        .build(builder => builder
+            .setDescription(this.Description)
+            
+            .addSubcommandGroup(sub => sub
+                .setName("list")
+                .setDescription("List all settings for specified namespace.")
+                .addSubcommand(sub => sub
+                    .setName("entries")
+                    .setDescription("List all settings for specified namespace.")
+                    .addStringOption(opt => opt
+                        .setName("namespace")
+                        .setDescription("Target namespace")
+                        .addChoices({ name: "user", value: "user" })
+                        .addChoices({ name: "guild", value: "guild" })
+                        .addChoices({ name: "bot", value: "bot" })
+                        .setRequired(true)
+                    )
+                )
+            )
+
+            .addSubcommandGroup(sub => { sub
+                .setName("set")
+                .setDescription("Set value of specified field in specified namespace.")
+                return typedOptions(sub)
+            })
+
+            .addSubcommandGroup(sub => { sub
+                .setName("add")
+                .setDescription("Add value to Array of specified field in specified namespace.")
                 return typedOptions(sub)
             })
              
-            .addSubcommand(sub => sub
-                .setName("remove")
-                .setDescription("Remove value from Array of specified field in specified namespace.")    
-                .addStringOption(opt => opt
-                    .setName("namespace")
-                    .setDescription("Target namespace")
-                    .addChoices({ name: "user", value: "user" })
-                    .addChoices({ name: "guild", value: "guild" })
-                    .addChoices({ name: "bot", value: "bot" })
-                    .setRequired(true)
-                )
-
-                .addStringOption(opt => opt
-                    .setName("field")
-                    .setDescription("Field to remove from.")
-                    .setAutocomplete(true)
-                    .setRequired(true)
-                )
-
-                .addIntegerOption(opt => opt
-                    .setName("index")
-                    .setDescription("Index of array item to remove. (Counting from 0)")
-                    .setMinValue(0)
-                    .setRequired(true)
-                )
+            .addSubcommandGroup(sub =>
+                sub
+                    .setName("remove")
+                    .setDescription("Remove value from Array of specified field in specified namespace.")
+                    .addSubcommand(subc =>
+                        namespaceFieldOptions(subc)
+                            .setName("entry")
+                            .setDescription("Remove value from Array of specified field in specified namespace.")
+                            .addIntegerOption(opt => opt
+                                .setName("index")
+                                .setDescription("Index of array item to remove. (Counting from 0)")
+                                .setMinValue(0)
+                                .setRequired(true)
+                            )
+                    )
             )
         )
-        .onAutocomplete(this.handleAutocomplete.bind(this))
-        .onSubcommand("list", this.handleList.bind(this))
-        .onSubcommand("set", this.handleSet.bind(this))
-        .onSubcommand("add", this.handleAdd.bind(this))
-        .onSubcommand("remove", this.handleRemove.bind(this))
+        .onExecute(this.interactionRouter.bind(this))
         .commit()
     }
 
-    public async handleAutocomplete(interaction: Discord.AutocompleteInteraction, user: User){
-        let target = interaction.options.getString("namespace", true);
-        let choises: {name: string, value: string}[] = [];
-        switch(target){
-            case "guild": {
-                if(!interaction.guild) break;
-                if(!await Access.Check(user, [ Access.SERVER_ADMIN() ], interaction.guild)) break;
+    public async interactionRouter(interaction: Discord.ChatInputCommandInteraction, user: User) {
+        let subcommandGroup = interaction.options.getSubcommandGroup(true);
 
-                let guild_keys = await this.bot.config.getFields("guild");
-                for(let f of guild_keys){
-                    choises.push({name: f, value: f});
-                }
-                break;
+        switch (subcommandGroup) {
+            case "list": {
+                await this.handleList(interaction, user);
+                return;
             }
-            case "user": {
-                let user_keys = await this.bot.config.getFields("user");
-                for(let f of user_keys){
-                    choises.push({name: f, value: f});
-                }
-                break;
+            case "set": {
+                //await this.handleSet(interaction, user);
+                return;
             }
-            case "bot": {
-                if(!await Access.Check(user, [ Access.ADMIN() ])) break;
-
-                let bot_keys = await this.bot.config.getFields("bot");
-                for(let f of bot_keys){
-                    choises.push({name: f, value: f});
-                }
-                break;
+            case "add": {
+                //await this.handleAdd(interaction, user);
+                return;
+            }
+            case "remove": {
+                //await this.handleRemove(interaction, user);
+                return;
             }
         }
-        await interaction.respond(choises);
     }
 
+    /*
     private makeList(fields: { name: string, value: any, type: ConfigDataType }[]){
         function formatType(value: any, type: ConfigDataType){
             if(type !== "bool" && !value){
@@ -224,75 +240,229 @@ export default class Config extends Module{
         }
         return text;
     }
-
+    */
     public async handleList(interaction: Discord.ChatInputCommandInteraction, user: User): Promise<void> {
-        let target = interaction.options.getString("namespace", true);
+        let namespace = interaction.options.getString("namespace", true);
 
-        let keys = await this.bot.config.getFields(target);
-        let fields: { name: string, value: any, type: ConfigDataType }[] = [];
+        let ephemeralTarget: string;
+        //Check permissions for intended namespace
+        switch (namespace) {
+            case "user": {
+                ephemeralTarget = interaction.user.id;
+                break;
+            }
 
-        switch(target){
             case "guild": {
                 if(!interaction.guild) throw new GuildOnlyError();
-                if(!await Access.Check(user, [ Access.SERVER_ADMIN() ], interaction.guild)) throw new MissingPermissionsError();
-
-                for(let k of keys){
-                    let container = (await this.bot.config.get(target, k) || {});
-                    let val = container[interaction.guild.id];
-
-                    fields.push({
-                        name: k,
-                        value: val,
-                        type:  (await this.bot.config.getType(target, k))!
-                    });
+                if(!await Access.Check(user, [ Access.SERVER_ADMIN() ], interaction.guild)) {
+                    throw new MissingPermissionsError();
                 }
+                ephemeralTarget = interaction.guild.id;
                 break;
             }
 
             case "bot": {
-                if(!await Access.Check(user, [ Access.ADMIN() ])) throw new MissingPermissionsError();
-
-                for(let k of keys){
-                    let val = (await this.bot.config.get(target, k) || {});
-
-                    fields.push({
-                        name: k,
-                        value: val,
-                        type:  (await this.bot.config.getType(target, k))!
-                    });
+                if(!await Access.Check(user, [ Access.ADMIN() ])) {
+                    throw new MissingPermissionsError();
                 }
-                break;
-            }
-
-            case "user": {
-                for(let k of keys){
-                    let container = (await this.bot.config.get(target, k) || {});
-                    let val = container[interaction.user.id];
-
-                    fields.push({
-                        name: k,
-                        value: val,
-                        type:  (await this.bot.config.getType(target, k))!
-                    });
-                }
+                ephemeralTarget = "bot_target";
                 break;
             }
 
             default: {
-                throw new SynergyUserError("This namespace doesen't exist.");
+                throw new SynergyUserError("This namespace doesn't exist.");
             }
         }
 
-        let text = this.makeList(fields);
-        let emb = new Discord.EmbedBuilder({
-            title: `${target} config`,
-            description: "`<field>: <type> = <value>`\n\n" + text,
+        let entries = this.bot.config.getConfigEntries(namespace)?.filter(e => !e.entry.isHidden());
+        if(!entries || entries.length === 0) {
+            throw new SynergyUserError("There's no settings to show.");
+        }
+
+        let settingsList = this.makeSettingsList(entries, ephemeralTarget);
+
+        let embed = new Discord.EmbedBuilder({
+            title: `Settings for "${namespace}" namespace`,
+            description:    "<ModuleName>:\n" +
+                            "`<field>: <type> = <value>`\n\n" +
+                            settingsList,
             color: Colors.Noraml,
         });
-        await interaction.reply({ embeds: [emb] });
+        await interaction.reply({ embeds: [embed] });
         return;
     }
 
+    private makeSettingsList(entries: ConfigEntryMapStructure[], ephemeralTarget: string) {
+        function formatType(value: ConfigDataStructure | undefined, type: ConfigCommonDataType){
+            if(value === undefined) {
+                return "[not set]";
+            }
+            switch (type) {
+                case "user": {
+                    let user = value as ConfigUser;
+                    return `<@${user.id}>`;
+                }
+                case "role": {
+                    let role = value as ConfigRole;
+                    return `<@&${role.id}>`;
+                }
+                case "channel": {
+                    let channel = value as ConfigGuildChannel;
+                    return `<#${channel.id}>`;
+                }
+                case "attachment": {
+                    let attachment = value as ConfigAttachment;
+                    return `[Attachment](${attachment.proxyURL})`;
+                }
+                case "bool": {
+                    return value ? "*true*" : "*false*";
+                }
+                default: {
+                    return `${value}`;
+                }
+            }
+        }
+
+        function formatArray(values: any[], type: ConfigCommonDataType) {
+            return "[" + values.map((v: any) => formatType(v, type)).join(", ") + "]";
+        }
+
+        let entriesAuthors: Map<string, ConfigEntryMapStructure[]> = new Map();
+
+        for(let e of entries) {
+            let author = entriesAuthors.get(e.createdBy);
+            if(!author) {
+                author = [ e ];
+                entriesAuthors.set(e.createdBy, author);
+            } else {
+                author.push(e);
+            }
+        }
+
+        let text = "";
+        for(let e of entriesAuthors.entries()){
+            text += `\n${e[0]}:\n`;
+            for(let ent of e[1]) {
+                text += `${ent.entry.name}: **${ent.entry.type}** = `;
+                if(ent.entry.isEphemeral()) {
+                    if(ent.entry.isArray()) {
+                        text += `${formatArray(ent.entry.getValues(ephemeralTarget), ent.entry.type)}\n`;
+                    } else {
+                        text += `${formatType(ent.entry.getValue(ephemeralTarget), ent.entry.type)}\n`;
+                    }
+                } else if (ent.entry.isCommon()) {
+                    if(ent.entry.isArray()) {
+                        text += `${formatArray(ent.entry.getValues(), ent.entry.type)}\n`;
+                    } else {
+                        text += `${formatType(ent.entry.getValue(), ent.entry.type)}\n`;
+                    }
+                } else {
+                    throw new Error("Unknown ConfigEntry type");
+                }
+            }
+        }
+        return text;
+    }
+        /*
+        public async handleList(interaction: Discord.ChatInputCommandInteraction, user: User): Promise<void> {
+            let target = interaction.options.getString("namespace", true);
+
+            let keys = this.bot.config.getConfigEntriesNames(target);
+            let fields: { name: string, value: any, type: ConfigDataType }[] = [];
+
+            switch(target){
+                case "guild": {
+                    if(!interaction.guild) throw new GuildOnlyError();
+                    if(!await Access.Check(user, [ Access.SERVER_ADMIN() ], interaction.guild)) throw new MissingPermissionsError();
+
+                    for(let k of keys){
+                        let entry = this.bot.config.getConfigEntry(target, k);
+
+                        if(!entry || !entry.entry.isEphemeral()) {
+                            throw new Error("Config entry does not exist, or of insufficient type.");
+                        }
+
+                        let val;
+                        if(entry.entry.isArray()) {
+                            val = entry.entry.getValues(interaction.guild.id);
+                        } else {
+                            val = entry.entry.getValue(interaction.guild.id);
+                        }
+
+                        fields.push({
+                            name: k,
+                            value: val,
+                            type: entry.entry.type
+                        });
+                    }
+                    break;
+                }
+
+                case "bot": {
+                    if(!await Access.Check(user, [ Access.ADMIN() ])) throw new MissingPermissionsError();
+
+                    for(let k of keys){
+                        let entry = this.bot.config.getConfigEntry(target, k);
+
+                        if(!entry || !entry.entry.isEphemeral()) {
+                            throw new Error("Config entry does not exist, or of insufficient type.");
+                        }
+
+                        let val;
+                        if(entry.entry.isArray()) {
+                            val = entry.entry.getValues(interaction.guild.id);
+                        } else {
+                            val = entry.entry.getValue(interaction.guild.id);
+                        }
+
+                        fields.push({
+                            name: k,
+                            value: val,
+                            type: entry.entry.type
+                        });
+
+                        let val = (await this.bot.config.get(target, k) || {});
+
+                        fields.push({
+                            name: k,
+                            value: val,
+                            type:  (await this.bot.config.getType(target, k))!
+                        });
+                    }
+                    break;
+                }
+
+                case "user": {
+                    for(let k of keys){
+                        let container = (await this.bot.config.get(target, k) || {});
+                        let val = container[interaction.user.id];
+
+                        fields.push({
+                            name: k,
+                            value: val,
+                            type:  (await this.bot.config.getType(target, k))!
+                        });
+                    }
+                    break;
+                }
+
+                default: {
+                    throw new SynergyUserError("This namespace doesen't exist.");
+                }
+            }
+
+            let text = this.makeList(fields);
+            let emb = new Discord.EmbedBuilder({
+                title: `${target} config`,
+                description: "`<field>: <type> = <value>`\n\n" + text,
+                color: Colors.Noraml,
+            });
+            await interaction.reply({ embeds: [emb] });
+            return;
+        }
+
+         */
+    /*
     public async handleSet(interaction: Discord.ChatInputCommandInteraction, user: User): Promise<void> {
         let values = {
             attachment: interaction.options.getAttachment("value_attach"),
@@ -492,4 +662,5 @@ export default class Config extends Module{
         await interaction.reply({ embeds: [emb] });
         return;
     }
+    */
 }
