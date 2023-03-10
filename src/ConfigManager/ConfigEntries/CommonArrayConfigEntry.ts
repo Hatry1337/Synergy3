@@ -1,22 +1,19 @@
 import { ConfigCommonDataType, TypeOfConfigDataType } from "../ConfigDataTypes";
-import BaseConfigEntry from "./BaseConfigEntry";
+import BaseConfigEntry, { RawBaseConfigEntry } from "./BaseConfigEntry";
 import { ConfigDataStructureOf } from "../ConfigDataStructures";
-import { EphemeralConfigEntry } from "./EphemeralConfigEntry";
 import { EphemeralArrayConfigEntry } from "./EphemeralArrayConfigEntry";
 
-interface RawArrayConfigEntry<T extends ConfigCommonDataType> {
-    type: T;
-    hidden: boolean;
+interface RawArrayConfigEntry<T extends ConfigCommonDataType> extends RawBaseConfigEntry<T> {
     ephemeral: false;
     array: true;
-    value: any[];
+    value: ConfigDataStructureOf<T>[];
 }
 
 export default class CommonArrayConfigEntry<T extends ConfigCommonDataType> extends BaseConfigEntry<T>{
     protected data: RawArrayConfigEntry<T>;
     constructor(
         name: string,
-        type: ConfigCommonDataType,
+        type: T,
         hidden: boolean
     ) {
         super(name, type, true, false, hidden);
@@ -57,15 +54,19 @@ export default class CommonArrayConfigEntry<T extends ConfigCommonDataType> exte
         return super.isEphemeral();
     }
 
-    public override serialize(): object {
+    public override serialize(): RawArrayConfigEntry<T> {
         return {
             name: this.name,
             type: this.type,
-            ephemeral: this.ephemeral,
+            ephemeral: this.ephemeral as false, //it is false and readonly.. Whyyy typescript.. just why.....
             hidden: this.hidden,
-            array: this.data.array,
+            array: this.array as true,
             value: this.data.value
         };
+    }
+
+    public loadData(data: RawArrayConfigEntry<T>) {
+        this.data.value = data.value;
     }
 
     public isString(): this is CommonArrayConfigEntry<"string"> {

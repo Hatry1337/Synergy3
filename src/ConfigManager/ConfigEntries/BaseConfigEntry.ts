@@ -2,7 +2,7 @@ import Discord from "discord.js";
 import { ConfigCommonDataType, TypeOfConfigDataType } from "../ConfigDataTypes";
 import {
     ConfigAttachment,
-    ConfigDataStructure,
+    ConfigDataStructure, ConfigDataStructureOf,
     ConfigGuildChannel,
     ConfigRole,
     ConfigUser
@@ -12,14 +12,33 @@ import { EphemeralConfigEntry } from "./EphemeralConfigEntry";
 import CommonArrayConfigEntry from "./CommonArrayConfigEntry";
 import CommonConfigEntry from "./CommonConfigEntry";
 
+export interface RawBaseConfigEntry<T extends ConfigCommonDataType> {
+    name: string;
+    type: T;
+    array: boolean;
+    ephemeral: boolean;
+    hidden: boolean;
+}
+
 export default abstract class BaseConfigEntry<T extends ConfigCommonDataType> {
     protected constructor(
         readonly name: string,
-        readonly type: ConfigCommonDataType,
+        readonly type: T,
         protected readonly array: boolean,
         protected readonly ephemeral: boolean,
-        protected hidden: boolean
-    ) { }
+        protected hidden: boolean,
+        protected data?: RawBaseConfigEntry<T>
+    ) {
+        if(!data) {
+            this.data = {
+                name,
+                type,
+                array,
+                ephemeral,
+                hidden
+            }
+        }
+    }
 
     public setHidden(value: boolean) {
         this.hidden = value;
@@ -41,7 +60,7 @@ export default abstract class BaseConfigEntry<T extends ConfigCommonDataType> {
         return this.array
     }
 
-    protected serializeData(value: TypeOfConfigDataType<T>) {
+    protected serializeData(value: TypeOfConfigDataType<T>): ConfigDataStructureOf<T> {
         let data: ConfigDataStructure | undefined;
 
         if(value instanceof Discord.Attachment){
@@ -105,17 +124,21 @@ export default abstract class BaseConfigEntry<T extends ConfigCommonDataType> {
             throw new Error(`Attempt to write Unexpected Type Value into "${this.type}" ConfigEntry.`)
         }
 
-        return data;
+        //#FIXME figure out why *ConfigDataStructure* is incompatible with *ConfigDataStructureOf*
+        return data as ConfigDataStructureOf<T>;
     }
 
-    public serialize(): object {
+    public serialize(): RawBaseConfigEntry<T> {
         return {
             name: this.name,
             type: this.type,
+            array: this.array,
             ephemeral: this.ephemeral,
             hidden: this.hidden
         };
     }
+
+    public abstract loadData(data: RawBaseConfigEntry<T>): void;
 
     public isString(): this is BaseConfigEntry<"string"> {
         return this.type === "string";

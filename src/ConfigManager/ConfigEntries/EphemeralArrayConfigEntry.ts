@@ -1,14 +1,12 @@
 import { ConfigCommonDataType, TypeOfConfigDataType } from "../ConfigDataTypes";
-import BaseConfigEntry from "./BaseConfigEntry";
+import BaseConfigEntry, { RawBaseConfigEntry } from "./BaseConfigEntry";
 import { ConfigDataStructureOf } from "../ConfigDataStructures";
 
-interface RawEphemeralArrayConfigEntry<T extends ConfigCommonDataType> {
-    type: T;
-    hidden: boolean;
+interface RawEphemeralArrayConfigEntry<T extends ConfigCommonDataType> extends RawBaseConfigEntry<T>{
     ephemeral: true;
     array: true;
     values: {
-        [key: string]: any[];
+        [key: string]: ConfigDataStructureOf<T>[];
     }
 }
 
@@ -16,7 +14,7 @@ export class EphemeralArrayConfigEntry<T extends ConfigCommonDataType> extends B
     protected data: RawEphemeralArrayConfigEntry<T>;
     constructor(
         name: string,
-        type: ConfigCommonDataType,
+        type: T,
         hidden: boolean
     ) {
         super(name, type, true, true, hidden);
@@ -72,15 +70,19 @@ export class EphemeralArrayConfigEntry<T extends ConfigCommonDataType> extends B
         return super.isEphemeral();
     }
 
-    public override serialize(): object {
+    public override serialize(): RawEphemeralArrayConfigEntry<T> {
         return {
             name: this.name,
             type: this.type,
-            ephemeral: this.ephemeral,
+            ephemeral: this.ephemeral as true,
             hidden: this.hidden,
-            array: this.data.array,
+            array: this.array as true,
             values: this.data.values
         };
+    }
+
+    public loadData(data: RawEphemeralArrayConfigEntry<T>) {
+        this.data.values = data.values;
     }
 
     public isString(): this is EphemeralArrayConfigEntry<"string"> {
