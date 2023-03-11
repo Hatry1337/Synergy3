@@ -14,12 +14,14 @@ export class EphemeralArrayConfigEntry<T extends ConfigCommonDataType> extends B
     protected data: RawEphemeralArrayConfigEntry<T>;
     constructor(
         name: string,
+        description: string,
         type: T,
         hidden: boolean
     ) {
-        super(name, type, true, true, hidden);
+        super(name, description, type, true, true, hidden);
         this.data = {
             type,
+            description,
             hidden,
             ephemeral: this.ephemeral,
             array: this.array,
@@ -31,14 +33,30 @@ export class EphemeralArrayConfigEntry<T extends ConfigCommonDataType> extends B
         if(!this.data.values[ephemeralTarget]) {
             this.data.values[ephemeralTarget] = [];
         }
-        this.data.values[ephemeralTarget].push(this.serializeData(value));
+        //If provided value is not undefined then output data will be not undefined
+        this.data.values[ephemeralTarget].push(this.serializeData(value)!);
+    }
+
+    public addValueRaw(ephemeralTarget: string, value: ConfigDataStructureOf<T>) {
+        if(!this.data.values[ephemeralTarget]) {
+            this.data.values[ephemeralTarget] = [];
+        }
+        this.data.values[ephemeralTarget].push(value);
     }
 
     public setValue(ephemeralTarget: string, index: number, value: TypeOfConfigDataType<T>) {
         if(!this.data.values[ephemeralTarget]) {
             this.data.values[ephemeralTarget] = [];
         }
-        this.data.values[ephemeralTarget][index] = this.serializeData(value);
+        //If provided value is not undefined then output data will be not undefined
+        this.data.values[ephemeralTarget][index] = this.serializeData(value)!;
+    }
+
+    public setValueRaw(ephemeralTarget: string, index: number, value: ConfigDataStructureOf<T>) {
+        if(!this.data.values[ephemeralTarget]) {
+            this.data.values[ephemeralTarget] = [];
+        }
+        this.data.values[ephemeralTarget][index] = value;
     }
 
     public getValue(ephemeralTarget: string, index: number): ConfigDataStructureOf<T> | undefined {
@@ -73,6 +91,7 @@ export class EphemeralArrayConfigEntry<T extends ConfigCommonDataType> extends B
     public override serialize(): RawEphemeralArrayConfigEntry<T> {
         return {
             name: this.name,
+            description: this.description,
             type: this.type,
             ephemeral: this.ephemeral as true,
             hidden: this.hidden,

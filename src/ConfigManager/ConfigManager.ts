@@ -3,10 +3,11 @@ import Synergy from "../Synergy";
 import { GlobalLogger } from "../GlobalLogger";
 import BaseConfigEntry, { RawBaseConfigEntry } from "./ConfigEntries/BaseConfigEntry";
 import { ConfigCommonDataType } from "./ConfigDataTypes";
+import { EphemeralConfigEntry } from "./ConfigEntries/EphemeralConfigEntry";
 
-const CURRENT_CONFIG_VERSION = 8;
-const MIN_COMPATIBLE_VERSION = 8;
-const MAX_COMPATIBLE_VERSION = 16;
+const CURRENT_CONFIG_VERSION = 20;
+const MIN_COMPATIBLE_VERSION = 20;
+const MAX_COMPATIBLE_VERSION = 21;
 
 interface DataContainerRootStructure {
     magickString: "syn3conf2770";
@@ -60,6 +61,19 @@ export default class ConfigManager{
 
         //If all checks passed - just load the container
         this.dataContainer = container;
+
+        //Create default moderator_role config entry
+        try {
+            this.addConfigEntry("guild", "Synergy3",
+                new EphemeralConfigEntry(
+                    "moderator_role",
+                    "Role for Guild moderators used by moderation commands.",
+                    "role",
+                    false
+                )
+            );
+        } catch (e) {}
+
         this.loadEntriesFromContainer();
 
         this.initialized = true;

@@ -6,7 +6,7 @@ import Guild, { GuildOptions } from "./Structures/Guild"
 import User, { UserDiscordOptions, UserEconomyOptions, UserOptions } from "./Structures/User"
 import { Colors, Emojis, Utils } from "./Utils"
 import CoreModules from "./Modules/Core";
-import ConfigManager from "./ConfigManager/ConfigManager"
+import ConfigManager, { ConfigEntryMapStructure } from "./ConfigManager/ConfigManager"
 import EventManager from "./EventManager"
 import { GuildManager, UserManager } from "discord.js"
 import ModuleDataManager from "./ModuleDataManager"
@@ -34,7 +34,8 @@ import {
     ConfigDataStructureOf,
     ConfigGuildChannel,
     ConfigRole,
-    ConfigUser
+    ConfigUser,
+    dataStructureToString
 } from "./ConfigManager/ConfigDataStructures"
 import { ConfigCommonDataType, TypeOfConfigDataType } from "./ConfigManager/ConfigDataTypes"
 
@@ -62,6 +63,7 @@ export {
     ModuleLogger,
     
     ConfigManager,
+    ConfigEntryMapStructure,
     BaseConfigEntry,
     CommonArrayConfigEntry,
     CommonConfigEntry,
@@ -75,6 +77,7 @@ export {
     ConfigDataStructureOf,
     ConfigCommonDataType,
     TypeOfConfigDataType,
+    dataStructureToString,
     //ConfigDataType,
 
     EventManager,

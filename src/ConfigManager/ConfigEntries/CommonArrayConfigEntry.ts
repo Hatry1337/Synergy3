@@ -13,25 +13,37 @@ export default class CommonArrayConfigEntry<T extends ConfigCommonDataType> exte
     protected data: RawArrayConfigEntry<T>;
     constructor(
         name: string,
+        description: string,
         type: T,
         hidden: boolean
     ) {
-        super(name, type, true, false, hidden);
+        super(name, description, type, true, false, hidden);
         this.data = {
             type,
+            description,
             hidden,
             ephemeral: this.ephemeral,
             array: this.array,
-            value: new Array<any>()
+            value: new Array<ConfigDataStructureOf<T>>()
         } as RawArrayConfigEntry<T>
     }
 
     public addValue(value: TypeOfConfigDataType<T>) {
-        this.data.value.push(this.serializeData(value));
+        //If provided value is not undefined then output data will be not undefined
+        this.data.value.push(this.serializeData(value)!);
+    }
+
+    public addValueRaw(value: ConfigDataStructureOf<T>) {
+        this.data.value.push(value);
     }
 
     public setValue(index: number, value: TypeOfConfigDataType<T>) {
-        this.data.value[index] = this.serializeData(value);
+        //If provided value is not undefined then output data will be not undefined
+        this.data.value[index] = this.serializeData(value)!;
+    }
+
+    public setValueRaw(index: number, value: ConfigDataStructureOf<T>) {
+        this.data.value[index] = value;
     }
 
     public getValue(index: number): ConfigDataStructureOf<T> | undefined {
@@ -57,6 +69,7 @@ export default class CommonArrayConfigEntry<T extends ConfigCommonDataType> exte
     public override serialize(): RawArrayConfigEntry<T> {
         return {
             name: this.name,
+            description: this.description,
             type: this.type,
             ephemeral: this.ephemeral as false, //it is false and readonly.. Whyyy typescript.. just why.....
             hidden: this.hidden,

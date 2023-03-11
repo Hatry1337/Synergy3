@@ -8,19 +8,21 @@ export interface RawConfigEntry<T extends ConfigCommonDataType> extends RawBaseC
     array: false;
     ephemeral: false;
     hidden: boolean;
-    value: ConfigDataStructureOf<T>;
+    value: ConfigDataStructureOf<T> | undefined;
 }
 
 export default class CommonConfigEntry<T extends ConfigCommonDataType> extends BaseConfigEntry<T>{
     protected data: RawConfigEntry<T>;
     constructor(
         name: string,
+        description: string,
         type: T,
         hidden: boolean
     ) {
-        super(name, type, false, false, hidden);
+        super(name, description, type, false, false, hidden);
         this.data = {
             type,
+            description,
             hidden,
             ephemeral: this.ephemeral,
             array: this.array,
@@ -28,11 +30,15 @@ export default class CommonConfigEntry<T extends ConfigCommonDataType> extends B
         } as RawConfigEntry<T>
     }
 
-    public setValue(value: TypeOfConfigDataType<T>) {
+    public setValue(value: TypeOfConfigDataType<T> | undefined) {
         this.data.value = this.serializeData(value);
     }
 
-    public getValue(): ConfigDataStructureOf<T> {
+    public setValueRaw(value: ConfigDataStructureOf<T> | undefined) {
+        this.data.value = value;
+    }
+
+    public getValue(): ConfigDataStructureOf<T> | undefined {
         return this.data.value;
     }
 
@@ -47,6 +53,7 @@ export default class CommonConfigEntry<T extends ConfigCommonDataType> extends B
     public override serialize(): RawConfigEntry<T> {
         return {
             name: this.name,
+            description: this.description,
             type: this.type,
             ephemeral: this.ephemeral as false,
             hidden: this.hidden,

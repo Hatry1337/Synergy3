@@ -7,7 +7,7 @@ interface RawEphemeralConfigEntry<T extends ConfigCommonDataType> extends RawBas
     ephemeral: true;
     array: false;
     values: {
-        [key: string]: ConfigDataStructureOf<T>;
+        [key: string]: ConfigDataStructureOf<T> | undefined;
     }
 }
 
@@ -15,12 +15,14 @@ export class EphemeralConfigEntry<T extends ConfigCommonDataType> extends BaseCo
     protected data: RawEphemeralConfigEntry<T>;
     constructor(
         name: string,
+        description: string,
         type: T,
         hidden: boolean
     ) {
-        super(name, type, false, true, hidden);
+        super(name, description, type, false, true, hidden);
         this.data = {
             type,
+            description,
             hidden,
             ephemeral: this.ephemeral,
             array: this.array,
@@ -28,8 +30,12 @@ export class EphemeralConfigEntry<T extends ConfigCommonDataType> extends BaseCo
         } as RawEphemeralConfigEntry<T>
     }
 
-    public setValue(ephemeralTarget: string, value: TypeOfConfigDataType<T>) {
+    public setValue(ephemeralTarget: string, value: TypeOfConfigDataType<T> | undefined) {
         this.data.values[ephemeralTarget] = this.serializeData(value);
+    }
+
+    public setValueRaw(ephemeralTarget: string, value: ConfigDataStructureOf<T> | undefined) {
+        this.data.values[ephemeralTarget] = value;
     }
 
     public getValue(ephemeralTarget: string): ConfigDataStructureOf<T> | undefined {
@@ -47,6 +53,7 @@ export class EphemeralConfigEntry<T extends ConfigCommonDataType> extends BaseCo
     public override serialize(): RawEphemeralConfigEntry<T> {
         return {
             name: this.name,
+            description: this.description,
             type: this.type,
             ephemeral: this.ephemeral as true,
             hidden: this.hidden,

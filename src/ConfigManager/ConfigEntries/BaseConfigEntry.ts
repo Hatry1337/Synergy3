@@ -14,6 +14,7 @@ import CommonConfigEntry from "./CommonConfigEntry";
 
 export interface RawBaseConfigEntry<T extends ConfigCommonDataType> {
     name: string;
+    description: string;
     type: T;
     array: boolean;
     ephemeral: boolean;
@@ -23,6 +24,7 @@ export interface RawBaseConfigEntry<T extends ConfigCommonDataType> {
 export default abstract class BaseConfigEntry<T extends ConfigCommonDataType> {
     protected constructor(
         readonly name: string,
+        public description: string,
         readonly type: T,
         protected readonly array: boolean,
         protected readonly ephemeral: boolean,
@@ -32,6 +34,7 @@ export default abstract class BaseConfigEntry<T extends ConfigCommonDataType> {
         if(!data) {
             this.data = {
                 name,
+                description,
                 type,
                 array,
                 ephemeral,
@@ -57,11 +60,27 @@ export default abstract class BaseConfigEntry<T extends ConfigCommonDataType> {
     }
 
     public isArray(): this is CommonArrayConfigEntry<T> | EphemeralArrayConfigEntry<T> {
-        return this.array
+        return this.array;
     }
 
-    protected serializeData(value: TypeOfConfigDataType<T>): ConfigDataStructureOf<T> {
-        let data: ConfigDataStructure | undefined;
+    public isNotArray(): this is CommonConfigEntry<T> | EphemeralConfigEntry<T> {
+        return !this.array;
+    }
+
+    public isCommonArray(): this is CommonArrayConfigEntry<T> {
+        return !this.ephemeral && this.array;
+    }
+
+    public isEphemeralArray(): this is EphemeralArrayConfigEntry<T> {
+        return this.ephemeral && this.array;
+    }
+
+    protected serializeData(value: TypeOfConfigDataType<T> | undefined): ConfigDataStructureOf<T> | undefined {
+        let data: ConfigDataStructure;
+
+        if(value === undefined) {
+            return undefined;
+        }
 
         if(value instanceof Discord.Attachment){
             if(this.type !== "attachment") {
@@ -95,7 +114,7 @@ export default abstract class BaseConfigEntry<T extends ConfigCommonDataType> {
                 banner: value.banner
             } as ConfigUser;
 
-        } else if(value instanceof Discord.GuildChannel) {
+        } else if(value instanceof Discord.BaseGuildTextChannel || value instanceof Discord.BaseGuildVoiceChannel) {
             if(this.type !== "channel") {
                 throw new Error(`Error writing "GuildChannel" into "${this.type}" ConfigEntry.`)
             }
@@ -131,6 +150,7 @@ export default abstract class BaseConfigEntry<T extends ConfigCommonDataType> {
     public serialize(): RawBaseConfigEntry<T> {
         return {
             name: this.name,
+            description: this.description,
             type: this.type,
             array: this.array,
             ephemeral: this.ephemeral,
