@@ -1,4 +1,4 @@
-import { Table, Model, Column, DataType, ForeignKey, BelongsTo, PrimaryKey } from "sequelize-typescript";
+import { BelongsTo, Column, DataType, ForeignKey, Model, PrimaryKey, Table } from "sequelize-typescript";
 import { StorageUser } from "./StorageUser";
 
 @Table({
@@ -11,7 +11,7 @@ export class StorageUserDiscordInfo extends Model<StorageUserDiscordInfo> {
     declare id: number;
 
     @BelongsTo(() => StorageUser)
-    declare user: StorageUser
+    declare user: StorageUser;
 
     //Discord Options
     @Column({
