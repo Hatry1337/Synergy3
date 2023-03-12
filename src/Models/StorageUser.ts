@@ -8,7 +8,7 @@ interface StorageUserMeta{
 @Table({
     timestamps: true,
 })
-export class StorageUser extends Model {
+export class StorageUser extends Model<StorageUser> {
     //Main Options
     @Column({
         type: DataType.INTEGER,
@@ -16,39 +16,39 @@ export class StorageUser extends Model {
         primaryKey: true,
         autoIncrement: true
     })
-    id!: number;
+    declare id: number;
 
     @Column({
         type: DataType.STRING,
         allowNull: false,
     })
-    nickname!: string;
+    declare nickname: string;
 
     @Column({
         type: DataType.STRING,
         allowNull: false,
     })
-    discordId!: string;
+    declare discordId: string;
 
     @Column({
         type: DataType.JSONB,
         allowNull: false,
         defaultValue: [ "player" ]
     })
-    groups!: string[];
+    declare groups: string[];
 
     @Column({
         type: DataType.STRING,
         allowNull: false,
         defaultValue: "en"
     })
-    lang!: string;
+    declare lang: string;
 
     @HasOne(() => StorageUserDiscordInfo)
-    discord!: StorageUserDiscordInfo;
+    declare discord: StorageUserDiscordInfo;
 
     @HasOne(() => StorageUserEconomyInfo)
-    economy!: StorageUserEconomyInfo;
+    declare economy: StorageUserEconomyInfo;
 
     //Other
     @Column({
@@ -56,5 +56,5 @@ export class StorageUser extends Model {
         allowNull: false,
         defaultValue: {}
     })
-    meta!: StorageUserMeta;
+    declare meta: StorageUserMeta;
 }

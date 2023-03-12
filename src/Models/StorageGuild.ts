@@ -3,59 +3,59 @@ import { Table, Model, Column, DataType } from "sequelize-typescript";
 @Table({
     timestamps: true,
 })
-export class StorageGuild extends Model {
+export class StorageGuild extends Model<StorageGuild> {
     @Column({
         type: DataType.STRING,
         primaryKey: true,
         allowNull: false,
     })
-    id!: string;
+    declare id: string;
 
     @Column({
         type: DataType.STRING,
         allowNull: false,
     })
-    group!: string;
+    declare group: string;
 
     @Column({
         type: DataType.STRING,
         allowNull: false,
     })
-    name!: string;
+    declare name: string;
 
     @Column({
         type: DataType.STRING,
         allowNull: false,
     })
-    lang!: string;
+    declare lang: string;
 
     @Column({
         type: DataType.STRING,
         allowNull: false,
     })
-    ownerId!: string;
+    declare ownerId: string;
 
     @Column({
         type: DataType.STRING,
         allowNull: true,
     })
-    icon?: string;
+    declare icon?: string;
 
     @Column({
         type: DataType.STRING,
         allowNull: true,
     })
-    banner?: string;
+    declare banner?: string;
 
     @Column({
         type: DataType.STRING,
         allowNull: true,
     })
-    systemChannelId?: string;
+    declare systemChannelId?: string;
 
     @Column({
         type: DataType.DATE,
         allowNull: false,
     })
-    botJoinedAt!: Date;
+    declare botJoinedAt: Date;
 }

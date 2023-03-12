@@ -14,14 +14,19 @@ interface Trace{
 }
 
 export class GlobalLogger{
+    private static logsDir = "./logs";
+    public static setLogsDir(dir: string) {
+        this.logsDir = dir;
+    }
+
     static {
         log4js.configure({
             appenders: {
                 console:  { type: 'console' },
-                file:     { type: 'file', filename: 'botlog.log' },
-                database: { type: 'file', filename: 'sql.log' },
-                userlog:  { type: 'file', filename: 'userlog.log' },
-                trace:    { type: 'file', filename: 'trace.log' }
+                file:     { type: 'file', filename: this.logsDir + '/botlog.log' },
+                database: { type: 'file', filename: this.logsDir + '/sql.log' },
+                userlog:  { type: 'file', filename: this.logsDir + '/userlog.log' },
+                trace:    { type: 'file', filename: this.logsDir + '/trace.log' }
             },
             categories: {
                 default:  { appenders: ['console', 'file'], level: 'info' },

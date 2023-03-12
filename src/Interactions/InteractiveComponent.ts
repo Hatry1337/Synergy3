@@ -10,12 +10,12 @@ export class InteractiveComponent<T extends InteractiveComponentTargets> extends
         this.builder.setCustomId(name);
     }
 
-    public isMenu(): this is InteractiveComponent<Discord.MessageSelectMenu>{
-        return this.builder.type === "SELECT_MENU";
+    public isMenu(): this is InteractiveComponent<Discord.SelectMenuBuilder>{
+        return this.builder instanceof Discord.SelectMenuBuilder;
     }
 
-    public isButton(): this is InteractiveComponent<Discord.MessageButton>{
-        return this.builder.type === "BUTTON";
+    public isButton(): this is InteractiveComponent<Discord.ButtonBuilder>{
+        return this.builder instanceof Discord.ButtonBuilder;
     }
 
     /**

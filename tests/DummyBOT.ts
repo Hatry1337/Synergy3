@@ -1,4 +1,4 @@
-import {Synergy, User} from "../src";
+import { Synergy, User } from "../src";
 import EventEmitter from "events";
 
 class DummyClient extends EventEmitter {
@@ -37,12 +37,12 @@ class DummyBOT {
                 nickname: "TestUser#1337",
                 groups: [ "palayer" ],
                 lang: "en",
-                discordId: id,
                 economy: {
                     points: 2,
                     xp: 0,
                     lvl: 1
                 },
+                discordId: id,
                 discord: {
                     id,
                     tag: "TestUser#1337",
@@ -58,12 +58,12 @@ class DummyBOT {
                     nickname: "TestUser#1337",
                     groups: [ "palayer" ],
                     lang: "en",
-                    discordId: id,
                     economy: {
                         points: 2,
                         xp: 0,
                         lvl: 1
                     },
+                    discordId: id,
                     discord: {
                         id,
                         tag: "TestUser#1337",

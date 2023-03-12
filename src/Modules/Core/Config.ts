@@ -6,7 +6,6 @@ import { Colors } from "../../Utils";
 import { ConfigArrayDataType, ConfigCommonDataType, ConfigDataType } from "../../ConfigManager";
 import { GuildOnlyError, MissingPermissionsError, Synergy, SynergyUserError } from "../..";
 import Access, { AccessTarget } from "../../Structures/Access";
-import { SlashCommandSubcommandBuilder } from "@discordjs/builders";
 
 export interface IGlobalConfiguration{
     [key: string]: any;
@@ -28,7 +27,7 @@ export default class Config extends Module{
     
     public async Init(){
 
-        function typedOptions(builder: SlashCommandSubcommandBuilder){
+        function typedOptions(builder: Discord.SlashCommandSubcommandBuilder){
             builder
                 .addAttachmentOption(opt => opt
                     .setName("value_attach")
@@ -226,7 +225,7 @@ export default class Config extends Module{
         return text;
     }
 
-    public async handleList(interaction: Discord.CommandInteraction, user: User){
+    public async handleList(interaction: Discord.ChatInputCommandInteraction, user: User): Promise<void> {
         let target = interaction.options.getString("namespace", true);
 
         let keys = await this.bot.config.getFields(target);
@@ -254,8 +253,7 @@ export default class Config extends Module{
                 if(!await Access.Check(user, [ Access.ADMIN() ])) throw new MissingPermissionsError();
 
                 for(let k of keys){
-                    let container = (await this.bot.config.get(target, k) || {});
-                    let val = container;
+                    let val = (await this.bot.config.get(target, k) || {});
 
                     fields.push({
                         name: k,
@@ -286,15 +284,16 @@ export default class Config extends Module{
         }
 
         let text = this.makeList(fields);
-        let emb = new Discord.MessageEmbed({
+        let emb = new Discord.EmbedBuilder({
             title: `${target} config`,
             description: "`<field>: <type> = <value>`\n\n" + text,
             color: Colors.Noraml,
         });
-        return await interaction.reply({ embeds: [emb] });
+        await interaction.reply({ embeds: [emb] });
+        return;
     }
 
-    public async handleSet(interaction: Discord.CommandInteraction, user: User){
+    public async handleSet(interaction: Discord.ChatInputCommandInteraction, user: User): Promise<void> {
         let values = {
             attachment: interaction.options.getAttachment("value_attach"),
             bool:       interaction.options.getBoolean("value_bool"),
@@ -320,7 +319,7 @@ export default class Config extends Module{
         let value = values[type];
         if(!value) throw new SynergyUserError("Incorrect data type selected.", "Required type: " + type);
 
-        if(value instanceof Discord.MessageAttachment){
+        if(value instanceof Discord.Attachment){
             value = value.proxyURL;
         }else if(typeof value !== "string" && typeof value !== "boolean" && typeof value !== "number"){
             value = value.id;
@@ -350,15 +349,16 @@ export default class Config extends Module{
 
         await this.bot.config.set(target, field, container, type);
 
-        let emb = new Discord.MessageEmbed({
+        let emb = new Discord.EmbedBuilder({
             title: `${target} config`,
             description: `Successfully changed "${field}" from "${old_value || "`[not set]`"}" to "${value}"`,
             color: Colors.Noraml,
         });
-        return await interaction.reply({ embeds: [emb] });
+        await interaction.reply({ embeds: [emb] });
+        return;
     }
 
-    public async handleAdd(interaction: Discord.CommandInteraction, user: User){
+    public async handleAdd(interaction: Discord.ChatInputCommandInteraction, user: User): Promise<void> {
         let values = {
             attachment: interaction.options.getAttachment("value_attach"),
             bool:       interaction.options.getBoolean("value_bool"),
@@ -389,7 +389,7 @@ export default class Config extends Module{
         let value = values[subtype]!;
 
         
-        if(value instanceof Discord.MessageAttachment){
+        if(value instanceof Discord.Attachment){
             value = value.proxyURL;
         }else if(typeof value !== "string" && typeof value !== "boolean" && typeof value !== "number"){
             value = value.id;
@@ -426,15 +426,16 @@ export default class Config extends Module{
 
         await this.bot.config.set(target, field, container, type);
 
-        let emb = new Discord.MessageEmbed({
+        let emb = new Discord.EmbedBuilder({
             title: `${target} config`,
             description: `Successfully added value ${value} to array "${field}"`,
             color: Colors.Noraml,
         });
-        return await interaction.reply({ embeds: [emb] });
+        await interaction.reply({ embeds: [emb] });
+        return;
     }
 
-    public async handleRemove(interaction: Discord.CommandInteraction, user: User){
+    public async handleRemove(interaction: Discord.ChatInputCommandInteraction, user: User): Promise<void> {
         let index = interaction.options.getInteger("index", true);
         let field = interaction.options.getString("field", true);
         let target = interaction.options.getString("namespace", true);
@@ -483,11 +484,12 @@ export default class Config extends Module{
 
         await this.bot.config.set(target, field, container, type);
 
-        let emb = new Discord.MessageEmbed({
+        let emb = new Discord.EmbedBuilder({
             title: `${target} config`,
             description: `Successfully removed ${rm_value} from array "${field}"`,
             color: Colors.Noraml,
         });
-        return await interaction.reply({ embeds: [emb] });
+        await interaction.reply({ embeds: [emb] });
+        return;
     }
 }

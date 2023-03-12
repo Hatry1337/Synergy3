@@ -18,7 +18,6 @@ export default class UserManager extends CachedManager<User>{
     constructor(public bot: Synergy){
         super();
         this.cacheStorage.on("del", this.onCacheEntryDeleted.bind(this));
-        this.bot.events.once("Stop", this.onceBOTStop.bind(this));
     }
 
     /**
@@ -90,7 +89,7 @@ export default class UserManager extends CachedManager<User>{
             groups,
             lang: "en",
             discordId: dUser.id
-        });
+        } as StorageUser);
 
         let discord: UserDiscordOptions = {
             id: dUser.id,
@@ -125,11 +124,11 @@ export default class UserManager extends CachedManager<User>{
         }
     }
 
-    private async onceBOTStop() {
+    public override async destroy() {
         for(let k of this.cacheStorage.keys()) {
-            this.cacheStorage.del(k);
+            await this.onCacheEntryDeleted(k, this.cacheStorage.get(k)!);
         }
-        this.cacheStorage.close();
+        await super.destroy();
     }
 
     private async onCacheEntryDeleted(discordId: string, user: User) {
@@ -151,7 +150,7 @@ export default class UserManager extends CachedManager<User>{
             economyPoints: user.economy.points,
             economyLVL: user.economy.lvl,
             economyXP: user.economy.xp,
-        }, {
+        } as StorageUserEconomyInfo, {
             transaction: t
         }).catch(err => GlobalLogger.root.warn("UserManager.onCacheEntryDeleted Error Upserting StorageUserEconomyInfo:", err));
 
@@ -162,7 +161,7 @@ export default class UserManager extends CachedManager<User>{
             discordAvatar: user.discord.avatar,
             discordBanner: user.discord.banner,
             discordCreatedAt: user.discord.createdAt,
-        }, {
+        } as StorageUserDiscordInfo, {
             transaction: t
         }).catch(err => GlobalLogger.root.warn("UserManager.onCacheEntryDeleted Error Upserting StorageUserDiscordInfo:", err));
 

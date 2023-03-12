@@ -2,9 +2,7 @@ import IModule from "./IModule";
 import { ModuleLogger } from "../GlobalLogger";
 import { InteractiveComponent, Synergy } from "..";
 import { InteractiveCommand } from "../Interactions/InteractiveCommand";
-import { Permissions } from "discord.js";
 import { AccessTarget } from "../Structures/Access";
-import { SlashCommandBuilder } from "@discordjs/builders";
 import Discord from "discord.js";
 
 export type ModuleSharedMethods = { [key: string]: (...args: any) => any };
@@ -37,10 +35,10 @@ export default class Module implements IModule{
     /**
      * Permissions of the bot your module require. **THIS FEATURE IS NOT IMPLEMENTED AT THIS MOMENT**
      */
-    public Permissions: Permissions = new Permissions();
+    public Permissions: Discord.PermissionsBitField = new Discord.PermissionsBitField();
 
     readonly Logger: ModuleLogger = new ModuleLogger(this);
-    readonly SlashCommands: InteractiveCommand<SlashCommandBuilder>[] = [];
+    readonly SlashCommands: InteractiveCommand<Discord.SlashCommandBuilder>[] = [];
 
     protected sharedMethods: ModuleSharedMethods = {};
 
@@ -82,14 +80,14 @@ export default class Module implements IModule{
      * @param name Name of the component (identifier)
      * @param access Allowed access targets to interact with this component
      */
-    public createMessageButton(name: string, access?: AccessTarget[]): InteractiveComponent<Discord.MessageButton>;
+    public createMessageButton(name: string, access?: AccessTarget[]): InteractiveComponent<Discord.ButtonBuilder>;
     /**
      * Creates temporary interactive button that will be removed by interactions limit or lifetime limit
      * @param access Allowed access targets to interact with this component
      * @param interactionsLimit After reaching this amount of interactions component will be removed (-1 for no limit)
      * @param lifeTime After this amount of milliseconds component will be removed (-1 for no limit)
      */
-    public createMessageButton(access?: AccessTarget[], interactionsLimit?: number, lifeTime?: number): InteractiveComponent<Discord.MessageButton>;
+    public createMessageButton(access?: AccessTarget[], interactionsLimit?: number, lifeTime?: number): InteractiveComponent<Discord.ButtonBuilder>;
 
     public createMessageButton(arg1?: string | AccessTarget[], arg2?: AccessTarget[] | number, arg3?: number){
         if(typeof arg1 === "string"){
@@ -104,14 +102,14 @@ export default class Module implements IModule{
      * @param name Name of the component (identifier)
      * @param access Allowed access targets to interact with this component
      */
-    public createMessageSelectMenu(name: string, access?: AccessTarget[]): InteractiveComponent<Discord.MessageSelectMenu>;
+    public createMessageSelectMenu(name: string, access?: AccessTarget[]): InteractiveComponent<Discord.SelectMenuBuilder>;
     /**
      * Creates temporary interactive select menu that will be removed by interactions limit or lifetime limit
      * @param access Allowed access targets to interact with this component
      * @param interactionsLimit After reaching this amount of interactions component will be removed (-1 for no limit)
      * @param lifeTime After this amount of milliseconds component will be removed (-1 for no limit)
      */
-    public createMessageSelectMenu(access?: AccessTarget[], interactionsLimit?: number, lifeTime?: number): InteractiveComponent<Discord.MessageSelectMenu>;
+    public createMessageSelectMenu(access?: AccessTarget[], interactionsLimit?: number, lifeTime?: number): InteractiveComponent<Discord.SelectMenuBuilder>;
 
     public createMessageSelectMenu(arg1?: string | AccessTarget[], arg2?: AccessTarget[] | number, arg3?: number){
         if(typeof arg1 === "string"){

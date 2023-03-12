@@ -51,6 +51,11 @@ export interface SynergyOptions{
      *  Save sql requests to log file?
      */
     saveSQLToFile?: boolean;
+
+    /**
+     *  Directory where to put Synergy log files
+     */
+    logsDir?: string;
 }
 
 export type ModuleUUIDPair = { UUID: string, Module: typeof Module };
@@ -71,6 +76,10 @@ export default class Synergy{
     public moduleGlobalLoading: boolean;
 
     constructor(public options: SynergyOptions, modules: ModuleUUIDPair[]){
+        if(options.logsDir) {
+            GlobalLogger.setLogsDir(options.logsDir);
+        }
+
         logger.info(`Starting Synergy 3 - Rich and Flexible Discord BOT framework...`);
 
         this.client = new Discord.Client(options.clientOptions);
@@ -107,10 +116,10 @@ export default class Synergy{
         logger.info(`# Modules unloaded.`);
 
         //TODO Check if "del" event called on cache flush
-        //await this.users.syncStorage().catch(logger.error);
+        await this.users.destroy().catch(logger.error);
 
-        await this.modules.data.syncStorage().catch(logger.error);
-        //await this.guilds.syncStorage().catch(logger.error);
+        await this.modules.data._syncStorage().catch(logger.error);
+        await this.guilds.destroy().catch(logger.error);
         logger.info(`# Data locked and saved.`);
         this.client.destroy();
         logger.info(`# Client destroyed.`);

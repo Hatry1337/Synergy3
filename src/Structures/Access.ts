@@ -14,7 +14,7 @@ export default class Access {
     static SERVER_MOD(): AccessTarget {
         return "server_mod";
     }
-    static PERM(perm: Discord.PermissionString): AccessTarget{
+    static PERM(perm: Discord.PermissionsString): AccessTarget{
         return `perm<${perm}>`;
     }
     static PLAYER(): AccessTarget {
@@ -38,11 +38,7 @@ export default class Access {
 
         for(let a of targets){
             if(user.groups.includes("banned")){
-                if(a.startsWith("banned")){
-                    access_flag = true;
-                }else{
-                    access_flag = false;
-                }
+                access_flag = a.startsWith("banned");
                 continue;
             }
             if(a.startsWith("player")){
@@ -111,7 +107,7 @@ export default class Access {
             if(guild && a.startsWith("server_admin")){
                 let member = guild.members.cache.get(user.discord.id);
                 if(member){
-                    if(member.permissions.has("ADMINISTRATOR")){
+                    if(member.permissions.has("Administrator")){
                         access_flag = true;
                         break;
                     }

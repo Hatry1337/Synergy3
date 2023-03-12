@@ -1,6 +1,6 @@
 {
   "name": "synergy3",
-  "version": "3.9.1",
+  "version": "3.11.0",
   "description": "Synergy 3 - Powerful Discord BOT Framework.",
   "license": "MIT",
   "author": {
@@ -30,10 +30,7 @@
     "test": "npx jest --setupFiles dotenv/config --detectOpenHandles"
   },
   "dependencies": {
-    "@discordjs/builders": "^0.15.0",
-    "@discordjs/rest": "^0.5.0",
-    "discord-api-types": "^0.36.0",
-    "discord.js": "^13.12.0",
+    "discord.js": "^14.7.1",
     "log4js": "^6.5.2",
     "node-cache": "^5.1.2",
     "pg": "^8.7.3",

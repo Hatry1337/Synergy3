@@ -4,7 +4,7 @@ import { StorageUser } from "./StorageUser";
 @Table({
     timestamps: true,
 })
-export class StorageUserEconomyInfo extends Model {
+export class StorageUserEconomyInfo extends Model<StorageUserEconomyInfo> {
     @ForeignKey(() => StorageUser)
     @PrimaryKey
     @Column

@@ -19,23 +19,24 @@ test("UserManager - Test ids associations", async () => {
 
         try {
             let user = await StorageUser.create({
+                discordId: d_id,
                 nickname: `TestUser#${i}`,
                 groups: [ "player" ],
                 lang: "en",
-            });
+            } as StorageUser);
             let economy = await StorageUserEconomyInfo.create({
                 id: user.id,
                 economyPoints: 1337,
                 economyLVL: 69,
                 economyXP: 420,
-            });
+            } as StorageUserEconomyInfo);
             let discord = await StorageUserDiscordInfo.create({
                 id: user.id,
                 discordId: d_id,
                 discordTag: `TestUser#${i}`,
                 discordAvatar: `https://cdn.discordapp.com/avatars/508637328349331462/ced8cce78f895423ffa0fda824697c2e.webp`,
                 discordCreatedAt: new Date(),
-            });
+            } as StorageUserDiscordInfo);
             
             ids.set(d_id, user.id);
         } catch (error) {
@@ -67,23 +68,24 @@ test("UserManager - fetchOne", async () => {
 
         try {
             let user = await StorageUser.create({
+                discordId: d_id,
                 nickname: `TestUser#${i}`,
                 groups: [ "player" ],
                 lang: "en",
-            });
+            } as StorageUser);
             let economy = await StorageUserEconomyInfo.create({
                 id: user.id,
                 economyPoints: 1337,
                 economyLVL: 69,
                 economyXP: 420,
-            });
+            } as StorageUserEconomyInfo);
             let discord = await StorageUserDiscordInfo.create({
                 id: user.id,
                 discordId: d_id,
                 discordTag: `TestUser#${i}`,
                 discordAvatar: `https://cdn.discordapp.com/avatars/508637328349331462/ced8cce78f895423ffa0fda824697c2e.webp`,
                 discordCreatedAt: new Date(),
-            });
+            } as StorageUserDiscordInfo);
             
             ids.set(d_id, user.id);
         } catch (error) {
@@ -119,23 +121,24 @@ test("UserManager - fetchBulk", async () => {
 
         try {
             let user = await StorageUser.create({
+                discordId: d_id,
                 nickname: `TestUser#${i}`,
                 groups: [ "player" ],
                 lang: "en",
-            });
+            } as StorageUser);
             let economy = await StorageUserEconomyInfo.create({
                 id: user.id,
                 economyPoints: 1337,
                 economyLVL: 69,
                 economyXP: 420,
-            });
+            } as StorageUserEconomyInfo);
             let discord = await StorageUserDiscordInfo.create({
                 id: user.id,
                 discordId: d_id,
                 discordTag: `TestUser#${i}`,
                 discordAvatar: `https://cdn.discordapp.com/avatars/508637328349331462/ced8cce78f895423ffa0fda824697c2e.webp`,
                 discordCreatedAt: new Date(),
-            });
+            } as StorageUserDiscordInfo);
             
             ids.set(d_id, user.id);
         } catch (error) {
@@ -156,4 +159,4 @@ test("UserManager - fetchBulk", async () => {
     }
 
     bot.events.emit("Stop");
-});
+}, 15000);

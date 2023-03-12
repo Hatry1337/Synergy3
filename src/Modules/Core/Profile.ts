@@ -33,7 +33,7 @@ export default class Profile extends Module{
     }
     
     private createMessageTemplate(user: User){
-        let embd = new Discord.MessageEmbed({
+        return new Discord.EmbedBuilder({
             title: `${user.nickname}'s profile`,
             thumbnail: user.discord?.avatar ? { url: user.discord.avatar } : undefined,
             fields: [
@@ -51,26 +51,26 @@ export default class Profile extends Module{
                 ],
             color: Colors.Noraml
         });
-        return embd;
     }
 
-    public Run(interaction: Discord.CommandInteraction, user: User){
-        return new Promise<void>(async (resolve, reject) => {
-            let target_user = interaction.options.getUser("target_user");
-            if(!target_user){
-                return resolve(await interaction.reply({ embeds: [this.createMessageTemplate(user)] }).catch(reject));
-            }else{
-                if(target_user.bot){
-                    return resolve(await interaction.reply({ embeds: [ Utils.ErrMsg("You can't view BOT's profile.") ] }).catch(reject));
-                }
+    public async Run(interaction: Discord.ChatInputCommandInteraction, user: User) {
+        let target_user = interaction.options.getUser("target_user");
+        if (!target_user) {
+            await interaction.reply({embeds: [this.createMessageTemplate(user)]});
+            return;
+        }
 
-                let target = await this.bot.users.get(target_user.id);
+        if (target_user.bot) {
+            await interaction.reply({embeds: [Utils.ErrMsg("You can't view BOT's profile.")]});
+            return;
+        }
 
-                if(!target){
-                    target = await this.bot.users.createFromDiscord(target_user);
-                }
-                return resolve(await interaction.reply({ embeds: [this.createMessageTemplate(target)] }).catch(reject));
-            }
-        });
+        let target = await this.bot.users.get(target_user.id);
+
+        if (!target) {
+            target = await this.bot.users.createFromDiscord(target_user);
+        }
+
+        await interaction.reply({embeds: [this.createMessageTemplate(target)]});
     }
 }
