@@ -12,18 +12,18 @@ import { GuildManager, UserManager } from "discord.js"
 import ModuleDataManager from "./ModuleDataManager"
 import ModuleManager, { ModuleCommonInfo } from "./ModuleManager"
 import InteractionsManager from "./InteractionsManager";
-import { GuildOnlyError, SynergyUserError, NoConfigEntryError, MissingPermissionsError } from "./Structures/Errors"
+import { GuildOnlyError, MissingPermissionsError, NoConfigEntryError, SynergyUserError } from "./Structures/Errors"
 import Access, { AccessTarget } from "./Structures/Access"
 import {
-    InteractiveComponentTargets,
-    InteractiveCommandTargets,
+    CallbackTypeOf,
     InteractionTypeOf,
-    InteractiveTargets,
-    CallbackTypeOf
+    InteractiveCommandTargets,
+    InteractiveComponentTargets,
+    InteractiveTargets
 } from "./Interactions/InteractionTypes";
 import { InteractiveCommand } from "./Interactions/InteractiveCommand";
 import { InteractiveComponent } from "./Interactions/InteractiveComponent";
-import BaseConfigEntry from "./ConfigManager/ConfigEntries/BaseConfigEntry"
+import BaseConfigEntry, { ArrayConfigEntry, NonArrayConfigEntry } from "./ConfigManager/ConfigEntries/BaseConfigEntry"
 import CommonArrayConfigEntry from "./ConfigManager/ConfigEntries/CommonArrayConfigEntry"
 import CommonConfigEntry from "./ConfigManager/ConfigEntries/CommonConfigEntry"
 import { EphemeralArrayConfigEntry } from "./ConfigManager/ConfigEntries/EphemeralArrayConfigEntry"
@@ -79,8 +79,11 @@ export {
     TypeOfConfigDataType,
     dataStructureToString,
     //ConfigDataType,
+    NonArrayConfigEntry,
+    ArrayConfigEntry,
 
-    EventManager,
+
+EventManager,
 
     InteractionsManager,
     InteractiveCommand,
