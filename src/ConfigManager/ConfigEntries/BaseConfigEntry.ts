@@ -2,7 +2,8 @@ import Discord from "discord.js";
 import { ConfigCommonDataType, TypeOfConfigDataType } from "../ConfigDataTypes";
 import {
     ConfigAttachment,
-    ConfigDataStructure, ConfigDataStructureOf,
+    ConfigDataStructure,
+    ConfigDataStructureOf,
     ConfigGuildChannel,
     ConfigRole,
     ConfigUser
@@ -11,6 +12,9 @@ import { EphemeralArrayConfigEntry } from "./EphemeralArrayConfigEntry";
 import { EphemeralConfigEntry } from "./EphemeralConfigEntry";
 import CommonArrayConfigEntry from "./CommonArrayConfigEntry";
 import CommonConfigEntry from "./CommonConfigEntry";
+
+export type NonArrayConfigEntry<T extends ConfigCommonDataType> = CommonConfigEntry<T> | EphemeralConfigEntry<T>;
+export type ArrayConfigEntry<T extends ConfigCommonDataType> = CommonArrayConfigEntry<T> | EphemeralArrayConfigEntry<T>;
 
 export interface RawBaseConfigEntry<T extends ConfigCommonDataType> {
     name: string;
