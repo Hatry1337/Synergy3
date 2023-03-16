@@ -2,7 +2,7 @@ require("dotenv").config("../.env");
 
 const Discord = require("discord.js");
 
-const { Module, Synergy, CoreModules, GuildOnlyError, NoConfigEntryError } = require("..");
+const { Module, Synergy, CoreModules, GuildOnlyError, NoConfigEntryError, EphemeralConfigEntry, EphemeralArrayConfigEntry } = require("..");
 
 class TestMod extends Module{
     Name         = "TestMod";
@@ -36,6 +36,23 @@ class TestMod extends Module{
             )
             .onExecute(this.Run.bind(this))
             .commit()
+        );
+
+        this.bot.config.addConfigEntry("user", this.Name,
+            new EphemeralConfigEntry(
+                "test_config_entry",
+                "Config entry just for testing purposes.",
+                "string",
+                false
+            )
+        );
+        this.bot.config.addConfigEntry("user", this.Name,
+            new EphemeralArrayConfigEntry(
+                "test_array_entry",
+                "Config entry just for testing purposes.",
+                "string",
+                false
+            )
         );
     }
 

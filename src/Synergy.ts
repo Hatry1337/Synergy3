@@ -6,7 +6,7 @@ import Module from "./Modules/Module";
 import EventManager from "./EventManager";
 import ModuleManager from "./ModuleManager";
 import UserManager from "./UserManager";
-import ConfigManager from "./ConfigManager";
+import ConfigManager from "./ConfigManager/ConfigManager";
 import GuildManager from "./GuildManager";
 
 import { initsequelize, sequelize } from "./Database";

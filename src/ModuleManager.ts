@@ -25,6 +25,10 @@ export default class ModuleManager{
     }
 
     public RegisterModule(mod: typeof Module, uuid: string, preLoad: boolean = false){
+        if(mod.name.toLowerCase() === "synergy3") {
+            GlobalLogger.root.error(`[ModuleRegistry] Module "${mod.name}" uses reserved name. Registration skipped.`);
+            return;
+        }
         GlobalLogger.root.info(`[ModuleRegistry] Registered "${mod.name}" module.${preLoad ? " Preloading..." : ""}`);
         ModuleRegistry.set(uuid, mod);
         if(preLoad){
@@ -36,7 +40,7 @@ export default class ModuleManager{
      * Don't execute this function directly! It is for internal calls 
     */
     public Init(){
-        return new Promise<number>(async (resolve, reject) => {
+        return new Promise<number>(async resolve => {
             let cmdc = Modules.slice(0);
             cmdc.sort((a, b) => (b.InitPriority - a.InitPriority));
             let count = 0;

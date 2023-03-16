@@ -366,12 +366,23 @@ export default class InteractionsManager{
             }
             if(a.startsWith("server_mod")){
                 if(interaction.guild && interaction.member instanceof Discord.GuildMember){
-                    let mod_role_id = (await this.bot.config.get("guild", "moderator_role"))[interaction.guild.id] as string | undefined;
-                    if(!mod_role_id){
+                    let configEntry = user.bot.config.getConfigEntry("guild", "moderator_role");
+                    if(!configEntry || !(configEntry.entry.isCommon() || configEntry.entry.isEphemeral())) {
+                        GlobalLogger.root.warn("InteractionsManager", "onInteractionCreate server_mod check wrong ConfigEntry type.");
+                        continue;
+                    }
+                    if(configEntry.entry.isArray() || !configEntry.entry.isRole()) {
+                        GlobalLogger.root.warn("InteractionsManager", "onInteractionCreate server_mod check wrong ConfigEntry type.");
+                        continue;
+                    }
+
+                    let mod_role = configEntry.entry.getValue(interaction.guild.id);
+
+                    if(!mod_role){
                         await interaction.reply({ embeds: [ Utils.ErrMsg("You need Moderator Role to do this. Configure them with command `/config guild set field:moderator_role value_role:@Role`") ], ephemeral: true });
                         return;
                     }
-                    if(interaction.member.roles.cache.has(mod_role_id)){
+                    if(interaction.member.roles.cache.has(mod_role.id)){
                         access_flag = true;
                         break;
                     }

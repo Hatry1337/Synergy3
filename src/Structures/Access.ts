@@ -97,8 +97,20 @@ export default class Access {
             if(guild && a.startsWith("server_mod")){
                 let member = guild.members.cache.get(user.discord.id);
                 if(member){
-                    let mod_role_id = (await user.bot.config.get("guild", "moderator_role"))[guild.id] as string | undefined;
-                    if(mod_role_id && member.roles.cache.has(mod_role_id)){
+                    let configEntry = user.bot.config.getConfigEntry("guild", "moderator_role");
+                    if(!configEntry || !(configEntry.entry.isCommon() || configEntry.entry.isEphemeral())) {
+                        continue;
+                    }
+                    if(configEntry.entry.isArray() || !configEntry.entry.isRole()) {
+                        continue;
+                    }
+
+                    let mod_role = configEntry.entry.getValue(guild.id);
+                    if(!mod_role) {
+                        continue;
+                    }
+
+                    if(mod_role && member.roles.cache.has(mod_role.id)){
                         access_flag = true;
                         break;
                     }

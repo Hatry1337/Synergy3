@@ -7,25 +7,59 @@ type ModuleDataType = {[key: string]: any};
 const dataContainers: Map<string, ModuleDataContainer> = new Map();
 const moduleDatas: Map<string, ModuleDataType> = new Map();
 
+export type DataContainerPrimitive = string | number | boolean | null | object | undefined;
+
 export class ModuleDataContainer{
     constructor(public bot: Synergy, private uuid: string, data: ModuleDataType){
         moduleDatas.set(uuid, data);
     }
 
-    public get(field: string): any | null {
+    public get(field: string): DataContainerPrimitive {
         let data = moduleDatas.get(this.uuid);
-        return data ? data[field] : null;
+        if(!data) {
+            data = {};
+            moduleDatas.set(this.uuid, data);
+        }
+        return data[field];
     }
 
-    public set(field: string, value: any) {
+    public set(field: string, value: DataContainerPrimitive) {
+        let data = moduleDatas.get(this.uuid);
+        if(!data){
+            data = {};
+            moduleDatas.set(this.uuid, data);
+        }
+        data[field] = value;
+    }
+
+    /*
+        Returns container copy represented as JSON object
+     */
+    public dump() {
         let data = moduleDatas.get(this.uuid);
         if(data){
-            data[field] = value;
+            //Hack???
+            return JSON.parse(JSON.stringify(data));
         }
+        return {};
+    }
+
+    /*
+        Restore container contents from dump or just replace them with another data
+     */
+    public restore(data: any) {
+        //Another hack???
+        moduleDatas.set(this.uuid, JSON.parse(JSON.stringify(data)));
     }
 
     public wipe(){
         moduleDatas.set(this.uuid, {});
+    }
+
+    public isEmpty(): boolean {
+        let data = moduleDatas.get(this.uuid);
+        if(data === undefined) return true;
+        return Object.keys(data).length === 0;
     }
 }
 
@@ -96,7 +130,7 @@ export default class ModuleDataManager{
                 }).catch(err => GlobalLogger.root.warn("ModuleDataManager.syncStorage Error Updating StorageModuleDataContainer:", err));
 
             }
-            await t.commit().catch(err => GlobalLogger.root.error("ModuleDataManager.syncStorage Error Commiting:", err));
+            await t.commit().catch(err => GlobalLogger.root.error("ModuleDataManager.syncStorage Error Committing:", err));
             return resolve();
         });
     }
