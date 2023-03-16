@@ -2,10 +2,11 @@ import { EphemeralConfigEntry } from "../../src/ConfigManager/ConfigEntries/Ephe
 
 test("ConfigManager - EphemeralConfigEntry", () => {
     let entryName = "test_entry";
+    let entryDescription = "Very useful config entry.";
     let ephemeralTarget = "SomeUser1";
     let entryValue = "Hello World!";
 
-    let entry = new  EphemeralConfigEntry(entryName, "string", true);
+    let entry = new  EphemeralConfigEntry(entryName, entryDescription, "string", true);
 
     expect(entry.name).toBe(entryName);
     expect(entry.isString()).toBeTruthy();

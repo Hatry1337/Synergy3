@@ -2,9 +2,10 @@ import CommonConfigEntry from "../../src/ConfigManager/ConfigEntries/CommonConfi
 
 test("ConfigManager - CommonConfigEntry", () => {
     let entryName = "test_entry";
+    let entryDescription = "Very useful config entry.";
     let entryValue = "Hello World!";
 
-    let entry = new  CommonConfigEntry(entryName, "string", false);
+    let entry = new  CommonConfigEntry(entryName, entryDescription, "string", false);
 
     expect(entry.name).toBe(entryName);
     expect(entry.isString()).toBeTruthy();

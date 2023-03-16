@@ -3,8 +3,9 @@ import CommonArrayConfigEntry from "../../src/ConfigManager/ConfigEntries/Common
 
 test("ConfigManager - BaseConfigEntry", () => {
     let entryName = "test_entry";
+    let entryDescription = "Very useful config entry.";
 
-    let entry: BaseConfigEntry<any> = new  CommonArrayConfigEntry(entryName, "string", true);
+    let entry: BaseConfigEntry<any> = new  CommonArrayConfigEntry(entryName, entryDescription, "string", true);
 
     expect(entry.name).toBe(entryName);
 
