@@ -82,6 +82,19 @@ export default class ConfigManager{
     /*
         Use this only inside your module's class constructor.
         -
+        Declares new config entry if it doesn't exist. Otherwise, returns existing one.
+     */
+    public defaultConfigEntry(namespace: string, createdBy: string, entry: BaseConfigEntry<any>, suppressInitWarn: boolean = false) {
+        let cEntry = this.getConfigEntry(namespace, entry.name);
+        if(cEntry) {
+            return cEntry;
+        }
+        return this.addConfigEntry(namespace, createdBy, entry, suppressInitWarn);
+    }
+
+    /*
+        Use this only inside your module's class constructor.
+        -
         Declares new config entry.
      */
     public addConfigEntry(namespace: string, createdBy: string, entry: BaseConfigEntry<any>, suppressInitWarn: boolean = false) {
@@ -112,6 +125,7 @@ export default class ConfigManager{
                 );
             }
         }
+        return entry;
     }
 
     /*
