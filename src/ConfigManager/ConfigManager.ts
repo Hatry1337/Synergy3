@@ -84,10 +84,17 @@ export default class ConfigManager{
         -
         Declares new config entry if it doesn't exist. Otherwise, returns existing one.
      */
-    public defaultConfigEntry(namespace: string, createdBy: string, entry: BaseConfigEntry<any>, suppressInitWarn: boolean = false) {
+    public defaultConfigEntry<T extends BaseConfigEntry<any> = BaseConfigEntry<any>>(namespace: string, createdBy: string, entry: T, suppressInitWarn: boolean = false): T {
         let cEntry = this.getConfigEntry(namespace, entry.name);
         if(cEntry) {
-            return cEntry;
+            if((cEntry.entry.isArray() !== entry.isArray()) || (cEntry.entry.type !== entry.type)) {
+                throw new Error(
+                    `Existing config entry is not compatible with defined one.\n` +
+                    `Existing entry - array:${cEntry.entry.isArray()}, type:${cEntry.entry.type}\n` +
+                    `Defined entry - array:${entry.isArray()}, type:${entry.type}`
+                );
+            }
+            return cEntry.entry as T;
         }
         return this.addConfigEntry(namespace, createdBy, entry, suppressInitWarn);
     }
@@ -97,7 +104,7 @@ export default class ConfigManager{
         -
         Declares new config entry.
      */
-    public addConfigEntry(namespace: string, createdBy: string, entry: BaseConfigEntry<any>, suppressInitWarn: boolean = false) {
+    public addConfigEntry<T extends BaseConfigEntry<any> = BaseConfigEntry<any>>(namespace: string, createdBy: string, entry: T, suppressInitWarn: boolean = false): T {
         let nsEntries = this.namespaces.get(namespace);
         if(!nsEntries) {
             nsEntries = [];
