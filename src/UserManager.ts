@@ -40,10 +40,14 @@ export default class UserManager extends CachedManager<User>{
             include: [StorageUserDiscordInfo, StorageUserEconomyInfo]
         });
 
-        if (!storageUser) return undefined;
-
-        let user = User.fromStorageUser(this.bot, storageUser);
-        await user.fetchDiscordUser();
+        let user;
+        if (!storageUser) {
+            let discordUser = await this.bot.client.users.fetch(id);
+            user = await this.createFromDiscord(discordUser);
+        } else {
+            user = User.fromStorageUser(this.bot, storageUser);
+            await user.fetchDiscordUser();
+        }
 
         this.cacheStorage.set(id, user);
         return user;
@@ -72,6 +76,14 @@ export default class UserManager extends CachedManager<User>{
             this.cacheStorage.set(user.id, user);
             res.set(user.discordId, user);
         }
+
+        let unfetchedUsers = ids.filter(id => storageUsers.findIndex(su => su.discordId === id) === -1);
+        for(let id of unfetchedUsers) {
+            let user = await this.fetchOne(id);
+            this.cacheStorage.set(user.id, user);
+            res.set(user.discordId, user);
+        }
+
         return res;
     }
 
