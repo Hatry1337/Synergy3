@@ -24,8 +24,19 @@ export default class UserManager extends CachedManager<User>{
      * Get legacy underlying database User id from Discord id
      * @param id
      */
-    public idFromDiscordId(id: string){
+    public idFromDiscordId(id: string): number | undefined{
         return this.discordIdsAssociations.get(id);
+    }
+
+    /**
+     * Get User Discord id from legacy underlying database id
+     * @param id
+     */
+    public discordIdFromLegacyId(id: number): string | undefined {
+        let entry = Array.from(this.discordIdsAssociations.entries()).find(e => e[1] === id);
+        if(entry) {
+            return entry[0];
+        }
     }
 
     /**
