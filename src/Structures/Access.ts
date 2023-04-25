@@ -26,8 +26,8 @@ export default class Access {
     static GROUP(group: string): AccessTarget {
         return `group<${group}>`;
     }
-    static USER(user_id: number | string): AccessTarget {
-        return `user<${user_id.toString()}>`;
+    static USER(user_id: string): AccessTarget {
+        return `user<${user_id}>`;
     }
     static ROLE(role_id: string): AccessTarget {
         return `role<${role_id}>`;
@@ -62,7 +62,7 @@ export default class Access {
                     GlobalLogger.root.warn("Access.Check: Passed invalid user access target \"", a + "\"");
                     continue;
                 }
-                if(user.unifiedId.toString() === res[1] || user.discord?.id === res[1]){
+                if(user.unifiedId === res[1] || user.discord?.id === res[1]){
                     access_flag = true;
                     break;
                 }

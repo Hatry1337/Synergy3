@@ -65,10 +65,13 @@ export default class Profile extends Module{
             return;
         }
 
-        let target = await this.bot.users.get(target_user.id);
-
-        if (!target) {
-            target = await this.bot.users.createFromDiscord(target_user);
+        let userId = await this.bot.users.unifiedIdFromDiscordId(target_user.id);
+        let target;
+        if(userId){
+            target = await this.bot.users.get(userId);
+        }
+        if(!target) {
+            target = await this.bot.users.createFromDiscord(interaction.user);
         }
 
         await interaction.reply({embeds: [this.createMessageTemplate(target)]});

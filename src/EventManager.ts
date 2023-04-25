@@ -144,8 +144,8 @@ class EventManager extends EventEmitter{
     private async onGuildMemberAdd(member: Discord.GuildMember){
         GlobalLogger.userlog.info(`${member} (${member.user.tag}) joined guild ${member.guild} (${member.guild.name}).`);
 
-        let user = await this.bot.users.get(member.id);
-        if(!user){
+        let userId = await this.bot.users.unifiedIdFromDiscordId(member.id);
+        if(!userId){
             await this.bot.users.createFromDiscord(member.user);
             return;
         }

@@ -281,9 +281,12 @@ export default class InteractionsManager{
                 return;
             }
             try {
-                let user = await this.bot.users.get(interaction.user.id);
-
-                if(!user){
+                let userId = await this.bot.users.unifiedIdFromDiscordId(interaction.user.id);
+                let user;
+                if(userId){
+                    user = await this.bot.users.get(userId);
+                }
+                if(!user) {
                     user = await this.bot.users.createFromDiscord(interaction.user);
                 }
                 await cmd._autocomplete(interaction, user);
@@ -310,9 +313,12 @@ export default class InteractionsManager{
             return;
         }
 
-        let user = await this.bot.users.get(interaction.user.id);
-
-        if(!user){
+        let userId = await this.bot.users.unifiedIdFromDiscordId(interaction.user.id);
+        let user;
+        if(userId){
+            user = await this.bot.users.get(userId);
+        }
+        if(!user) {
             user = await this.bot.users.createFromDiscord(interaction.user);
         }
 
