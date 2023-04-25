@@ -65,7 +65,7 @@ export default class Profile extends Module{
             return;
         }
 
-        let userId = await this.bot.users.unifiedIdFromDiscordId(target_user.id);
+        let userId = this.bot.users.unifiedIdFromDiscordId(target_user.id);
         let target;
         if(userId){
             target = await this.bot.users.get(userId);

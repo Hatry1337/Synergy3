@@ -281,7 +281,7 @@ export default class InteractionsManager{
                 return;
             }
             try {
-                let userId = await this.bot.users.unifiedIdFromDiscordId(interaction.user.id);
+                let userId = this.bot.users.unifiedIdFromDiscordId(interaction.user.id);
                 let user;
                 if(userId){
                     user = await this.bot.users.get(userId);
@@ -313,7 +313,7 @@ export default class InteractionsManager{
             return;
         }
 
-        let userId = await this.bot.users.unifiedIdFromDiscordId(interaction.user.id);
+        let userId = this.bot.users.unifiedIdFromDiscordId(interaction.user.id);
         let user;
         if(userId){
             user = await this.bot.users.get(userId);

@@ -14,7 +14,7 @@ import { UserAlreadyExistError } from "./Structures/Errors";
 import CachedManager from "./Structures/CachedManager";
 
 export default class UserManager extends CachedManager<User>{
-    private discordIdsAssociations: Map<string, string> = new Map();
+    private discordIdsAssociations: Map<string, Discord.Snowflake> = new Map();
     constructor(public bot: Synergy){
         super();
         this.cacheStorage.on("del", this.onCacheEntryDeleted.bind(this));
@@ -59,6 +59,9 @@ export default class UserManager extends CachedManager<User>{
         await user.fetchDiscordUser();
 
         this.cacheStorage.set(id, user);
+        if(user.discord) {
+            this.discordIdsAssociations.set(user.unifiedId, user.discord.id);
+        }
         return user;
     }
 
@@ -83,6 +86,9 @@ export default class UserManager extends CachedManager<User>{
             await user.fetchDiscordUser();
 
             this.cacheStorage.set(user.unifiedId, user);
+            if(user.discord) {
+                this.discordIdsAssociations.set(user.unifiedId, user.discord.id);
+            }
             res.set(user.unifiedId, user);
         }
 
@@ -91,6 +97,9 @@ export default class UserManager extends CachedManager<User>{
             let user = await this.fetchOne(id);
             if(!user) continue;
             this.cacheStorage.set(user.unifiedId, user);
+            if(user.discord) {
+                this.discordIdsAssociations.set(user.unifiedId, user.discord.id);
+            }
             res.set(user.unifiedId, user);
         }
 
@@ -116,6 +125,9 @@ export default class UserManager extends CachedManager<User>{
         });
 
         this.cacheStorage.set(user.unifiedId, user);
+        if(user.discord) {
+            this.discordIdsAssociations.set(user.unifiedId, user.discord.id);
+        }
         return user;
     }
 
@@ -135,6 +147,7 @@ export default class UserManager extends CachedManager<User>{
         }, system);
 
         user.bindDiscord(dUser);
+        this.discordIdsAssociations.set(user.unifiedId, dUser.id);
         return user;
     }
 
