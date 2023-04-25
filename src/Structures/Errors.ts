@@ -30,7 +30,7 @@ export class MissingPermissionsError extends SynergyUserError {
 
 export class UserAlreadyExistError extends Error {
     constructor(user: User | Discord.User){
-        super(`Error: User ${user instanceof Discord.User ? user.tag : user.nickname}(${user.id}) already exist.`);
+        super(`Error: User ${user instanceof Discord.User ? `${user.tag}(${user.id})` : `${user.nickname}(${user.unifiedId})`} already exist.`);
     }
 }
 

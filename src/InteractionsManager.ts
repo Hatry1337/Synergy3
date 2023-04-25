@@ -57,6 +57,22 @@ export default class InteractionsManager{
     }
 
     /**
+     * This method allows to emulate incoming interaction.
+     * @param interaction interaction to emulate
+     */
+    public emulate(interaction: Discord.Interaction) {
+        this.onInteractionCreate(interaction).catch(e => GlobalLogger.root.error("Error emulating interaction:", e));
+    }
+
+    /**
+     * This method allows to asynchronously emulate incoming interaction.
+     * @param interaction interaction to emulate
+     */
+    public async emulateAsync(interaction: Discord.Interaction) {
+        await this.onInteractionCreate(interaction).catch(e => GlobalLogger.root.error("Error emulating interaction:", e));
+    }
+
+    /**
      * @param name command name
      * @param access access targets that allowed to use this command
      * @param module module that is created this command
@@ -328,7 +344,7 @@ export default class InteractionsManager{
                     GlobalLogger.root.warn("InteractionsManager.InteractionProcessing: Passed invalid user access target \"", a + "\"");
                     continue;
                 }
-                if(user.id.toString() === res[1] || user.discord.id === res[1]){
+                if(user.unifiedId === res[1] || user.discord?.id === res[1]){
                     access_flag = true;
                     break;
                 }

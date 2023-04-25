@@ -62,12 +62,15 @@ export default class Access {
                     GlobalLogger.root.warn("Access.Check: Passed invalid user access target \"", a + "\"");
                     continue;
                 }
-                if(user.id.toString() === res[1] || user.discord.id === res[1]){
+                if(user.unifiedId.toString() === res[1] || user.discord?.id === res[1]){
                     access_flag = true;
                     break;
                 }
             }
             if(guild && a.startsWith("role")){
+                if(!user.discord) {
+                    continue;
+                }
                 let res = /role<(.*)>/.exec(a);
                 if(!res || !res[1]){
                     GlobalLogger.root.warn("Access.Check: Passed invalid role access target \"", a + "\"");
@@ -80,6 +83,9 @@ export default class Access {
                 }
             }
             if(guild && a.startsWith("perm")){
+                if(!user.discord) {
+                    continue;
+                }
                 let res = /perm<(.*)>/.exec(a);
                 if(!res || !res[1]){
                     GlobalLogger.root.warn("Access.Check: Passed invalid perm access target \"", a + "\"");
@@ -95,6 +101,9 @@ export default class Access {
                 }
             }
             if(guild && a.startsWith("server_mod")){
+                if(!user.discord) {
+                    continue;
+                }
                 let member = guild.members.cache.get(user.discord.id);
                 if(member){
                     let configEntry = user.bot.config.getConfigEntry("guild", "moderator_role");
@@ -117,6 +126,9 @@ export default class Access {
                 }
             }
             if(guild && a.startsWith("server_admin")){
+                if(!user.discord) {
+                    continue;
+                }
                 let member = guild.members.cache.get(user.discord.id);
                 if(member){
                     if(member.permissions.has("Administrator")){

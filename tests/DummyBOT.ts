@@ -15,7 +15,8 @@ class DummyClient extends EventEmitter {
             return {
                 id,
                 tag: "TestUser#1337",
-                avatar: "https://cdn.discordapp.com/avatars/508637328349331462/ced8cce78f895423ffa0fda824697c2e.webp",
+                avatarURL: () => "https://cdn.discordapp.com/avatars/508637328349331462/ced8cce78f895423ffa0fda824697c2e.webp",
+                bannerURL: () => "banner url lol",
                 createdAt: new Date(),
                 displayAvatarURL: () => "https://cdn.discordapp.com/avatars/508637328349331462/ced8cce78f895423ffa0fda824697c2e.webp"
             }
@@ -30,10 +31,10 @@ class DummyBOT {
     };
     public isReady = true;
     public users = {
-        idFromDiscordId: (id: string) => { return 1337 },
+        unifiedIdFromDiscordId: (id: string) => { return "234abc" },
         fetchOne: (id: string) => {
             return new User(this as unknown as Synergy, {
-                id: this.users.idFromDiscordId(id),
+                unifiedId: this.users.unifiedIdFromDiscordId(id),
                 nickname: "TestUser#1337",
                 groups: [ "palayer" ],
                 lang: "en",
@@ -42,7 +43,6 @@ class DummyBOT {
                     xp: 0,
                     lvl: 1
                 },
-                discordId: id,
                 discord: {
                     id,
                     tag: "TestUser#1337",
@@ -54,7 +54,7 @@ class DummyBOT {
         fetchBulk: (ids: string[]) => {
             return ids.map(id =>
                 new User(this as unknown as Synergy, {
-                    id: this.users.idFromDiscordId(id),
+                    unifiedId: this.users.unifiedIdFromDiscordId(id),
                     nickname: "TestUser#1337",
                     groups: [ "palayer" ],
                     lang: "en",
@@ -63,7 +63,6 @@ class DummyBOT {
                         xp: 0,
                         lvl: 1
                     },
-                    discordId: id,
                     discord: {
                         id,
                         tag: "TestUser#1337",

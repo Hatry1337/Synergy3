@@ -19,9 +19,10 @@ const Modules: Module[] = [];
 const ModuleRegistry: Map<string, typeof Module> = new Map();
 
 export default class ModuleManager{
-    public data: ModuleDataManager = new ModuleDataManager(this.bot);
+    public data: ModuleDataManager;
 
     constructor(public bot: Synergy){
+        this.data = new ModuleDataManager(this.bot);
     }
 
     public RegisterModule(mod: typeof Module, uuid: string, preLoad: boolean = false){

@@ -53,11 +53,11 @@ class EventManager extends EventEmitter{
             logger.info(`Fetching system user..`);
             await this.bot.users.updateAssociations();
 
-            let sys = await this.bot.users.fetchOne(this.bot.client.user?.id ?? "alice");
+            let sys = await this.bot.users.fetchOne("0");
             if(!sys){
                 logger.info(`No system user. Creating new one..`);
-                sys = await this.bot.users.createFromDiscord(this.bot.client.user!, [ Access.ADMIN() ]);
-                logger.info(`Created system user. ID: ${sys.id}`);
+                sys = await this.bot.users.createFromDiscord(this.bot.client.user!, [ Access.ADMIN() ], true);
+                logger.info(`Created system user. ID: ${sys.unifiedId}`);
             }
             logger.info(`Database Synchronized.`);
 

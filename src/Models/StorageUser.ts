@@ -1,6 +1,7 @@
-import { Table, Model, Column, DataType, HasOne } from "sequelize-typescript";
+import { Column, DataType, HasOne, Model, Table } from "sequelize-typescript";
 import { StorageUserDiscordInfo } from "./StorageUserDiscordInfo";
 import { StorageUserEconomyInfo } from "./StorageUserEconomyInfo";
+import { UnifiedId, UnifiedIdDataType } from "../UnifiedId";
 
 interface StorageUserMeta{
 }
@@ -11,24 +12,18 @@ interface StorageUserMeta{
 export class StorageUser extends Model<StorageUser> {
     //Main Options
     @Column({
-        type: DataType.INTEGER,
+        type: DataType.STRING,
         allowNull: false,
         primaryKey: true,
-        autoIncrement: true
+        defaultValue: () => UnifiedId.generate(UnifiedIdDataType.User).toString(16)
     })
-    declare id: number;
+    declare unifiedId: string;
 
     @Column({
         type: DataType.STRING,
         allowNull: false,
     })
     declare nickname: string;
-
-    @Column({
-        type: DataType.STRING,
-        allowNull: false,
-    })
-    declare discordId: string;
 
     @Column({
         type: DataType.JSONB,
@@ -45,7 +40,7 @@ export class StorageUser extends Model<StorageUser> {
     declare lang: string;
 
     @HasOne(() => StorageUserDiscordInfo)
-    declare discord: StorageUserDiscordInfo;
+    declare discord?: StorageUserDiscordInfo;
 
     @HasOne(() => StorageUserEconomyInfo)
     declare economy: StorageUserEconomyInfo;

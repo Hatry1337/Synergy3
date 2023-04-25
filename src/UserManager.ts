@@ -1,6 +1,6 @@
 import Discord from "discord.js";
 
-import { Op } from "sequelize";
+import { Op, Transaction } from "sequelize";
 import { sequelize } from "./Database";
 import { StorageUserDiscordInfo } from "./Models/StorageUserDiscordInfo";
 import { StorageUserEconomyInfo } from "./Models/StorageUserEconomyInfo";
@@ -8,32 +8,32 @@ import { StorageUser } from "./Models/StorageUser";
 
 import { GlobalLogger } from "./GlobalLogger";
 import Synergy from "./Synergy";
-import User, { UserDiscordOptions } from "./Structures/User";
+import User, { UserOptions } from "./Structures/User";
 import { Access } from ".";
 import { UserAlreadyExistError } from "./Structures/Errors";
 import CachedManager from "./Structures/CachedManager";
 
 export default class UserManager extends CachedManager<User>{
-    private discordIdsAssociations: Map<string, number> = new Map();
+    private discordIdsAssociations: Map<string, string> = new Map();
     constructor(public bot: Synergy){
         super();
         this.cacheStorage.on("del", this.onCacheEntryDeleted.bind(this));
     }
 
     /**
-     * Get legacy underlying database User id from Discord id
-     * @param id
+     * Get unified User id from Discord id
+     * @param unifiedId
      */
-    public idFromDiscordId(id: string): number | undefined{
-        return this.discordIdsAssociations.get(id);
+    public unifiedIdFromDiscordId(unifiedId: string): string | undefined{
+        return this.discordIdsAssociations.get(unifiedId);
     }
 
     /**
-     * Get User Discord id from legacy underlying database id
-     * @param id
+     * Get User Discord id from unified id
+     * @param discordId
      */
-    public discordIdFromLegacyId(id: number): string | undefined {
-        let entry = Array.from(this.discordIdsAssociations.entries()).find(e => e[1] === id);
+    public discordIdFromUnifiedId(discordId: string): string | undefined {
+        let entry = Array.from(this.discordIdsAssociations.entries()).find(e => e[1] === discordId);
         if(entry) {
             return entry[0];
         }
@@ -41,24 +41,22 @@ export default class UserManager extends CachedManager<User>{
 
     /**
      * Fetches User from storage
-     * @param id Discord id of user to fetch
+     * @param id Unified id of user to fetch
      */
-    public async fetchOne(id: string) {
+    public async fetchOne(id: string): Promise<User | undefined> {
         let storageUser = await StorageUser.findOne({
             where: {
-                discordId: id
+                unifiedId: id
             },
             include: [StorageUserDiscordInfo, StorageUserEconomyInfo]
         });
 
-        let user;
         if (!storageUser) {
-            let discordUser = await this.bot.client.users.fetch(id);
-            user = await this.createFromDiscord(discordUser);
-        } else {
-            user = User.fromStorageUser(this.bot, storageUser);
-            await user.fetchDiscordUser();
+            return;
         }
+
+        let user = User.fromStorageUser(this.bot, storageUser);
+        await user.fetchDiscordUser();
 
         this.cacheStorage.set(id, user);
         return user;
@@ -66,14 +64,14 @@ export default class UserManager extends CachedManager<User>{
 
     /**
      * Fetches multiple Users from storage
-     * @param ids Discord ids of users to fetch
+     * @param ids Unified ids of users to fetch
      */
     public async fetchBulk(ids: string[]) {
         let res: Map<string, User> = new Map();
 
         let storageUsers = await StorageUser.findAll({
             where: {
-                discordId: {
+                unifiedId: {
                     [Op.in]: ids
                 }
             },
@@ -84,21 +82,44 @@ export default class UserManager extends CachedManager<User>{
             let user = User.fromStorageUser(this.bot, storageUser);
             await user.fetchDiscordUser();
 
-            this.cacheStorage.set(user.id, user);
-            res.set(user.discordId, user);
+            this.cacheStorage.set(user.unifiedId, user);
+            res.set(user.unifiedId, user);
         }
 
-        let unfetchedUsers = ids.filter(id => storageUsers.findIndex(su => su.discordId === id) === -1);
+        let unfetchedUsers = ids.filter(id => storageUsers.findIndex(su => su.unifiedId === id) === -1);
         for(let id of unfetchedUsers) {
             let user = await this.fetchOne(id);
-            this.cacheStorage.set(user.id, user);
-            res.set(user.discordId, user);
+            if(!user) continue;
+            this.cacheStorage.set(user.unifiedId, user);
+            res.set(user.unifiedId, user);
         }
 
         return res;
     }
 
-    public async createFromDiscord(dUser: Discord.User, groups: string[] = [ Access.PLAYER() ]){
+    public async createUser(options: Omit<UserOptions, "unifiedId" | "economy"> & Partial<Pick<UserOptions, "economy">>, system: boolean = false) {
+        let storageUser = await StorageUser.create({
+            unifiedId: system ? "0" : undefined,
+            nickname: options.nickname,
+            groups: options.groups,
+            lang: options.lang,
+        } as StorageUser);
+
+        let user = new User(this.bot, {
+            ...options,
+            economy: options.economy ?? this.bot.options.userDefaultEconomy ?? {
+                points: 0.0005,
+                lvl: 1,
+                xp: 0
+            },
+            unifiedId: storageUser.unifiedId
+        });
+
+        this.cacheStorage.set(user.unifiedId, user);
+        return user;
+    }
+
+    public async createFromDiscord(dUser: Discord.User, groups: string[] = [ Access.PLAYER() ], system: boolean = false){
         let userDiscordInfo = await StorageUserDiscordInfo.findOne({
             where: {
                 discordId: dUser.id
@@ -107,43 +128,71 @@ export default class UserManager extends CachedManager<User>{
 
         if(userDiscordInfo) throw new UserAlreadyExistError(dUser);
 
-        let storageUser = await StorageUser.create({
+        let user = await this.createUser({
             nickname: dUser.tag,
             groups,
-            lang: "en",
-            discordId: dUser.id
-        } as StorageUser);
+            lang: "en"
+        }, system);
 
-        let discord: UserDiscordOptions = {
-            id: dUser.id,
-            tag: dUser.tag,
-            createdAt: dUser.createdAt,
-            avatar: dUser.displayAvatarURL(),
-            banner: dUser.banner ?? undefined,
-            user: dUser
-        }
-        let user = new User(this.bot, {
-            id: storageUser.id,
-            nickname: storageUser.nickname,
-            groups: storageUser.groups,
-            lang: storageUser.lang,
-            discordId: storageUser.discordId,
-            discord,
-            economy: this.bot.options.userDefaultEconomy || {
-                points: 0.0005,
-                lvl: 1,
-                xp: 0
-            }
-        });
-
-        this.cacheStorage.set(user.discordId, user);
+        user.bindDiscord(dUser);
         return user;
+    }
+
+    public async forceStorageUpdate(unifiedId: string, transaction?: Transaction) {
+        let user = await this.get(unifiedId);
+        if(!user) return;
+
+        let t = transaction;
+        if(!t) {
+            t = await sequelize().transaction();
+        }
+
+        try {
+            await StorageUser.update({
+                nickname: user.nickname,
+                groups: user.groups,
+                lang: user.lang,
+            }, {
+                where: {
+                    unifiedId: user.unifiedId
+                },
+                transaction: t
+            });
+
+            await StorageUserEconomyInfo.upsert({
+                unifiedId: user.unifiedId,
+                economyPoints: user.economy.points,
+                economyLVL: user.economy.lvl,
+                economyXP: user.economy.xp,
+            } as StorageUserEconomyInfo, {
+                transaction: t
+            });
+
+            if(user.discord) {
+                await StorageUserDiscordInfo.upsert({
+                    unifiedId: user.unifiedId,
+                    discordId: user.discord.id,
+                    discordTag: user.discord.tag,
+                    discordAvatar: user.discord.avatar,
+                    discordBanner: user.discord.banner,
+                    discordCreatedAt: user.discord.createdAt,
+                } as StorageUserDiscordInfo, {
+                    transaction: t
+                });
+            }
+
+            if(!transaction) {
+                await t.commit();
+            }
+        } catch(e) {
+            GlobalLogger.root.warn("UserManager.forceStorageUpdate Error:", e);
+        }
     }
 
     public async updateAssociations(){
         let infos = await StorageUserDiscordInfo.findAll();
         for(let i of infos){
-            this.discordIdsAssociations.set(i.discordId, i.id);
+            this.discordIdsAssociations.set(i.discordId, i.unifiedId);
         }
     }
 
@@ -154,40 +203,7 @@ export default class UserManager extends CachedManager<User>{
         await super.destroy();
     }
 
-    private async onCacheEntryDeleted(discordId: string, user: User) {
-        let t = await sequelize().transaction();
-
-        await StorageUser.update({
-            nickname: user.nickname,
-            groups: user.groups,
-            lang: user.lang,
-        }, {
-            where: {
-                id: user.id
-            },
-            transaction: t
-        }).catch(err => GlobalLogger.root.warn("UserManager.onCacheEntryDeleted Error Updating StorageUser:", err));
-
-        await StorageUserEconomyInfo.upsert({
-            id: user.id,
-            economyPoints: user.economy.points,
-            economyLVL: user.economy.lvl,
-            economyXP: user.economy.xp,
-        } as StorageUserEconomyInfo, {
-            transaction: t
-        }).catch(err => GlobalLogger.root.warn("UserManager.onCacheEntryDeleted Error Upserting StorageUserEconomyInfo:", err));
-
-        await StorageUserDiscordInfo.upsert({
-            id: user.id,
-            discordId: user.discord.id,
-            discordTag: user.discord.tag,
-            discordAvatar: user.discord.avatar,
-            discordBanner: user.discord.banner,
-            discordCreatedAt: user.discord.createdAt,
-        } as StorageUserDiscordInfo, {
-            transaction: t
-        }).catch(err => GlobalLogger.root.warn("UserManager.onCacheEntryDeleted Error Upserting StorageUserDiscordInfo:", err));
-
-        await t.commit();
+    private async onCacheEntryDeleted(unifiedId: string, user: User) {
+        await this.forceStorageUpdate(unifiedId);
     }
 }

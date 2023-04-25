@@ -8,7 +8,7 @@ export class StorageUserDiscordInfo extends Model<StorageUserDiscordInfo> {
     @ForeignKey(() => StorageUser)
     @PrimaryKey
     @Column
-    declare id: number;
+    declare unifiedId: string;
 
     @BelongsTo(() => StorageUser)
     declare user: StorageUser;

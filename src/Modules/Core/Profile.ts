@@ -37,7 +37,7 @@ export default class Profile extends Module{
             title: `${user.nickname}'s profile`,
             thumbnail: user.discord?.avatar ? { url: user.discord.avatar } : undefined,
             fields: [
-                { name: "Info", value:  `ID: ${user.id}\n` +
+                { name: "Info", value:  `ID: ${user.unifiedId}\n` +
                                         `Groups: ${user.groups.join(", ")}\n` +
                                         `Language: ${user.lang}` },
 

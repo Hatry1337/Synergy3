@@ -19,30 +19,27 @@ export interface UserDiscordOptions {
 }
 
 export interface UserOptions{
-    id: number;
+    unifiedId: string;
     nickname: string;
     groups: string[];
     lang: string;
-    discordId: string;
-    discord: UserDiscordOptions;
+    discord?: UserDiscordOptions;
     economy: UserEconomyOptions;
 }
 
 export default class User implements UserOptions{
-    public id: number;
+    public unifiedId: string;
     public nickname: string;
     public groups: string[];
     public lang: string;
-    public discordId: string;
     public economy: UserEconomyOptions;
-    public discord: UserDiscordOptions;
+    public discord?: UserDiscordOptions;
 
     constructor(public bot: Synergy, opts: UserOptions){
-        this.id = opts.id;
+        this.unifiedId = opts.unifiedId;
         this.nickname = opts.nickname;
         this.groups = opts.groups;
         this.lang = opts.lang;
-        this.discordId = opts.discordId;
         this.economy = opts.economy;
         this.discord = opts.discord;
     }
@@ -51,30 +48,45 @@ export default class User implements UserOptions{
         return await Access.Check(this, access, guild);
     }
 
+    public bindDiscord(user: Discord.User) {
+        this.discord = {
+            user,
+            id: user.id,
+            tag: user.tag,
+            avatar: user.avatarURL() ?? undefined,
+            banner: user.bannerURL() ?? undefined,
+            createdAt: user.createdAt
+        }
+    }
+
     public async fetchDiscordUser() {
-        this.discord.user = await this.bot.client.users.fetch(this.discordId);
+        if(!this.discord) return;
+
+        this.discord.user = await this.bot.client.users.fetch(this.discord.id);
         this.discord.tag = this.discord.user.tag;
-        this.discord.avatar = this.discord.user.displayAvatarURL();
-        this.discord.banner = this.discord.user.banner ?? undefined;
+        this.discord.avatar = this.discord.user.avatarURL() ?? undefined;
+        this.discord.banner = this.discord.user.bannerURL() ?? undefined;
         return this.discord.user;
     }
 
     public static fromStorageUser(bot: Synergy, storageUser: StorageUser): User {
-        let discordOpts: UserDiscordOptions = {
-            id: storageUser.discord.discordId,
-            tag: storageUser.discord.discordTag,
-            createdAt: storageUser.discord.discordCreatedAt,
-            avatar: storageUser.discord.discordAvatar ?? undefined,
-            banner: storageUser.discord.discordBanner ?? undefined,
-            user: undefined
-        };
+        let discordOpts: UserDiscordOptions | undefined;
 
-        let user = new User(bot, {
-            id: storageUser.id,
+        if(storageUser.discord) {
+            discordOpts = {
+                id: storageUser.discord.discordId,
+                tag: storageUser.discord.discordTag,
+                avatar: storageUser.discord.discordAvatar ?? undefined,
+                banner: storageUser.discord.discordBanner ?? undefined,
+                createdAt: storageUser.discord.discordCreatedAt,
+            };
+        }
+
+        return new User(bot, {
+            unifiedId: storageUser.unifiedId,
             nickname: storageUser.nickname,
             groups: storageUser.groups,
             lang: storageUser.lang,
-            discordId: storageUser.discordId,
             discord: discordOpts,
             economy: {
                 points: storageUser.economy.economyPoints,
@@ -82,6 +94,5 @@ export default class User implements UserOptions{
                 xp: storageUser.economy.economyXP
             }
         });
-        return user;
     }
 }

@@ -38,6 +38,7 @@ import {
     dataStructureToString
 } from "./ConfigManager/ConfigDataStructures"
 import { ConfigCommonDataType, TypeOfConfigDataType } from "./ConfigManager/ConfigDataTypes"
+import { UnifiedId } from "./UnifiedId"
 
 export {
     Guild,
@@ -83,7 +84,7 @@ export {
     ArrayConfigEntry,
 
 
-EventManager,
+    EventManager,
 
     InteractionsManager,
     InteractiveCommand,
@@ -109,5 +110,7 @@ EventManager,
     SynergyUserError,
     GuildOnlyError,
     NoConfigEntryError,
-    MissingPermissionsError
+    MissingPermissionsError,
+
+    UnifiedId
 }

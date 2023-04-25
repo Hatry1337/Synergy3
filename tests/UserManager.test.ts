@@ -12,33 +12,31 @@ test("UserManager - Test ids associations", async () => {
     initsequelize("sqlite:database.sqlite");
     await sequelize().sync({ force: true });
 
-    let ids: Map<string, number> = new Map();
+    let ids: Map<string, string> = new Map();
 
     for(let i = 0; i < 100; i++){
         let d_id = crypto.pseudoRandomBytes(12).toString("hex");
 
         try {
             let user = await StorageUser.create({
-                discordId: d_id,
                 nickname: `TestUser#${i}`,
                 groups: [ "player" ],
                 lang: "en",
             } as StorageUser);
             let economy = await StorageUserEconomyInfo.create({
-                id: user.id,
+                unifiedId: user.unifiedId,
                 economyPoints: 1337,
                 economyLVL: 69,
                 economyXP: 420,
             } as StorageUserEconomyInfo);
             let discord = await StorageUserDiscordInfo.create({
-                id: user.id,
+                unifiedId: user.unifiedId,
                 discordId: d_id,
                 discordTag: `TestUser#${i}`,
-                discordAvatar: `https://cdn.discordapp.com/avatars/508637328349331462/ced8cce78f895423ffa0fda824697c2e.webp`,
                 discordCreatedAt: new Date(),
             } as StorageUserDiscordInfo);
             
-            ids.set(d_id, user.id);
+            ids.set(d_id, user.unifiedId);
         } catch (error) {
             return console.log(error);
         }
@@ -48,7 +46,7 @@ test("UserManager - Test ids associations", async () => {
     await umgr.updateAssociations();
 
     for(let e of ids){
-        let id = umgr.idFromDiscordId(e[0]);
+        let id = umgr.unifiedIdFromDiscordId(e[0]);
         expect(id).toBe(e[1]);
     }
 
@@ -61,33 +59,31 @@ test("UserManager - fetchOne", async () => {
     initsequelize("sqlite::memory:");
     await sequelize().sync({ force: true });
 
-    let ids: Map<string, number> = new Map();
+    let ids: Map<string, string> = new Map();
 
     for(let i = 0; i < 100; i++){
         let d_id = crypto.pseudoRandomBytes(12).toString("hex");
 
         try {
             let user = await StorageUser.create({
-                discordId: d_id,
                 nickname: `TestUser#${i}`,
                 groups: [ "player" ],
                 lang: "en",
             } as StorageUser);
             let economy = await StorageUserEconomyInfo.create({
-                id: user.id,
+                unifiedId: user.unifiedId,
                 economyPoints: 1337,
                 economyLVL: 69,
                 economyXP: 420,
             } as StorageUserEconomyInfo);
             let discord = await StorageUserDiscordInfo.create({
-                id: user.id,
+                unifiedId: user.unifiedId,
                 discordId: d_id,
                 discordTag: `TestUser#${i}`,
-                discordAvatar: `https://cdn.discordapp.com/avatars/508637328349331462/ced8cce78f895423ffa0fda824697c2e.webp`,
                 discordCreatedAt: new Date(),
             } as StorageUserDiscordInfo);
             
-            ids.set(d_id, user.id);
+            ids.set(d_id, user.unifiedId);
         } catch (error) {
             return console.log(error);
         }
@@ -97,12 +93,12 @@ test("UserManager - fetchOne", async () => {
     await umgr.updateAssociations();
 
     for(let e of ids){
-        let user = await umgr.fetchOne(e[0]);
+        let user = await umgr.fetchOne(e[1]);
         if(!user) return fail(`User ${e} failed to fetch.`);
 
         expect(user).toBeTruthy();
-        expect(user.id).toBe(e[1]);
-        expect(user.discord.id).toBe(e[0]);
+        expect(user.unifiedId).toBe(e[1]);
+        expect(user.discord?.id).toBe(e[0]);
     }
 
     bot.events.emit("Stop");
@@ -114,33 +110,31 @@ test("UserManager - fetchBulk", async () => {
     initsequelize("sqlite::memory:");
     await sequelize().sync({ force: true });
 
-    let ids: Map<string, number> = new Map();
+    let ids: Map<string, string> = new Map();
 
     for(let i = 0; i < 100; i++){
         let d_id = crypto.pseudoRandomBytes(12).toString("hex");
 
         try {
             let user = await StorageUser.create({
-                discordId: d_id,
                 nickname: `TestUser#${i}`,
                 groups: [ "player" ],
                 lang: "en",
             } as StorageUser);
             let economy = await StorageUserEconomyInfo.create({
-                id: user.id,
+                unifiedId: user.unifiedId,
                 economyPoints: 1337,
                 economyLVL: 69,
                 economyXP: 420,
             } as StorageUserEconomyInfo);
             let discord = await StorageUserDiscordInfo.create({
-                id: user.id,
+                unifiedId: user.unifiedId,
                 discordId: d_id,
                 discordTag: `TestUser#${i}`,
-                discordAvatar: `https://cdn.discordapp.com/avatars/508637328349331462/ced8cce78f895423ffa0fda824697c2e.webp`,
                 discordCreatedAt: new Date(),
             } as StorageUserDiscordInfo);
             
-            ids.set(d_id, user.id);
+            ids.set(d_id, user.unifiedId);
         } catch (error) {
             return console.log(error);
         }
@@ -149,13 +143,13 @@ test("UserManager - fetchBulk", async () => {
     let umgr = new UserManager(bot);
     await umgr.updateAssociations();
 
-    let users = await umgr.fetchBulk(Array.from(ids.keys()));
+    let users = await umgr.fetchBulk(Array.from(ids.values()));
 
     expect(users.size).toBe(ids.size);
 
     for(let u of users.values()){
         expect(u).toBeTruthy();
-        expect(ids.get(u.discord.id)).toBe(u.id);
+        expect(ids.get(u.discord!.id)).toBe(u.unifiedId);
     }
 
     bot.events.emit("Stop");

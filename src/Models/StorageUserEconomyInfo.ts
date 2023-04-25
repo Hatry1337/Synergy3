@@ -8,29 +8,29 @@ export class StorageUserEconomyInfo extends Model<StorageUserEconomyInfo> {
     @ForeignKey(() => StorageUser)
     @PrimaryKey
     @Column
-    id!: number;
+    declare unifiedId: string;
 
     @BelongsTo(() => StorageUser)
-    user!: StorageUser
+    declare user: StorageUser
 
     //Economy Options
     @Column({
         type: DataType.REAL,
         allowNull: false,
     })
-    economyPoints!: number;
+    declare economyPoints: number;
 
     @Column({
         type: DataType.INTEGER,
         allowNull: false,
         defaultValue: 1
     })
-    economyLVL!: number;
+    declare economyLVL: number;
 
     @Column({
         type: DataType.INTEGER,
         allowNull: false,
         defaultValue: 0
     })
-    economyXP!: number;
+    declare economyXP: number;
 }
