@@ -9,12 +9,12 @@ import { StorageUser } from "./Models/StorageUser";
 import { GlobalLogger } from "./GlobalLogger";
 import Synergy from "./Synergy";
 import User, { UserOptions } from "./Structures/User";
-import { Access } from ".";
+import { Access, UnifiedIdString } from ".";
 import { UserAlreadyExistError } from "./Structures/Errors";
 import CachedManager from "./Structures/CachedManager";
 
 export default class UserManager extends CachedManager<User>{
-    private discordIdsAssociations: Map<string, Discord.Snowflake> = new Map();
+    private discordIdsAssociations: Map<Discord.Snowflake, UnifiedIdString> = new Map();
     constructor(public bot: Synergy){
         super();
         this.cacheStorage.on("del", this.onCacheEntryDeleted.bind(this));
@@ -22,18 +22,18 @@ export default class UserManager extends CachedManager<User>{
 
     /**
      * Get unified User id from Discord id
-     * @param unifiedId
+     * @param discordId
      */
-    public unifiedIdFromDiscordId(unifiedId: string): string | undefined{
-        return this.discordIdsAssociations.get(unifiedId);
+    public unifiedIdFromDiscordId(discordId: Discord.Snowflake): UnifiedIdString | undefined{
+        return this.discordIdsAssociations.get(discordId);
     }
 
     /**
      * Get User Discord id from unified id
-     * @param discordId
+     * @param unifiedId
      */
-    public discordIdFromUnifiedId(discordId: string): string | undefined {
-        let entry = Array.from(this.discordIdsAssociations.entries()).find(e => e[1] === discordId);
+    public discordIdFromUnifiedId(unifiedId: UnifiedIdString): Discord.Snowflake | undefined {
+        let entry = Array.from(this.discordIdsAssociations.entries()).find(e => e[1] === unifiedId);
         if(entry) {
             return entry[0];
         }
@@ -43,7 +43,7 @@ export default class UserManager extends CachedManager<User>{
      * Fetches User from storage
      * @param id Unified id of user to fetch
      */
-    public async fetchOne(id: string): Promise<User | undefined> {
+    public async fetchOne(id: UnifiedIdString): Promise<User | undefined> {
         let storageUser = await StorageUser.findOne({
             where: {
                 unifiedId: id
@@ -60,7 +60,7 @@ export default class UserManager extends CachedManager<User>{
 
         this.cacheStorage.set(id, user);
         if(user.discord) {
-            this.discordIdsAssociations.set(user.unifiedId, user.discord.id);
+            this.discordIdsAssociations.set(user.discord.id, user.unifiedId);
         }
         return user;
     }
@@ -69,7 +69,7 @@ export default class UserManager extends CachedManager<User>{
      * Fetches multiple Users from storage
      * @param ids Unified ids of users to fetch
      */
-    public async fetchBulk(ids: string[]) {
+    public async fetchBulk(ids: UnifiedIdString[]) {
         let res: Map<string, User> = new Map();
 
         let storageUsers = await StorageUser.findAll({
@@ -87,7 +87,7 @@ export default class UserManager extends CachedManager<User>{
 
             this.cacheStorage.set(user.unifiedId, user);
             if(user.discord) {
-                this.discordIdsAssociations.set(user.unifiedId, user.discord.id);
+                this.discordIdsAssociations.set(user.discord.id, user.unifiedId);
             }
             res.set(user.unifiedId, user);
         }
@@ -98,7 +98,7 @@ export default class UserManager extends CachedManager<User>{
             if(!user) continue;
             this.cacheStorage.set(user.unifiedId, user);
             if(user.discord) {
-                this.discordIdsAssociations.set(user.unifiedId, user.discord.id);
+                this.discordIdsAssociations.set(user.discord.id, user.unifiedId);
             }
             res.set(user.unifiedId, user);
         }
@@ -126,7 +126,7 @@ export default class UserManager extends CachedManager<User>{
 
         this.cacheStorage.set(user.unifiedId, user);
         if(user.discord) {
-            this.discordIdsAssociations.set(user.unifiedId, user.discord.id);
+            this.discordIdsAssociations.set(user.discord.id, user.unifiedId);
         }
         return user;
     }
@@ -147,11 +147,11 @@ export default class UserManager extends CachedManager<User>{
         }, system);
 
         user.bindDiscord(dUser);
-        this.discordIdsAssociations.set(user.unifiedId, dUser.id);
+        this.discordIdsAssociations.set(dUser.id, user.unifiedId);
         return user;
     }
 
-    public async forceStorageUpdate(unifiedId: string, transaction?: Transaction) {
+    public async forceStorageUpdate(unifiedId: UnifiedIdString, transaction?: Transaction) {
         let user = await this.get(unifiedId);
         if(!user) return;
 
@@ -216,7 +216,7 @@ export default class UserManager extends CachedManager<User>{
         await super.destroy();
     }
 
-    private async onCacheEntryDeleted(unifiedId: string, user: User) {
+    private async onCacheEntryDeleted(unifiedId: UnifiedIdString, user: User) {
         await this.forceStorageUpdate(unifiedId);
     }
 }

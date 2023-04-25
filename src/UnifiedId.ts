@@ -35,6 +35,8 @@ export enum UnifiedIdDataType {
     OtherChannel    = 5,
 }
 
+export type UnifiedIdString = string;
+
 export class UnifiedId {
     private static increment = 0;
     public static generate(dataType: UnifiedIdDataType = UnifiedIdDataType.AnyData, milliseconds?: number, increment?: number) {

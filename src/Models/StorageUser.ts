@@ -1,7 +1,7 @@
 import { Column, DataType, HasOne, Model, Table } from "sequelize-typescript";
 import { StorageUserDiscordInfo } from "./StorageUserDiscordInfo";
 import { StorageUserEconomyInfo } from "./StorageUserEconomyInfo";
-import { UnifiedId, UnifiedIdDataType } from "../UnifiedId";
+import { UnifiedId, UnifiedIdDataType, UnifiedIdString } from "../UnifiedId";
 
 interface StorageUserMeta{
 }
@@ -17,7 +17,7 @@ export class StorageUser extends Model<StorageUser> {
         primaryKey: true,
         defaultValue: () => UnifiedId.generate(UnifiedIdDataType.User).toString(16)
     })
-    declare unifiedId: string;
+    declare unifiedId: UnifiedIdString;
 
     @Column({
         type: DataType.STRING,

@@ -1,5 +1,5 @@
 import Discord from "discord.js";
-import { Access, AccessTarget } from "..";
+import { Access, AccessTarget, UnifiedIdString } from "..";
 import Synergy from "../Synergy";
 import { StorageUser } from "../Models/StorageUser";
 
@@ -19,7 +19,7 @@ export interface UserDiscordOptions {
 }
 
 export interface UserOptions{
-    unifiedId: string;
+    unifiedId: UnifiedIdString;
     nickname: string;
     groups: string[];
     lang: string;
@@ -28,7 +28,7 @@ export interface UserOptions{
 }
 
 export default class User implements UserOptions{
-    public unifiedId: string;
+    public unifiedId: UnifiedIdString;
     public nickname: string;
     public groups: string[];
     public lang: string;

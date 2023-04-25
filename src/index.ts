@@ -38,7 +38,7 @@ import {
     dataStructureToString
 } from "./ConfigManager/ConfigDataStructures"
 import { ConfigCommonDataType, TypeOfConfigDataType } from "./ConfigManager/ConfigDataTypes"
-import { UnifiedId } from "./UnifiedId"
+import { RainbowBOTEpoch, UnifiedId, UnifiedIdDataType, UnifiedIdString } from "./UnifiedId"
 
 export {
     Guild,
@@ -112,5 +112,8 @@ export {
     NoConfigEntryError,
     MissingPermissionsError,
 
-    UnifiedId
+    UnifiedId,
+    RainbowBOTEpoch,
+    UnifiedIdDataType,
+    UnifiedIdString
 }
