@@ -14,6 +14,7 @@ export default class Profile extends Module{
 
     public Access: AccessTarget[] = [ Access.PLAYER(), Access.BANNED() ]
 
+    private static customProfileFields: Discord.EmbedField[] = [];
 
     constructor(bot: Synergy, UUID: string) {
         super(bot, UUID);
@@ -31,19 +32,19 @@ export default class Profile extends Module{
             .commit()
         );
     }
+
+    public static addCustomField(field: Discord.EmbedField) {
+        Profile.customProfileFields.push(field);
+    }
     
     private createMessageTemplate(user: User){
-        return new Discord.EmbedBuilder({
+        let embed = new Discord.EmbedBuilder({
             title: `${user.nickname}'s profile`,
             thumbnail: user.discord?.avatar ? { url: user.discord.avatar } : undefined,
             fields: [
-                { name: "Info", value:  `ID: ${user.unifiedId}\n` +
+                { name: "Info", value:  `UnifiedId: ${user.unifiedId}\n` +
                                         `Groups: ${user.groups.join(", ")}\n` +
                                         `Language: ${user.lang}` },
-
-                user.discord ? { name: "Discord", value:`DiscordID: ${user.discord.id}\n` +
-                                                        `Tag: ${user.discord.tag}\n` +
-                                                        `Registered: ${Utils.ts(user.discord.createdAt)}` } : { name: "Discord", value: "wtf u don't have discord O_o" },
                 
                 { name: "Economy", value:   `Points: ${user.economy.points}\n` +
                                             `LVL: ${user.economy.lvl}\n` +
@@ -51,6 +52,19 @@ export default class Profile extends Module{
                 ],
             color: Colors.Noraml
         });
+        if(user.discord) {
+            embed.addFields({
+                name: "Discord",
+                value:`DiscordID: ${user.discord.id}\n` +
+                    `Tag: ${user.discord.tag}\n` +
+                    `Registered: ${Utils.ts(user.discord.createdAt)}`
+            });
+        }
+        if(Profile.customProfileFields.length !== 0) {
+            embed.addFields(Profile.customProfileFields);
+        }
+
+        return embed;
     }
 
     public async Run(interaction: Discord.ChatInputCommandInteraction, user: User) {
