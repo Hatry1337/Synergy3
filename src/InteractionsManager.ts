@@ -12,6 +12,7 @@ import { InteractiveCommandTargets, InteractiveComponentTargets, InteractiveTarg
 import crypto from "crypto";
 import InteractiveBase from "./Interactions/InteractiveBase";
 import { RequestData } from "@discordjs/rest";
+import { SynergyBaseCommandInteraction } from "./Interactions/SynergyBaseCommandInteraction";
 
 export interface ITemporaryComponentInfo {
     id: string;
@@ -268,7 +269,7 @@ export default class InteractionsManager{
         }
     }
 
-    private async onInteractionCreate(interaction: Discord.Interaction): Promise<void> {
+    private async onInteractionCreate(interaction: SynergyBaseCommandInteraction): Promise<void> {
         if(!this.bot.isReady){
             return;
         }

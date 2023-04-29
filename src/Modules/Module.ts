@@ -6,6 +6,11 @@ import { AccessTarget } from "../Structures/Access";
 import Discord from "discord.js";
 
 export type ModuleSharedMethods = { [key: string]: (...args: any) => any };
+export enum ModulePlatform {
+    Discord = "discord",
+    Telegram = "telegram",
+    TextBased = "text"
+}
 
 export default class Module implements IModule{
     /**
@@ -39,6 +44,11 @@ export default class Module implements IModule{
 
     readonly Logger: ModuleLogger = new ModuleLogger(this);
     readonly SlashCommands: InteractiveCommand<Discord.SlashCommandBuilder>[] = [];
+
+    /**
+     * Supported platforms which module can correctly process
+     */
+    public Platforms: ModulePlatform[] = [ ModulePlatform.Discord ];
 
     protected sharedMethods: ModuleSharedMethods = {};
 
