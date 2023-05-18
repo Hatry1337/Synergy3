@@ -99,21 +99,28 @@ export default class GuildManager extends CachedManager<Guild> {
     private async onCacheEntryDeleted(discordId: string, guild: Guild) {
         let t = await sequelize().transaction();
 
-        await StorageGuild.update({
-            id: guild.id,
-            group: guild.group,
-            name: guild.name,
-            lang: guild.lang,
-            ownerId: guild.ownerId,
-            icon: guild.icon,
-            banner: guild.banner,
-            systemChannelId: guild.systemChannelId,
-            botJoinedAt: guild.botJoinedAt
-        }, {
-            where: {
-                id: guild.id
-            },
-            transaction: t
-        }).catch(err => GlobalLogger.root.error("GuildManager.syncCacheEntry Error Updating StorageGuild:", err));
+        try {
+            await StorageGuild.update({
+                id: guild.id,
+                group: guild.group,
+                name: guild.name,
+                lang: guild.lang,
+                ownerId: guild.ownerId,
+                icon: guild.icon,
+                banner: guild.banner,
+                systemChannelId: guild.systemChannelId,
+                botJoinedAt: guild.botJoinedAt
+            }, {
+                where: {
+                    id: guild.id
+                },
+                transaction: t
+            });
+        } catch (e) {
+            GlobalLogger.root.error("GuildManager.syncCacheEntry Error Updating StorageGuild:", e);
+            await t.rollback();
+        }
+
+        await t.commit();
     }
 }

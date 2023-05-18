@@ -1,7 +1,7 @@
 import IModule from "./IModule";
 import { ModuleLogger } from "../GlobalLogger";
 import { InteractiveComponent, Synergy } from "..";
-import { InteractiveCommand } from "../Interactions/InteractiveCommand";
+import { InteractiveDiscordCommand } from "../Interactions/InteractiveCommand";
 import { AccessTarget } from "../Structures/Access";
 import Discord from "discord.js";
 
@@ -43,7 +43,7 @@ export default class Module implements IModule{
     public Permissions: Discord.PermissionsBitField = new Discord.PermissionsBitField();
 
     readonly Logger: ModuleLogger = new ModuleLogger(this);
-    readonly SlashCommands: InteractiveCommand<Discord.SlashCommandBuilder>[] = [];
+    readonly SlashCommands: InteractiveDiscordCommand<Discord.SlashCommandBuilder>[] = [];
 
     /**
      * Supported platforms which module can correctly process

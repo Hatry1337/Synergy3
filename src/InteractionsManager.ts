@@ -6,13 +6,18 @@ import { RESTPostAPIApplicationCommandsJSONBody, Routes } from "discord-api-type
 import { GlobalLogger } from "./GlobalLogger";
 import { AccessTarget } from "./Structures/Access";
 import { SynergyUserError } from "./Structures/Errors";
-import { InteractiveCommand } from "./Interactions/InteractiveCommand";
-import { InteractiveComponent } from "./Interactions/InteractiveComponent";
+import { InteractiveDiscordCommand } from "./Interactions/InteractiveCommand";
+import { InteractiveComponent } from "./Interactions/Entities/Components/InteractiveComponent";
 import { InteractiveCommandTargets, InteractiveComponentTargets, InteractiveTargets } from "./Interactions/InteractionTypes";
 import crypto from "crypto";
 import InteractiveBase from "./Interactions/InteractiveBase";
 import { RequestData } from "@discordjs/rest";
-import { SynergyBaseCommandInteraction } from "./Interactions/SynergyBaseCommandInteraction";
+import { SynergyCommandInteraction } from "./Interactions/SynergyBaseCommandInteraction";
+import {
+    SynergyDiscordCommandInteraction,
+    SynergyDiscordInteraction
+} from "./Interactions/Discord/SynergyDiscordCommandInteraction";
+import { SynergyDiscordComponentInteraction } from "./Interactions/Discord/SynergyDiscordComponentInteraction";
 
 export interface ITemporaryComponentInfo {
     id: string;
@@ -27,7 +32,7 @@ export interface ITemporaryComponentInfo {
 const interactiveComponentsRegistry: Map<string, InteractiveComponent<InteractiveComponentTargets>> = new Map;
 const temporaryComponents: Map<string, ITemporaryComponentInfo> = new Map;
 
-const interactiveCommandsRegistry: Map<string, InteractiveCommand<InteractiveCommandTargets>> = new Map;
+const interactiveCommandsRegistry: Map<string, InteractiveDiscordCommand<InteractiveCommandTargets>> = new Map;
 
 export default class InteractionsManager{
     private updateTimer: NodeJS.Timeout;
@@ -37,7 +42,7 @@ export default class InteractionsManager{
             GlobalLogger.root.info(`[TIMER] Updating slash commands...`);
             await this.updateInteractiveCommands();
         }, 600000);
-        this.bot.client.on("interactionCreate", this.onInteractionCreate.bind(this));
+        this.bot.client.on("interactionCreate", this.onDiscordInteractionCreate.bind(this));
         this.bot.events.once("Stop", () => { clearInterval(this.updateTimer); });
     }
 
@@ -52,25 +57,9 @@ export default class InteractionsManager{
         if(interactiveCommandsRegistry.has(name)){
             throw new Error("Command with this name already exists.");
         }
-        let cmd = new InteractiveCommand<T>(name, access, module, new type(), forGuildId);
+        let cmd = new InteractiveDiscordCommand<T>(name, access, module, new type(), forGuildId);
         interactiveCommandsRegistry.set(name, cmd);
         return cmd;
-    }
-
-    /**
-     * This method allows to emulate incoming interaction.
-     * @param interaction interaction to emulate
-     */
-    public emulate(interaction: Discord.Interaction) {
-        this.onInteractionCreate(interaction).catch(e => GlobalLogger.root.error("Error emulating interaction:", e));
-    }
-
-    /**
-     * This method allows to asynchronously emulate incoming interaction.
-     * @param interaction interaction to emulate
-     */
-    public async emulateAsync(interaction: Discord.Interaction) {
-        await this.onInteractionCreate(interaction).catch(e => GlobalLogger.root.error("Error emulating interaction:", e));
     }
 
     /**
@@ -269,59 +258,68 @@ export default class InteractionsManager{
         }
     }
 
-    private async onInteractionCreate(interaction: SynergyBaseCommandInteraction): Promise<void> {
-        if(!this.bot.isReady){
-            return;
+    private async onDiscordInteractionCreate(interaction: Discord.Interaction): Promise<void> {
+        let userId = this.bot.users.unifiedIdFromDiscordId(interaction.user.id);
+        let user;
+        if (userId) {
+            user = await this.bot.users.get(userId);
+        }
+        if (!user) {
+            user = await this.bot.users.createFromDiscord(interaction.user);
         }
 
-        let target: InteractiveBase<InteractiveTargets>;
-        if(interaction.isAutocomplete()){
+        if(interaction.isAutocomplete()) {
             let cmd = Array.from(interactiveCommandsRegistry.values()).find(c => c.name === interaction.commandName);
-            if(!cmd){
-                GlobalLogger.root.warn(`Fired "${interaction.commandName}" autocomplete but InteractiveCommand not found.`);
+            if (!cmd) {
+                GlobalLogger.root.warn(`Received "${interaction.commandName}" autocomplete command but InteractiveCommand not found.`);
                 return;
             }
             try {
-                let userId = this.bot.users.unifiedIdFromDiscordId(interaction.user.id);
-                let user;
-                if(userId){
-                    user = await this.bot.users.get(userId);
-                }
-                if(!user) {
-                    user = await this.bot.users.createFromDiscord(interaction.user);
-                }
                 await cmd._autocomplete(interaction, user);
             } catch (error) {
-                GlobalLogger.root.error(`Error autocompleteing "${interaction.commandName}":`, error);
+                GlobalLogger.root.error(`Error autocompleting "${interaction.commandName}":`, error);
             }
-            return;
-        }else if(interaction.type === Discord.InteractionType.ApplicationCommand){
-            let cmd = Array.from(interactiveCommandsRegistry.values()).find(c => c.name === interaction.commandName);
-            if(!cmd){
-                GlobalLogger.root.warn(`Fired "${interaction.commandName}" command but InteractiveCommand not found.`);
-                return;
-            }
-            target = cmd;
-        }else if(interaction.isMessageComponent()){
-            let cmp = Array.from(interactiveComponentsRegistry.values()).find(c => c.name === interaction.customId);
-            if(!cmp){
-                GlobalLogger.root.warn(`Activated "${interaction.customId}" component but InteractiveComponent not found.`);
-                return;
-            }
-            target = cmp;
-        }else{
-            GlobalLogger.root.info(`[InteractionsManager] Interaction type "${interaction.type}" is not implemented, skipping.`);
             return;
         }
 
-        let userId = this.bot.users.unifiedIdFromDiscordId(interaction.user.id);
-        let user;
-        if(userId){
-            user = await this.bot.users.get(userId);
+        if(interaction.isMessageComponent()){
+            let synergyInteraction = new SynergyDiscordComponentInteraction(this.bot, {
+                discordInteraction: interaction,
+                user
+            });
+
+            await this.interactionProcessingPipeline(synergyInteraction);
+            return;
         }
-        if(!user) {
-            user = await this.bot.users.createFromDiscord(interaction.user);
+
+        if(interaction.isCommand()) {
+            let synergyInteraction = new SynergyDiscordCommandInteraction(this.bot, {
+                discordInteraction: interaction,
+                user
+            });
+
+            await this.interactionProcessingPipeline(synergyInteraction);
+            return;
         }
+
+        GlobalLogger.root.info(`[InteractionsManager] Interaction type "${interaction.type}" is not implemented, skipping.`);
+        return;
+    }
+
+    private async interactionProcessingPipeline(interaction: SynergyCommandInteraction): Promise<void> {
+        if(!this.bot.isReady){
+            GlobalLogger.root.warn(`Interaction received (id=${interaction.id}) but BOT is not ready yet. Interaction will not be processed.`);
+            return;
+        }
+
+        let cmd = Array.from(interactiveCommandsRegistry.values()).find(c => c.name === interaction.commandName);
+        if(!cmd){
+            GlobalLogger.root.warn(`Fired "${interaction.commandName}" command but InteractiveCommand not found.`);
+            return;
+        }
+        target = cmd;
+
+
 
         let access_flag = false;
 

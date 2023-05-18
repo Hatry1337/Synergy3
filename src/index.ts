@@ -21,8 +21,8 @@ import {
     InteractiveComponentTargets,
     InteractiveTargets
 } from "./Interactions/InteractionTypes";
-import { InteractiveCommand } from "./Interactions/InteractiveCommand";
-import { InteractiveComponent } from "./Interactions/InteractiveComponent";
+import { InteractiveDiscordCommand } from "./Interactions/InteractiveCommand";
+import { InteractiveComponent } from "./Interactions/Entities/Components/InteractiveComponent";
 import BaseConfigEntry, { ArrayConfigEntry, NonArrayConfigEntry } from "./ConfigManager/ConfigEntries/BaseConfigEntry"
 import CommonArrayConfigEntry from "./ConfigManager/ConfigEntries/CommonArrayConfigEntry"
 import CommonConfigEntry from "./ConfigManager/ConfigEntries/CommonConfigEntry"
@@ -87,7 +87,7 @@ export {
     EventManager,
 
     InteractionsManager,
-    InteractiveCommand,
+    InteractiveDiscordCommand,
     InteractiveCommandTargets,
     InteractiveComponent,
     InteractiveComponentTargets,

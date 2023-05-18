@@ -1,12 +1,17 @@
-import {
-    ISynergyBaseCommandInteractionOptions,
-    ISynergyInteractionReplyOptions,
-    SynergyBaseCommandInteraction
-} from "./SynergyBaseCommandInteraction";
-import { ModulePlatform } from "../Modules/Module";
 import Discord from "discord.js";
-import Synergy from "../Synergy";
+import Synergy from "../../Synergy";
+import { ModulePlatform } from "../../Modules/Module";
 import { Stream } from "node:stream";
+import { SynergyDiscordComponentInteraction } from "./SynergyDiscordComponentInteraction";
+import { SynergyDiscordCommandInteraction } from "./SynergyDiscordCommandInteraction";
+import {
+    ISynergyInteractionOptions,
+    ISynergyInteractionReplyOptions,
+    SynergyInteraction,
+    SynergyInteractionType
+} from "../SynergyInteraction";
+
+type DiscordCommandOrComponentInteraction = Discord.CommandInteraction | Discord.MessageComponentInteraction;
 
 export interface ISynergyDiscordInteractionReplyOptions extends ISynergyInteractionReplyOptions {
     tts?: boolean;
@@ -31,20 +36,27 @@ export interface ISynergyDiscordInteractionReplyOptions extends ISynergyInteract
         )[];
 }
 
-export interface ISynergyDiscordCommandInteractionOptions extends ISynergyBaseCommandInteractionOptions<ModulePlatform.Discord>{
-    platform: ModulePlatform.Discord;
-    discordInteraction: Discord.CommandInteraction;
+export interface ISynergyDiscordInteractionOptions<T extends DiscordCommandOrComponentInteraction> extends Omit<ISynergyInteractionOptions<ModulePlatform.Discord>, "name" | "platform"> {
+    discordInteraction: T;
 }
 
-export class SynergyDiscordCommandInteraction extends SynergyBaseCommandInteraction<ModulePlatform.Discord> {
-    public readonly discordInteraction: Discord.CommandInteraction;
+export abstract class SynergyDiscordInteraction<T extends DiscordCommandOrComponentInteraction = DiscordCommandOrComponentInteraction> extends SynergyInteraction<ModulePlatform.Discord> {
+    public readonly discordInteraction: T;
 
-    constructor(bot: Synergy, options: ISynergyDiscordCommandInteractionOptions) {
+    protected constructor(bot: Synergy, options: Omit<ISynergyDiscordInteractionOptions<T>, "platform">, type: SynergyInteractionType) {
         super(bot, {
             ...options,
             platform: ModulePlatform.Discord
-        });
+        }, type);
         this.discordInteraction = options.discordInteraction;
+    }
+
+    public isComponent(): this is SynergyDiscordComponentInteraction {
+        return this.type === SynergyInteractionType.Component;
+    }
+
+    public isCommand(): this is SynergyDiscordCommandInteraction {
+        return this.type === SynergyInteractionType.Command;
     }
 
     public async reply(options: ISynergyDiscordInteractionReplyOptions) {

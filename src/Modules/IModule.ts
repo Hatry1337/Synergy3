@@ -1,6 +1,6 @@
 import { ModuleLogger } from "../GlobalLogger";
 import { Synergy } from "..";
-import { InteractiveCommand } from "../Interactions/InteractiveCommand";
+import { InteractiveDiscordCommand } from "../Interactions/InteractiveCommand";
 import Discord from "discord.js";
 import { AccessTarget } from "../Structures/Access";
 
@@ -15,7 +15,7 @@ export default interface IModule{
     Permissions: Discord.PermissionsBitField;
     
     Logger: ModuleLogger;
-    SlashCommands:  InteractiveCommand<Discord.SlashCommandBuilder>[];
+    SlashCommands:  InteractiveDiscordCommand<Discord.SlashCommandBuilder>[];
 
     InitPriority: number;
     Init?(): Promise<void>;

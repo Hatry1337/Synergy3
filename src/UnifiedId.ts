@@ -18,6 +18,7 @@
           |         |   3 - Discord Guild                                                            |
           |         |   4 - Discord Channel                                                          |
           |         |   5 - Other channel                                                            |
+          |         |   6 - Interaction                                                              |
           |         |   ...                                                                          |
           +---------+--------------------------------------------------------------------------------+
           | [15-00] | Increment number                                                               |
@@ -33,6 +34,7 @@ export enum UnifiedIdDataType {
     DiscordGuild    = 3,
     DiscordChannel  = 4,
     OtherChannel    = 5,
+    Interaction     = 6,
 }
 
 export type UnifiedIdString = string;
