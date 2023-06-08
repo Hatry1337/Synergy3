@@ -7,6 +7,7 @@ import { UnifiedId, UnifiedIdDataType } from "../UnifiedId";
 import { SynergyDiscordInteraction } from "./Discord/SynergyDiscordInteraction";
 import { SynergyCommandInteraction } from "./SynergyCommandInteraction";
 import { SynergyComponentInteraction } from "./SynergyComponentInteraction";
+import Discord from "discord.js";
 
 export enum SynergyInteractionType {
     Component = 0,
@@ -15,6 +16,7 @@ export enum SynergyInteractionType {
 
 export interface ISynergyInteractionReplyOptions<E = any> {
     content?: string;
+    embeds?: Discord.EmbedBuilder[];
     files?: (
         | Buffer
         | string
@@ -32,6 +34,7 @@ export abstract class SynergyInteraction<T extends ModulePlatform = ModulePlatfo
     public readonly id: string;
     public readonly bot: Synergy;
     public readonly platform: T;
+    public readonly user: User;
     public readonly type: SynergyInteractionType;
 
     protected constructor(bot: Synergy, options: ISynergyInteractionOptions<T>, type: SynergyInteractionType) {
@@ -39,6 +42,7 @@ export abstract class SynergyInteraction<T extends ModulePlatform = ModulePlatfo
         this.bot = bot;
         this.platform = options.platform;
         this.type = type;
+        this.user = options.user;
     }
 
     public isCommand(): this is SynergyCommandInteraction {

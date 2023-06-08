@@ -1,9 +1,8 @@
-import IModule from "./IModule";
 import { ModuleLogger } from "../GlobalLogger";
 import { InteractiveComponent, Synergy } from "..";
-import { InteractiveDiscordCommand } from "../Interactions/InteractiveCommand";
 import { AccessTarget } from "../Structures/Access";
 import Discord from "discord.js";
+import { SynergySlashCommandBuilder } from "../Interactions/Entities/Commands/SynergyCommandBuilder";
 
 export type ModuleSharedMethods = { [key: string]: (...args: any) => any };
 export enum ModulePlatform {
@@ -12,23 +11,23 @@ export enum ModulePlatform {
     TextBased = "text"
 }
 
-export default class Module implements IModule{
+export default abstract class Module {
     /**
      * Name of the module. Recommended to be equal with class name
      */
-    public Name: string = "Module";
+    public abstract Name: string;
     /**
      * Brief description of the module
      */
-    public Description: string = "This is base module. Don't use it as regular module.";
+    public abstract Description: string;
     /**
      * Category of the module. Standard ones is `BOT`, `Admin`, `Info`, `Utility`, `Moderation` and so on
      */
-    public Category: string = "BOT";
+    public abstract Category: string;
     /**
      * Author who created this module. Put here your name or nickname
      */
-    public Author: string = "Thomasss#9258";
+    public abstract Author: string;
     /**
      * Priority relative to other modules when module should be initialized.
      */
@@ -42,8 +41,7 @@ export default class Module implements IModule{
      */
     public Permissions: Discord.PermissionsBitField = new Discord.PermissionsBitField();
 
-    readonly Logger: ModuleLogger = new ModuleLogger(this);
-    readonly SlashCommands: InteractiveDiscordCommand<Discord.SlashCommandBuilder>[] = [];
+    public readonly Logger: ModuleLogger = new ModuleLogger(this);
 
     /**
      * Supported platforms which module can correctly process
@@ -52,7 +50,8 @@ export default class Module implements IModule{
 
     protected sharedMethods: ModuleSharedMethods = {};
 
-    constructor(public bot: Synergy, protected UUID: string) {
+    protected constructor(public bot: Synergy, protected UUID: string) {
+
     }
     
     /**
@@ -60,29 +59,17 @@ export default class Module implements IModule{
      */
     public async Init?(): Promise<void>;
     /**
-     * Called when Synergy unloads the module or shutting down themself. Override this to remove any timers and save the data
+     * Called when Synergy unloads the module or shutting down itself. Override this to remove any timers and save the data
      */
     public async UnLoad?(): Promise<void>;
 
     /**
-     * Creates interactive Slash Command and adds it to `this.SlashCommands`
-     * @param name Name of the slash command to create (Lowercase only)
-     * @param access Allowed access targets to interact with this command
-     * @param forGuildId Guild id where to upload this command. **Leave empty to upload globally**
+     * Shortcut for `Synergy.interactions.registerCommand`
+     * @param builder Builder of the command
      */
-    public createSlashCommand(name: string, access?: AccessTarget[], forGuildId?: string){
-        let command = this.bot.interactions.createSlashCommand(name, access || this.Access, this, forGuildId);
-        this.SlashCommands.push(command);
-        return command;
-    }
-    /**
-     * Creates interactive Context Menu Command
-     * @param name Name of the Context Menu command to create
-     * @param access Allowed access targets to interact with this command
-     * @param forGuildId Guild id where to upload this command. **Leave empty to upload globally**
-     */
-    public createMenuCommand(name: string, access?: AccessTarget[], forGuildId?: string){
-        return this.bot.interactions.createMenuCommand(name, access || this.Access, this, forGuildId);
+    public registerCommand(builder: SynergySlashCommandBuilder){
+        this.bot.interactions.registerCommand(builder, this);
+        return builder;
     }
 
     /**

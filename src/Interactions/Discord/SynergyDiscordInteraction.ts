@@ -49,6 +49,7 @@ export abstract class SynergyDiscordInteraction<T extends DiscordCommandOrCompon
             platform: ModulePlatform.Discord
         }, type);
         this.discordInteraction = options.discordInteraction;
+        Discord.AutocompleteInteraction
     }
 
     public isComponent(): this is SynergyDiscordComponentInteraction {
@@ -78,6 +79,7 @@ export abstract class SynergyDiscordInteraction<T extends DiscordCommandOrCompon
 
         await this.discordInteraction.reply({
             ...options,
+            ...options.extras,
             files
         });
     }

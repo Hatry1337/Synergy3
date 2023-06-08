@@ -1,7 +1,7 @@
-import { SynergyCommandBuilder } from "./SynergyCommandBuilder";
 import Discord from "discord.js";
-import { SynergyDiscordCommandInteraction } from "../../Discord/SynergyDiscordCommandInteraction";
-import User from "../../../Structures/User";
+import { SynergyCommandBuilder, SynergyCommandBuilderType } from "../SynergyCommandBuilder";
+import { SynergyDiscordCommandInteraction } from "../../../Discord/SynergyDiscordCommandInteraction";
+import User from "../../../../Structures/User";
 
 export type SlashCommandCallbackInteraction = SynergyDiscordCommandInteraction<Discord.ChatInputCommandInteraction>;
 
@@ -10,10 +10,15 @@ export type SlashCommandAutocompleteCallback = (interaction: Discord.Autocomplet
 export type SlashCommandExecutionCallback = (interaction: SlashCommandCallbackInteraction) => Promise<void>;
 
 export class SynergyDiscordSlashCommandBuilder extends SynergyCommandBuilder<SynergyDiscordCommandInteraction<Discord.ChatInputCommandInteraction>> {
+    protected type: SynergyCommandBuilderType = SynergyCommandBuilderType.DiscordSlash;
     public isUpdated: boolean = true;
     public isPushed: boolean = false;
     private autocompleteCallback?: SlashCommandAutocompleteCallback;
     private subcommandCallbacks: Map<string, SlashCommandExecutionCallback> = new Map();
+
+    public constructor() {
+        super();
+    }
 
     /**
      * Mark command as ready to upload
@@ -28,15 +33,12 @@ export class SynergyDiscordSlashCommandBuilder extends SynergyCommandBuilder<Syn
      * @param name name of subcommand
      * @param callback function to execute when received interaction with subcommand
      */
-    public onSubcommand(name: string, callback: SlashCommandExecutionCallback){
+    public setSubcommandCallback(name: string, callback: SlashCommandExecutionCallback){
         this.subcommandCallbacks.set(name, callback);
         return this;
     }
 
-    /**
-     * Don't execute this function directly! It is for internal calls
-     */
-    public async _exec(interaction: SlashCommandCallbackInteraction){
+    public override async _exec(interaction: SlashCommandCallbackInteraction){
         if(interaction.discordInteraction.isChatInputCommand() && interaction.discordInteraction.options.getSubcommand(false)){
             let cb = this.subcommandCallbacks.get(interaction.discordInteraction.options.getSubcommand());
             if(cb){
