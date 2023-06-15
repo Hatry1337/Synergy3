@@ -213,7 +213,10 @@ export default class UserManager extends CachedManager<User>{
                 await t.commit();
             }
         } catch(e) {
-            GlobalLogger.root.warn("UserManager.forceStorageUpdate Error:", e);
+            GlobalLogger.root.error("UserManager.forceStorageUpdate Error:", e, "\nTransaction:", t);
+            if (!transaction) {
+                await t.rollback();
+            }
         }
     }
 
