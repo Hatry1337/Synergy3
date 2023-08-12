@@ -30,7 +30,7 @@
     "test": "npx jest --setupFiles dotenv/config --detectOpenHandles"
   },
   "dependencies": {
-    "discord.js": "^14.7.1",
+    "discord.js": "^14.12.1",
     "log4js": "^6.5.2",
     "node-cache": "^5.1.2",
     "pg": "^8.7.3",
