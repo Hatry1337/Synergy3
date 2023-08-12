@@ -1,16 +1,16 @@
 import Discord from "discord.js";
 
-import { Op, Transaction } from "sequelize";
-import { sequelize } from "./Database";
-import { StorageUserDiscordInfo } from "./Models/StorageUserDiscordInfo";
-import { StorageUserEconomyInfo } from "./Models/StorageUserEconomyInfo";
-import { StorageUser } from "./Models/StorageUser";
+import {Op, Transaction} from "sequelize";
+import {sequelize} from "./Database";
+import {StorageUserDiscordInfo} from "./Models/StorageUserDiscordInfo";
+import {StorageUserEconomyInfo} from "./Models/StorageUserEconomyInfo";
+import {StorageUser} from "./Models/StorageUser";
 
-import { GlobalLogger } from "./GlobalLogger";
+import {GlobalLogger} from "./GlobalLogger";
 import Synergy from "./Synergy";
-import User, { UserOptions } from "./Structures/User";
-import { Access, UnifiedIdString } from ".";
-import { UserAlreadyExistError } from "./Structures/Errors";
+import User, {UserOptions} from "./Structures/User";
+import {Access, UnifiedIdString} from ".";
+import {UserAlreadyExistError} from "./Structures/Errors";
 import CachedManager from "./Structures/CachedManager";
 
 export default class UserManager extends CachedManager<User>{
@@ -37,6 +37,27 @@ export default class UserManager extends CachedManager<User>{
         if(entry) {
             return entry[0];
         }
+    }
+
+    /**
+     * Set custom id association
+     *
+     * #USE ONLY IF YOU KNOW WHAT YOU'RE DOING!!!
+     * @param unifiedId
+     * @param id
+     */
+    public setDiscordIdAssociation(id: Discord.Snowflake, unifiedId: UnifiedIdString) {
+        this.discordIdsAssociations.set(id, unifiedId);
+    }
+
+    /**
+     * Delete id association
+     *
+     * #USE ONLY IF YOU KNOW WHAT YOU'RE DOING!!!
+     * @param id
+     */
+    public deleteDiscordIdAssociation(id: Discord.Snowflake) {
+        this.discordIdsAssociations.delete(id);
     }
 
     /**
