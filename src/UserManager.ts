@@ -145,10 +145,14 @@ export default class UserManager extends CachedManager<User>{
             unifiedId: storageUser.unifiedId
         });
 
+        await StorageUserEconomyInfo.create({
+            unifiedId: storageUser.unifiedId,
+            economyPoints: user.economy.points,
+            economyLVL: user.economy.lvl,
+            economyXP: user.economy.xp,
+        } as StorageUserEconomyInfo);
+
         this.cacheStorage.set(user.unifiedId, user);
-        if(user.discord) {
-            this.discordIdsAssociations.set(user.discord.id, user.unifiedId);
-        }
         return user;
     }
 
@@ -166,8 +170,19 @@ export default class UserManager extends CachedManager<User>{
             groups,
             lang: "en"
         }, system);
-
         user.bindDiscord(dUser);
+
+        if(user.discord) {
+            await StorageUserDiscordInfo.create({
+                unifiedId: user.unifiedId,
+                discordId: user.discord.id,
+                discordTag: user.discord.tag,
+                discordAvatar: user.discord.avatar,
+                discordBanner: user.discord.banner,
+                discordCreatedAt: user.discord.createdAt,
+            } as StorageUserDiscordInfo);
+        }
+
         this.discordIdsAssociations.set(dUser.id, user.unifiedId);
         return user;
     }
@@ -219,7 +234,10 @@ export default class UserManager extends CachedManager<User>{
                 await t.commit();
             }
         } catch(e) {
-            GlobalLogger.root.warn("UserManager.forceStorageUpdate Error:", e);
+            GlobalLogger.root.error("UserManager.forceStorageUpdate Error:", e, "\nTransaction:", t);
+            if (!transaction) {
+                await t.rollback();
+            }
         }
     }
 

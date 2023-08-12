@@ -1,6 +1,6 @@
 import Discord from "discord.js";
 
-import { Op } from "sequelize";
+import { Op, Transaction } from "sequelize";
 import { sequelize } from "./Database";
 
 import { GlobalLogger } from "./GlobalLogger";
@@ -90,15 +90,23 @@ export default class GuildManager extends CachedManager<Guild> {
     }
 
     public override async destroy() {
+        let t = await sequelize().transaction();
+
         for(let k of this.cacheStorage.keys()) {
-            await this.onCacheEntryDeleted(k, this.cacheStorage.get(k)!);
+            await this.onCacheEntryDeleted(k, this.cacheStorage.get(k)!, t);
         }
+
+        try {
+            await t.commit();
+        } catch (e) {
+            GlobalLogger.root.error("GuildManager.destroy Error:", e, "\nTransaction:", t);
+            await t.rollback();
+        }
+
         await super.destroy();
     }
 
-    private async onCacheEntryDeleted(discordId: string, guild: Guild) {
-        let t = await sequelize().transaction();
-
+    private async onCacheEntryDeleted(discordId: string, guild: Guild, transaction?: Transaction) {
         await StorageGuild.update({
             id: guild.id,
             group: guild.group,
@@ -113,7 +121,7 @@ export default class GuildManager extends CachedManager<Guild> {
             where: {
                 id: guild.id
             },
-            transaction: t
+            transaction
         }).catch(err => GlobalLogger.root.error("GuildManager.syncCacheEntry Error Updating StorageGuild:", err));
     }
 }

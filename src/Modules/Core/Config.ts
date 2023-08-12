@@ -202,7 +202,7 @@ export default class Config extends Module{
     public async interactionRouter(interaction: Discord.ChatInputCommandInteraction, user: User) {
         let subcommandGroup = interaction.options.getSubcommandGroup(true);
         let namespace = interaction.options.getString("namespace", true);
-        let ephemeralTarget = await this.getEphemeralTarget(interaction, namespace);
+        let ephemeralTarget = await this.getEphemeralTarget(interaction, user, namespace);
 
         if(!await this.checkPermissions(interaction, user, namespace)) {
             throw new MissingPermissionsError();
@@ -431,10 +431,10 @@ export default class Config extends Module{
         }
     }
 
-    private async getEphemeralTarget(interaction: Discord.ChatInputCommandInteraction, namespace: string) {
+    private async getEphemeralTarget(interaction: Discord.ChatInputCommandInteraction, user: User, namespace: string) {
         switch (namespace) {
             case "user": {
-                return interaction.user.id;
+                return user.unifiedId;
             }
 
             case "guild": {

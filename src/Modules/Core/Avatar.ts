@@ -1,7 +1,7 @@
 import Discord from "discord.js";
 import { Emojis, Colors } from "../../Utils";
 import Module from "../Module";
-import { Synergy } from "../..";
+import { Synergy, SynergyUserError } from "../..";
 import Access, { AccessTarget } from "../../Structures/Access";
 
 export default class Avatar extends Module{
@@ -29,47 +29,21 @@ export default class Avatar extends Module{
         );
     }
 
-    public Run(interaction: Discord.CommandInteraction){
-        return new Promise<void>(async (resolve, reject) => {
-            let user = interaction.options.getUser("target_user");
-            if(!user){
-                let avatar = interaction.user.avatarURL({ size: 2048 });
-                if(avatar){
-                    let embd = new Discord.EmbedBuilder({
-                        title: `${interaction.user.username}'s avatar`,
-                        image: { url: avatar },
-                        color: Colors.Noraml
-                    });
-                    await interaction.reply({ embeds: [embd]}).catch(reject);
-                    return resolve();
-                }else{
-                    let embd = new Discord.EmbedBuilder({
-                        title: `${Emojis.RedErrorCross} Cannot get your avatar!`,
-                        color: Colors.Error
-                    });
-                    await interaction.reply({ embeds: [embd] }).catch(reject);
-                    return resolve();
-                }                    
-            }else{
-                var avatar = user.avatarURL({ size: 2048 });
+    public async Run(interaction: Discord.CommandInteraction){
+        let user = interaction.options.getUser("target_user");
+        if(!user){
+            user = interaction.user;
+        }
 
-                if(!avatar){
-                    let embd = new Discord.EmbedBuilder({
-                        title: `${Emojis.RedErrorCross} Cannot get user's avatar!`,
-                        color: Colors.Error
-                    });
-                    await interaction.reply({ embeds: [embd] }).catch(reject);
-                    return resolve();
-                }
+        let avatar = user.avatarURL({ size: 2048 });
 
-                let embd = new Discord.EmbedBuilder({
-                    title: `${user.username}'s avatar`,
-                    image: { url: avatar },
-                    color: Colors.Noraml
-                });
-                await interaction.reply({ embeds: [embd]}).catch(reject);
-                return resolve();
-            }
+        if(!avatar){
+            throw new SynergyUserError("Cannot get user's avatar!")
+        }
+
+        await interaction.reply({
+            content: `${user.username}'s avatar`,
+            files: [ avatar ]
         });
     }
 }
