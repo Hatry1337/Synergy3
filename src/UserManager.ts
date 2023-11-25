@@ -188,7 +188,7 @@ export default class UserManager extends CachedManager<User>{
     }
 
     public async forceStorageUpdate(unifiedId: UnifiedIdString, transaction?: Transaction) {
-        let user = await this.get(unifiedId);
+        let user = await this.cacheStorage.get<User>(unifiedId);
         if(!user) return;
 
         let t = transaction;
