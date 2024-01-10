@@ -187,10 +187,7 @@ export default class UserManager extends CachedManager<User>{
         return user;
     }
 
-    public async forceStorageUpdate(unifiedId: UnifiedIdString, transaction?: Transaction) {
-        let user = await this.cacheStorage.get<User>(unifiedId);
-        if(!user) return;
-
+    public async forceStorageUpdate(user: User, transaction?: Transaction) {
         let t = transaction;
         if(!t) {
             t = await sequelize().transaction();
@@ -250,12 +247,16 @@ export default class UserManager extends CachedManager<User>{
 
     public override async destroy() {
         for(let k of this.cacheStorage.keys()) {
-            await this.onCacheEntryDeleted(k, this.cacheStorage.get(k)!);
+            try {
+                await this.onCacheEntryDeleted(k, this.cacheStorage.get(k)!);
+            } catch (e) {
+                GlobalLogger.root.error("UserManager.destroy entry with key", k, "failed:", e);
+            }
         }
         await super.destroy();
     }
 
     private async onCacheEntryDeleted(unifiedId: UnifiedIdString, user: User) {
-        await this.forceStorageUpdate(unifiedId);
+        await this.forceStorageUpdate(user);
     }
 }
