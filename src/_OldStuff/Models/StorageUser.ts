@@ -1,7 +1,7 @@
 import { Column, DataType, HasOne, Model, Table } from "sequelize-typescript";
 import { StorageUserDiscordInfo } from "./StorageUserDiscordInfo";
 import { StorageUserEconomyInfo } from "./StorageUserEconomyInfo";
-import { UnifiedId, UnifiedIdDataType, UnifiedIdString } from "../UnifiedId";
+import { UnifiedId, UnifiedIdDataType, UnifiedIdString } from "../../UnifiedId";
 
 interface StorageUserMeta{
 }

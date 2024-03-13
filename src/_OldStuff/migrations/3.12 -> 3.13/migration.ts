@@ -7,7 +7,7 @@ import { StorageUser as StorageUser312 } from "./3.12/StorageUser";
 import { StorageUserDiscordInfo as StorageUserDiscordInfo313 } from "./3.13/StorageUserDiscordInfo";
 import { StorageUserEconomyInfo as StorageUserEconomyInfo313 } from "./3.13/StorageUserEconomyInfo";
 import { StorageUser as StorageUser313 } from "./3.13/StorageUser";
-import { RainbowBOTEpoch, UnifiedId, UnifiedIdDataType } from "../../UnifiedId";
+import { RainbowBOTEpoch, UnifiedId, UnifiedIdDataType } from "../../../UnifiedId";
 
 const args = process.argv.slice(2);
 
